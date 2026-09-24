@@ -1,0 +1,91 @@
+.equipos-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.equipos-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color, #d9e3ee);
+  border-radius: 10px;
+  padding: 9px 14px;
+  min-width: 280px;
+  color: var(--text-dim);
+  flex: 1;
+  max-width: 420px;
+}
+.equipos-search input {
+  border: none; background: transparent; outline: none;
+  font-size: 13px; color: var(--text-main); width: 100%;
+}
+.equipos-tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+.equipos-tabs button {
+  border: 1px solid var(--border-color, #d9e3ee);
+  background: var(--bg-card);
+  padding: 7px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.equipos-tabs button.active {
+  background: #006194;
+  color: #fff;
+  border-color: #006194;
+}
+
+.equipo-tipo-chip {
+    background-color: #EFF4FF;
+    color: #006194;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.equipo-serie-chip {
+    font-family: var(--font-mono, monospace);
+    color: #006194;
+    background-color: #EFF4FF;
+    border: 1px solid #d0e1f9;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.equipo-condicion-chip {
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    display: inline-block;
+}
+
+.orders-pagination {
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 10px;
+    padding: 14px 16px; font-size: 12px; color: var(--text-muted);
+    border-top: 1px solid var(--border-subtle);
+  }
+  .orders-pagination-controls { display: flex; align-items: center; gap: 10px; }
+  .orders-pagination-controls button {
+    border: 1px solid var(--border-color); background: var(--bg-card);
+    padding: 6px 12px; border-radius: 8px; font-size: 12px; cursor: pointer;
+    color: var(--text-main);
+  }
+  .orders-pagination-controls button:disabled { opacity: .4; cursor: not-allowed; }
+  .orders-page-number {
+    background: #006194; color: #fff; width: 26px; height: 26px;
+    border-radius: 7px; display: flex; align-items: center; justify-content: center;
+    font-weight: 700;
+  }

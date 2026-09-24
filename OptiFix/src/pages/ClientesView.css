@@ -1,0 +1,176 @@
+/* ==========================================================================
+   CLIENTES VIEW — paleta de marca OptiFix (anteproyecto)
+   ========================================================================== */
+
+.clientes-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.clientes-title { font-size: 22px; color: #0B1C30; font-weight: 700; margin: 0; }
+.clientes-subtitle { color: var(--text-muted); font-size: 13px; margin: 4px 0 0; }
+.clientes-header-actions { display: flex; gap: 10px; }
+
+/* ── KPIs ────────────────────────────────────────────────────────────── */
+.clientes-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.clientes-kpi-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 16px 18px;
+  box-shadow: 0 2px 4px rgba(11, 28, 48, 0.05);
+}
+.clientes-kpi-card h4 { 
+  font-size: 11px; 
+  text-transform: uppercase; 
+  letter-spacing: .04em; 
+  color: var(--text-muted); 
+  margin: 0 0 6px; 
+  font-weight: 700; 
+}
+
+/* ── Controles ───────────────────────────────────────────────────────── */
+.clientes-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.clientes-tabs {
+  display: flex;
+  gap: 8px;
+  border-bottom: 2px solid var(--border-color);
+}
+.clientes-tabs button {
+  background: none;
+  border: none;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+}
+.clientes-tabs button.active {
+  color: #006194;
+  border-bottom-color: #006194;
+}
+.clientes-search input {
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 13px;
+  width: 300px;
+  max-width: 100%;
+}
+
+/* ── Tabla ───────────────────────────────────────────────────────────── */
+.cliente-avatar-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.cliente-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 14px;
+}
+.cliente-id-chip {
+  background-color: var(--bg-input);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: #0B1C30;
+  border: 1px solid var(--border-subtle);
+}
+.cliente-contact-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-outline-icon.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ── Paginación ──────────────────────────────────────────────────────── */
+.pagination-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  border-top: 1px solid var(--border-color);
+}
+.pagination-controls button {
+  background: white;
+  border: 1px solid var(--border-color);
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.pagination-controls button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.pagination-controls span {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* ── Tarjetas Inferiores ─────────────────────────────────────────────── */
+.clientes-bottom-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+  margin-top: 24px;
+}
+.bottom-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 20px;
+}
+.bottom-card h4 {
+  margin: 0 0 8px;
+  font-size: 15px;
+  color: #006194;
+}
+.bottom-card p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+.bottom-card.dark-card {
+  background: #0B1C30;
+  border-color: #0B1C30;
+}
+.bottom-card.dark-card h4 {
+  color: white;
+}
+.bottom-card.dark-card p {
+  color: #aebfd0;
+}

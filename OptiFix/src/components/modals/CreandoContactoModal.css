@@ -1,0 +1,38 @@
+.floating-group {
+  position: relative;
+  width: 100%;
+  margin-bottom: 8px;
+}
+.floating-group input,
+.floating-group select,
+.floating-group textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border-color, #cbd5e1);
+  border-radius: 8px;
+  background: white;
+  font-size: 14px;
+  color: var(--text-color, #1e293b);
+  outline: none;
+}
+.floating-group input:focus,
+.floating-group select:focus,
+.floating-group textarea:focus {
+  border-color: #006194;
+}
+.floating-group label {
+  position: absolute;
+  top: -8px;
+  left: 12px;
+  background: white;
+  padding: 0 4px;
+  font-size: 12px;
+  color: #64748b;
+  pointer-events: none;
+}
+.floating-group .req {
+  color: #ef4444;
+}
+.floating-group .input-error {
+  border-color: #ef4444;
+}

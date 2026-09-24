@@ -1,0 +1,18 @@
+.orders-pagination {
+  display: flex; justify-content: space-between; align-items: center;
+  flex-wrap: wrap; gap: 10px;
+  padding: 14px 16px; font-size: 12px; color: var(--text-muted);
+  border-top: 1px solid var(--border-subtle);
+}
+.orders-pagination-controls { display: flex; align-items: center; gap: 10px; }
+.orders-pagination-controls button {
+  border: 1px solid var(--border-color); background: var(--bg-card);
+  padding: 6px 12px; border-radius: 8px; font-size: 12px; cursor: pointer;
+  color: var(--text-main);
+}
+.orders-pagination-controls button:disabled { opacity: .4; cursor: not-allowed; }
+.orders-page-number {
+  background: #006194; color: #fff; width: 26px; height: 26px;
+  border-radius: 7px; display: flex; align-items: center; justify-content: center;
+  font-weight: 700;
+}
