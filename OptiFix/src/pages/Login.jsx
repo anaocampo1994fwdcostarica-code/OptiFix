@@ -1,20 +1,12 @@
 import React, { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import Footer from "../components/Footer.jsx";
 import { OptifixBrand } from "../components/OptifixLogo.jsx";
+import { useAuth } from "../hooks/useAuth.js";
+import { useWorkshop } from "../context/WorkshopContext.jsx";
 import "./Login.css";
 
-const USUARIOS = [
-  { usuario: "admin", password: "admin123", rol: "admin", nombre: "Administrador" },
-  { usuario: "tecnico", password: "tec123", rol: "tecnico", nombre: "Técnico Principal" },
-];
-
-const DEMO = { usuario: "demo", password: "demo", rol: "admin", nombre: "Usuario Demo" };
-
-const CUENTAS = {
-  admin: { rol: "admin", user: "admin", pass: "admin123", label: "Administrador" },
-  tecnico: { rol: "tecnico", user: "tecnico", pass: "tec123", label: "Técnico" },
-};
+const ETIQUETAS_ROL = { admin: "Administrador", tecnico: "Técnico" };
 
 export function LoginCard({ initialRole = "admin" }) {
   const [tab, setTab] = useState(initialRole);
@@ -23,7 +15,8 @@ export function LoginCard({ initialRole = "admin" }) {
   const [error, setError] = useState("");
   const [cargando, setCargando] = useState(false);
   const navigate = useNavigate();
-  const CUENTA = CUENTAS[tab];
+  const { login } = useAuth();
+  const { usuarios } = useWorkshop();
 
   function cambiarTab(nuevo) {
     setTab(nuevo);
@@ -33,10 +26,7 @@ export function LoginCard({ initialRole = "admin" }) {
   }
 
   function entrarComo(u) {
-    localStorage.setItem(
-      "optifix_session",
-      JSON.stringify({ nombre: u.nombre, rol: u.rol })
-    );
+    login(u);
     navigate("/ordenes");
   }
 
@@ -46,17 +36,24 @@ export function LoginCard({ initialRole = "admin" }) {
     setCargando(true);
 
     setTimeout(() => {
-      if (usuario.trim() === CUENTA.user && password === CUENTA.pass) {
-        entrarComo(USUARIOS.find((u) => u.rol === CUENTA.rol));
+      const encontrado = usuarios.find(
+        (u) =>
+          u.usuario.toLowerCase() === usuario.trim().toLowerCase() &&
+          u.password === password &&
+          u.rol === tab
+      );
+      if (encontrado) {
+        entrarComo(encontrado);
       } else {
-        setError(`Usuario o contraseña incorrectos para el acceso de ${CUENTA.label}.`);
+        setError(`Usuario o contraseña incorrectos para el acceso de ${ETIQUETAS_ROL[tab]}.`);
       }
       setCargando(false);
-    }, 600);
+    }, 500);
   }
 
   function handleDemo() {
-    entrarComo(DEMO);
+    const demo = usuarios.find((u) => u.usuario === "demo") || usuarios[0];
+    if (demo) entrarComo(demo);
   }
 
   return (
@@ -67,7 +64,7 @@ export function LoginCard({ initialRole = "admin" }) {
           <OptifixBrand size={48} textSize={26} taglineSize={9} />
         </div>
         <h1 className="heading">Login</h1>
-        <p className="login-sub">Acceso de {CUENTA.label}</p>
+        <p className="login-sub">Acceso de {ETIQUETAS_ROL[tab]}</p>
       </div>
 
       {/* Dos accesos separados: Administrador / Técnico */}
@@ -79,7 +76,7 @@ export function LoginCard({ initialRole = "admin" }) {
             onClick={() => cambiarTab(id)}
             className={`login-tab-btn ${tab === id ? "active" : ""}`}
           >
-            {CUENTAS[id].label}
+            {ETIQUETAS_ROL[id]}
           </button>
         ))}
       </div>
@@ -91,7 +88,7 @@ export function LoginCard({ initialRole = "admin" }) {
             key={tab + "-usuario"}
             name="usuario"
             type="text"
-            placeholder={CUENTA.user}
+            placeholder="Usuario"
             value={usuario}
             onChange={(e) => setUsuario(e.target.value)}
             required
@@ -114,7 +111,7 @@ export function LoginCard({ initialRole = "admin" }) {
           />
         </div>
 
-        {error && <div className="login-error">{error}</div>}
+        {error && <div className="login-error" role="alert">{error}</div>}
 
         <button type="submit" disabled={cargando} className="btn-submit">
           {cargando ? "Verificando..." : "Ingresar"}
@@ -137,7 +134,7 @@ export function LoginCard({ initialRole = "admin" }) {
 
       {/* Credenciales del rol activo */}
       <div className="login-credentials">
-        <p className="cred-title">Credenciales de prueba · {CUENTA.label}</p>
+        <p className="cred-title">Credenciales de prueba · {ETIQUETAS_ROL[tab]}</p>
         {tab === "admin" ? (
           <p>Admin: <code>admin / admin123</code></p>
         ) : (
@@ -148,7 +145,7 @@ export function LoginCard({ initialRole = "admin" }) {
 
       <div className="register-link">
         <p>
-          ¿Problemas de acceso? <a href="/">Volver al inicio</a>
+          ¿No tienes cuenta? <Link to="/register">Crear cuenta</Link> · <a href="/">Volver al inicio</a>
         </p>
       </div>
     </div>

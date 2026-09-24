@@ -14,6 +14,13 @@ const MARCAS_SEED = [
   "Haier", "Midea", "Electrolux", "Bosch", "Siemens"
 ];
 
+// Usuarios semilla para autenticación (admin / técnico)
+const USUARIOS_SEED = [
+  { id: "user-1", nombre: "Administrador", usuario: "admin", password: "admin123", rol: "admin" },
+  { id: "user-2", nombre: "Técnico Principal", usuario: "tecnico", password: "tec123", rol: "tecnico" },
+  { id: "user-3", nombre: "Usuario Demo", usuario: "demo", password: "demo", rol: "admin" },
+];
+
 export function WorkshopProvider({ children }) {
   const [data, setData] = useState(() => {
     try {
@@ -24,12 +31,16 @@ export function WorkshopProvider({ children }) {
         if (!parsed.marcas || parsed.marcas.length === 0) {
           parsed.marcas = MARCAS_SEED;
         }
+        // Asegurar que siempre existen usuarios para poder iniciar sesión
+        if (!parsed.usuarios || parsed.usuarios.length === 0) {
+          parsed.usuarios = USUARIOS_SEED;
+        }
         return parsed;
       }
     } catch (e) {
       console.error("Error al cargar datos locales de OptiFix", e);
     }
-    return { ...initialData, marcas: MARCAS_SEED };
+    return { ...initialData, marcas: MARCAS_SEED, usuarios: USUARIOS_SEED };
   });
 
   const [theme, setTheme] = useState(() => {
@@ -68,6 +79,25 @@ export function WorkshopProvider({ children }) {
       if (ya_existe) return prev;
       return { ...prev, marcas: [...(prev.marcas || []), normalizado].sort() };
     });
+  };
+
+  // ── USUARIOS (autenticación) ──────────────────────────────────────────────────
+  const addUsuario = (usuarioData) => {
+    const existe = (data.usuarios || []).some(
+      (u) => u.usuario.toLowerCase() === usuarioData.usuario.trim().toLowerCase()
+    );
+    if (existe) {
+      return { error: "Ese nombre de usuario ya existe." };
+    }
+    const nuevo = {
+      id: `user-${Date.now()}`,
+      nombre: usuarioData.nombre.trim(),
+      usuario: usuarioData.usuario.trim(),
+      password: usuarioData.password,
+      rol: usuarioData.rol === "tecnico" ? "tecnico" : "admin",
+    };
+    setData((prev) => ({ ...prev, usuarios: [...(prev.usuarios || []), nuevo] }));
+    return { usuario: nuevo };
   };
 
   // ── CLIENTES CRUD ─────────────────────────────────────────────────────────────
@@ -143,7 +173,7 @@ export function WorkshopProvider({ children }) {
     }));
   };
 
-  // ── ORDENES CRUD ──────────────────────────────────────────────────────────────
+  // ── COTIZACIONES CRUD ─────────────────────────────────────────────────────────
   const addCotizacion = (cotizacionData) => {
     const nextNum = Math.max(...(data.cotizaciones || []).map((c) => c.numero || 0), 0) + 1;
     const nowStr = new Date().toLocaleDateString("es-CR");
@@ -151,6 +181,9 @@ export function WorkshopProvider({ children }) {
       id: `cot-${Date.now()}`,
       numero: nextNum,
       cliente_id: cotizacionData.cliente_id,
+      equipo_texto: cotizacionData.equipo_texto || "",
+      falla: cotizacionData.falla || "",
+      estado: "PENDIENTE",
       fecha: nowStr,
       vigencia: cotizacionData.vigencia || 15,
       notas: cotizacionData.notas || "",
@@ -165,6 +198,15 @@ export function WorkshopProvider({ children }) {
       cotizaciones: [nueva, ...(prev.cotizaciones || [])]
     }));
     return nueva;
+  };
+
+  const aprobarCotizacion = (id) => {
+    setData((prev) => ({
+      ...prev,
+      cotizaciones: (prev.cotizaciones || []).map((c) =>
+        c.id === id ? { ...c, estado: "APROBADA" } : c
+      )
+    }));
   };
 
   const addOrden = (ordenData) => {
@@ -380,7 +422,7 @@ export function WorkshopProvider({ children }) {
   // ── RESET DEMO ────────────────────────────────────────────────────────────────
   const resetToSeedData = () => {
     localStorage.removeItem(STORAGE_KEY);
-    setData({ ...initialData, marcas: MARCAS_SEED });
+    setData({ ...initialData, marcas: MARCAS_SEED, usuarios: USUARIOS_SEED });
   };
 
   // ── BÚSQUEDA GLOBAL ───────────────────────────────────────────────────────────
@@ -432,6 +474,8 @@ export function WorkshopProvider({ children }) {
     ordenes: data.ordenes || [],
     cotizaciones: data.cotizaciones || [],
     marcas: data.marcas || MARCAS_SEED,
+    usuarios: data.usuarios || USUARIOS_SEED,
+    addUsuario,
     notificaciones: data.notificaciones || [],
     estadisticas: data.estadisticas || {},
     activeStageFilter,
@@ -449,6 +493,7 @@ export function WorkshopProvider({ children }) {
     updateEquipo,
     deleteEquipo,
     addCotizacion,
+    aprobarCotizacion,
     addOrden,
     updateOrden,
     changeOrdenStatus,

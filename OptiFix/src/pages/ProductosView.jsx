@@ -1,106 +1,116 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import { FaSearch, FaPlus, FaTools, FaBoxOpen, FaTag, FaFilter } from "react-icons/fa";
+import React, { useMemo, useState } from "react";
+import Icono from "../components/icons.jsx";
+import "./ProductosView.css";
 
-const REPUESTOS = [
-  { id: 1, categoria: "Tarjetas Main Board", nombre: "Main Board Samsung UN55NU7100", sku: "MB-SAM-55NU71", precio: 85.00, stock: 3, estado: "Disponible" },
-  { id: 2, categoria: "Tarjetas Main Board", nombre: "Main Board LG 43LM5700PUA", sku: "MB-LG-43LM57", precio: 72.50, stock: 1, estado: "Disponible" },
-  { id: 3, categoria: "Displays", nombre: "Panel LCD 55\" Samsung 4K", sku: "DISP-SAM-55-4K", precio: 210.00, stock: 0, estado: "Sin Stock" },
-  { id: 4, categoria: "Displays", nombre: "Display LG 43\" FHD", sku: "DISP-LG-43FHD", precio: 145.00, stock: 2, estado: "Disponible" },
-  { id: 5, categoria: "Consumibles", nombre: "Pasta Térmica Disipadora", sku: "CONS-PASTA-TER", precio: 4.50, stock: 25, estado: "Disponible" },
-  { id: 6, categoria: "Consumibles", nombre: "Flux de Soldadura Premium", sku: "CONS-FLUX-PRE", precio: 8.00, stock: 12, estado: "Disponible" },
-  { id: 7, categoria: "Consumibles", nombre: "Estaño 60/40 - Rollo 250g", sku: "CONS-ESTANO-250", precio: 15.00, stock: 8, estado: "Disponible" },
-  { id: 8, categoria: "Consumibles", nombre: "Limpiador IPA 99% - 500ml", sku: "CONS-IPA-500", precio: 11.00, stock: 6, estado: "Disponible" },
-  { id: 9, categoria: "Fuentes de Poder", nombre: "Fuente Poder TV 50W Universal", sku: "FP-TV-50W", precio: 35.00, stock: 4, estado: "Disponible" },
-  { id: 10, categoria: "Fuentes de Poder", nombre: "Capacitor Electrolítico 1000µF/25V", sku: "CAP-1000-25V", precio: 0.75, stock: 100, estado: "Disponible" },
+const SEED_REPUESTOS = [
+  { id: 1, categoria: "Tarjetas Main Board", nombre: "Main Board Samsung UN55NU7100", sku: "MB-SAM-55NU71", precio: 85000, stock: 3 },
+  { id: 2, categoria: "Tarjetas Main Board", nombre: "Main Board LG 43LM5700PUA", sku: "MB-LG-43LM57", precio: 72500, stock: 1 },
+  { id: 3, categoria: "Displays", nombre: "Panel LCD 55\" Samsung 4K", sku: "DISP-SAM-55-4K", precio: 210000, stock: 0 },
+  { id: 4, categoria: "Displays", nombre: "Display LG 43\" FHD", sku: "DISP-LG-43FHD", precio: 145000, stock: 2 },
+  { id: 5, categoria: "Consumibles", nombre: "Pasta Térmica Disipadora", sku: "CONS-PASTA-TER", precio: 4500, stock: 25 },
+  { id: 6, categoria: "Consumibles", nombre: "Flux de Soldadura Premium", sku: "CONS-FLUX-PRE", precio: 8000, stock: 12 },
+  { id: 7, categoria: "Consumibles", nombre: "Estaño 60/40 - Rollo 250g", sku: "CONS-ESTANO-250", precio: 15000, stock: 8 },
+  { id: 8, categoria: "Consumibles", nombre: "Limpiador IPA 99% - 500ml", sku: "CONS-IPA-500", precio: 11000, stock: 6 },
+  { id: 9, categoria: "Fuentes de Poder", nombre: "Fuente Poder TV 50W Universal", sku: "FP-TV-50W", precio: 35000, stock: 4 },
+  { id: 10, categoria: "Fuentes de Poder", nombre: "Capacitor Electrolítico 1000µF/25V", sku: "CAP-1000-25V", precio: 750, stock: 100 },
 ];
 
 const CATEGORIAS = ["Todos", "Tarjetas Main Board", "Displays", "Consumibles", "Fuentes de Poder"];
 
-const estadoColor = {
-  "Disponible": "#22c55e",
-  "Sin Stock": "#f87171",
-  "Bajo Stock": "#f59e0b"
-};
+function estadoDe(stock) {
+  if (stock === 0) return { label: "SIN STOCK", bg: "#C43D3D", color: "#fff" };
+  if (stock <= 2) return { label: `ÚLTIMAS ${stock}`, bg: "#8a6100", color: "#fff" };
+  return { label: "DISPONIBLE", bg: "#00873A", color: "#fff" };
+}
 
 export default function ProductosView() {
+  const [productos, setProductos] = useState(SEED_REPUESTOS);
   const [busqueda, setBusqueda] = useState("");
   const [categoriaActiva, setCategoriaActiva] = useState("Todos");
 
-  const productosFiltrados = REPUESTOS.filter(p => {
-    const matchBusqueda = p.nombre.toLowerCase().includes(busqueda.toLowerCase()) || p.sku.toLowerCase().includes(busqueda.toLowerCase());
+  const filtrados = useMemo(() => productos.filter((p) => {
+    const term = busqueda.toLowerCase();
+    const matchBusqueda = p.nombre.toLowerCase().includes(term) || p.sku.toLowerCase().includes(term);
     const matchCategoria = categoriaActiva === "Todos" || p.categoria === categoriaActiva;
     return matchBusqueda && matchCategoria;
-  });
+  }), [productos, busqueda, categoriaActiva]);
+
+  const handleReabastecer = (id) => {
+    setProductos(productos.map(p => p.id === id ? { ...p, stock: p.stock + 10 } : p));
+  };
+
+  const activeCount = productos.length;
+  const valorTotal = productos.reduce((sum, p) => sum + (p.precio * p.stock), 0);
+  const bajosStock = productos.filter(p => p.stock <= 2).length;
 
   return (
     <div className="page-container">
-      {/* Breadcrumb */}
       <div className="breadcrumb-nav">
-        <span>Principal</span><span>/</span>
-        <span className="breadcrumb-current">Productos</span>
+        <span>Principal</span>
+        <span>/</span>
+        <span>Inventario</span>
+        <span>/</span>
+        <span className="breadcrumb-current">Repuestos y Productos</span>
       </div>
 
-      {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "24px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", flexWrap: "wrap", gap: "12px" }}>
         <div>
-          <h1 style={{ fontSize: "22px", fontWeight: 700, marginBottom: "4px" }}>
-            📦 Catálogo de Repuestos y Productos
-          </h1>
-          <p style={{ color: "var(--text-muted)", fontSize: "13px" }}>
-            Inventario de componentes, tarjetas Main Board, displays y consumibles.
+          <h1 style={{ fontSize: "22px", color: "#0B1C30", fontWeight: 700, margin: 0 }}>Catálogo de Repuestos</h1>
+          <p style={{ color: "var(--text-muted)", fontSize: "13px", marginTop: "4px" }}>
+            Gestión de inventario de repuestos, consumibles y componentes.
           </p>
         </div>
-        <button className="btn-primary" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <FaPlus size={12} /> Agregar Producto
-        </button>
+        <div style={{ display: "flex", gap: "10px" }}>
+          <button className="btn-primary" style={{ backgroundColor: "#006194" }}>
+            + Nuevo Producto
+          </button>
+        </div>
       </div>
 
-      {/* Stats */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px", marginBottom: "24px" }}>
-        {[
-          { label: "Total Productos", valor: REPUESTOS.length, icon: "📦", color: "#0088cc" },
-          { label: "En Stock", valor: REPUESTOS.filter(p => p.stock > 0).length, icon: "✅", color: "#22c55e" },
-          { label: "Sin Stock", valor: REPUESTOS.filter(p => p.stock === 0).length, icon: "⚠️", color: "#f87171" },
-          { label: "Valor Estimado", valor: "₡" + REPUESTOS.reduce((acc, p) => acc + p.precio * p.stock, 0).toFixed(2), icon: "💰", color: "#f59e0b" }
-        ].map((s, i) => (
-          <div key={i} className="work-order-meta-card" style={{ padding: "16px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div>
-                <div style={{ fontSize: "11px", color: "var(--text-muted)", marginBottom: "4px" }}>{s.label}</div>
-                <div style={{ fontSize: "20px", fontWeight: 700, color: s.color }}>{s.valor}</div>
-              </div>
-              <span style={{ fontSize: "28px" }}>{s.icon}</span>
-            </div>
+      <div className="productos-kpi-row">
+        <div className="productos-kpi-card">
+          <div>
+            <div className="productos-kpi-label">Productos Listados</div>
+            <div className="productos-kpi-value">{activeCount}</div>
+            <div className="productos-kpi-sub">Total en catálogo</div>
           </div>
-        ))}
+          <div className="productos-kpi-icon"><Icono nombre="box" /></div>
+        </div>
+        <div className="productos-kpi-card">
+          <div>
+            <div className="productos-kpi-label">Bajo Stock</div>
+            <div className="productos-kpi-value" style={{ color: bajosStock > 0 ? "#8a6100" : "inherit" }}>{bajosStock}</div>
+            <div className="productos-kpi-sub">Productos &lt; 3 unid.</div>
+          </div>
+          <div className="productos-kpi-icon"><Icono nombre="alert-triangle" /></div>
+        </div>
+        <div className="productos-kpi-card">
+          <div>
+            <div className="productos-kpi-label">Valor del Inventario</div>
+            <div className="productos-kpi-value">₡{valorTotal.toLocaleString("es-CR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            <div className="productos-kpi-sub">Estimado actual</div>
+          </div>
+          <div className="productos-kpi-icon"><Icono nombre="dollar-sign" /></div>
+        </div>
       </div>
 
-      {/* Filtros y búsqueda */}
-      <div style={{ display: "flex", gap: "12px", marginBottom: "16px", flexWrap: "wrap" }}>
-        <div style={{ position: "relative", flex: 1, minWidth: "200px" }}>
-          <FaSearch style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "#64748b" }} size={13} />
+      <div className="productos-toolbar">
+        <div className="productos-search">
+          <Icono nombre="search" size={14} />
           <input
-            className="form-input"
-            style={{ paddingLeft: "36px" }}
+            type="text"
             placeholder="Buscar por nombre o SKU..."
             value={busqueda}
-            onChange={e => setBusqueda(e.target.value)}
+            onChange={(e) => setBusqueda(e.target.value)}
           />
         </div>
-        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+        
+        <div className="productos-tabs">
           {CATEGORIAS.map(cat => (
-            <button
-              key={cat}
+            <button 
+              key={cat} 
+              className={categoriaActiva === cat ? "active" : ""} 
               onClick={() => setCategoriaActiva(cat)}
-              style={{
-                padding: "6px 14px", borderRadius: "99px", fontSize: "12px", fontWeight: 600,
-                border: "1px solid",
-                borderColor: categoriaActiva === cat ? "#0088cc" : "var(--border-color)",
-                backgroundColor: categoriaActiva === cat ? "rgba(0,136,204,0.12)" : "transparent",
-                color: categoriaActiva === cat ? "#0088cc" : "var(--text-muted)",
-                cursor: "pointer"
-              }}
             >
               {cat}
             </button>
@@ -108,45 +118,47 @@ export default function ProductosView() {
         </div>
       </div>
 
-      {/* Tabla */}
-      <div className="work-order-meta-card" style={{ padding: 0, overflow: "hidden" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr style={{ borderBottom: "1px solid var(--border-color)", backgroundColor: "rgba(0,0,0,0.1)" }}>
-              {["SKU", "Nombre del Producto", "Categoría", "Precio Unit.", "Stock", "Estado"].map(h => (
-                <th key={h} style={{ padding: "12px 16px", textAlign: "left", fontSize: "11px", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.5px" }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {productosFiltrados.map((p, i) => (
-              <tr key={p.id} style={{ borderBottom: "1px solid var(--border-color)", transition: "background 0.15s" }}
-                onMouseEnter={e => e.currentTarget.style.background = "rgba(0,136,204,0.04)"}
-                onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-              >
-                <td style={{ padding: "12px 16px", fontFamily: "monospace", fontSize: "12px", color: "#0088cc" }}>{p.sku}</td>
-                <td style={{ padding: "12px 16px", fontWeight: 500, color: "var(--text-color)" }}>{p.nombre}</td>
-                <td style={{ padding: "12px 16px" }}>
-                  <span style={{ padding: "3px 10px", borderRadius: "99px", fontSize: "11px", fontWeight: 600, background: "rgba(0,136,204,0.1)", color: "#0088cc" }}>
-                    {p.categoria}
-                  </span>
-                </td>
-                <td style={{ padding: "12px 16px", color: "var(--text-color)", fontWeight: 600 }}>₡{p.precio.toFixed(2)}</td>
-                <td style={{ padding: "12px 16px", color: p.stock === 0 ? "#f87171" : p.stock < 3 ? "#f59e0b" : "var(--text-color)" }}>{p.stock} un.</td>
-                <td style={{ padding: "12px 16px" }}>
-                  <span style={{ padding: "3px 10px", borderRadius: "99px", fontSize: "11px", fontWeight: 600, color: estadoColor[p.estado], background: estadoColor[p.estado] + "20" }}>
-                    {p.estado}
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        {productosFiltrados.length === 0 && (
-          <div style={{ padding: "48px", textAlign: "center", color: "var(--text-muted)" }}>
-            No se encontraron productos con los filtros actuales.
+      <div className="productos-grid">
+        {filtrados.length === 0 ? (
+          <div style={{ gridColumn: "1 / -1", textAlign: "center", padding: "60px", color: "var(--text-dim)", background: "#fff", borderRadius: "12px", border: "1px solid var(--border-color)" }}>
+            No se encontraron productos que coincidan con la búsqueda.
           </div>
+        ) : (
+          filtrados.map(p => {
+            const estado = estadoDe(p.stock);
+            return (
+              <div key={p.id} className="producto-card">
+                <div className="producto-card-header">
+                  <span className="producto-sku">{p.sku}</span>
+                  <span className="producto-badge" style={{ backgroundColor: estado.bg, color: estado.color }}>
+                    {estado.label}
+                  </span>
+                </div>
+                <div className="producto-card-body">
+                  <div className="producto-cat">{p.categoria}</div>
+                  <h3 className="producto-nombre">{p.nombre}</h3>
+                  <div className="producto-precio">₡{p.precio.toLocaleString("es-CR", { minimumFractionDigits: 2 })}</div>
+                </div>
+                <div className="producto-card-footer">
+                  <button className="btn-outline">Detalles</button>
+                  {p.stock === 0 ? (
+                    <button className="btn-primary" style={{ backgroundColor: "#C43D3D" }} onClick={() => handleReabastecer(p.id)}>
+                      Reabastecer
+                    </button>
+                  ) : (
+                    <button className="btn-primary" style={{ backgroundColor: "#006194" }}>
+                      Solicitar
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })
         )}
+      </div>
+
+      <div style={{ marginTop: "20px", textAlign: "center", fontSize: "12px", color: "var(--text-dim)" }}>
+        * Precios en colones costarricenses (CRC).
       </div>
     </div>
   );

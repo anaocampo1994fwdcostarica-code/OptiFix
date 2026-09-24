@@ -2,11 +2,9 @@ import React, { useMemo, useState } from "react";
 import { useWorkshop } from "../context/WorkshopContext.jsx";
 import ClienteModal from "../components/modals/ClienteModal.jsx";
 import Icono from "../components/icons.jsx";
-import "./ClientesView.css";
 
 const PAGE_SIZE = 5;
-
-const AVATAR_PALETTE = ["#006194", "#28814D", "#2C8FC4", "#565E74", "#00873A", "#0B1C30"];
+const AVATAR_PALETTE = ["bg-optifix-600", "bg-emerald-600", "bg-blue-600", "bg-slate-600", "bg-indigo-600", "bg-amber-600"];
 
 function iniciales(nombre = "") {
   const partes = nombre.trim().split(/\s+/).filter(Boolean);
@@ -73,185 +71,205 @@ export default function ClientesView() {
   };
 
   return (
-    <div className="page-container">
-      <div className="breadcrumb-nav">
-        <span>Principal</span>
-        <span>/</span>
-        <span>Centro de Servicios</span>
-        <span>/</span>
-        <span className="breadcrumb-current">Clientes</span>
-      </div>
-
-      <div className="clientes-header">
+    <div className="p-6 max-w-7xl mx-auto space-y-6 animate-fade-in">
+      {/* Encabezado */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="clientes-title">Directorio de Clientes</h1>
-          <p className="clientes-subtitle">Administra los datos de contacto, expedientes y equipos asociados.</p>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Directorio de Clientes</h1>
+          <p className="text-sm text-slate-500 mt-1">
+            Administra los datos de contacto, expedientes y equipos asociados.
+          </p>
         </div>
-        <div className="clientes-header-actions">
-          <button className="btn-primary" onClick={handleOpenCreate} style={{ backgroundColor: "#006194" }}>
-            + Nuevo Cliente
-          </button>
-        </div>
+        <button 
+          onClick={handleOpenCreate}
+          className="inline-flex items-center gap-2 bg-optifix-600 hover:bg-optifix-700 text-white px-4 py-2.5 rounded-xl font-medium transition-colors shadow-sm shadow-optifix-500/20"
+        >
+          <Icono nombre="plus" size={18} />
+          Nuevo Cliente
+        </button>
       </div>
 
       {/* KPIs */}
-      <div className="clientes-kpi-row">
-        <div className="clientes-kpi-card">
-          <div>
-            <h4>Clientes Registrados</h4>
-            <div className="kpi-value" style={{ color: "#0B1C30", fontSize: "24px", fontWeight: "bold" }}>{clientesRegistrados}</div>
-          </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-5 flex flex-col justify-between">
+          <div className="text-sm font-medium text-slate-500 mb-2">Clientes Registrados</div>
+          <div className="text-3xl font-bold text-slate-900">{clientesRegistrados}</div>
         </div>
-        <div className="clientes-kpi-card">
-          <div>
-            <h4>Órdenes en Taller</h4>
-            <div className="kpi-value" style={{ color: "#2C8FC4", fontSize: "24px", fontWeight: "bold" }}>{ordenesEnTaller}</div>
-          </div>
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-5 flex flex-col justify-between">
+          <div className="text-sm font-medium text-slate-500 mb-2">Órdenes en Taller</div>
+          <div className="text-3xl font-bold text-optifix-600">{ordenesEnTaller}</div>
         </div>
-        <div className="clientes-kpi-card">
-          <div>
-            <h4>Equipos en Custodia</h4>
-            <div className="kpi-value" style={{ color: "#565E74", fontSize: "24px", fontWeight: "bold" }}>{equiposEnCustodia}</div>
-          </div>
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-5 flex flex-col justify-between">
+          <div className="text-sm font-medium text-slate-500 mb-2">Equipos en Custodia</div>
+          <div className="text-3xl font-bold text-slate-700">{equiposEnCustodia}</div>
         </div>
-        <div className="clientes-kpi-card">
-          <div>
-            <h4>Canal WhatsApp</h4>
-            <div className="kpi-value" style={{ color: "#00873A", fontSize: "24px", fontWeight: "bold" }}>{clientesConTelefono}</div>
-          </div>
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-5 flex flex-col justify-between">
+          <div className="text-sm font-medium text-slate-500 mb-2">Canal WhatsApp</div>
+          <div className="text-3xl font-bold text-emerald-600">{clientesConTelefono}</div>
         </div>
       </div>
 
-      {/* Controles de tabla */}
-      <div className="clientes-controls">
-        <div className="clientes-tabs">
-          <button className={tab === "TODOS" ? "active" : ""} onClick={() => { setTab("TODOS"); setPage(1); }}>Todos</button>
-          <button className={tab === "CON_ORDENES" ? "active" : ""} onClick={() => { setTab("CON_ORDENES"); setPage(1); }}>Con Órdenes Activas</button>
-          <button className={tab === "HISTORICOS" ? "active" : ""} onClick={() => { setTab("HISTORICOS"); setPage(1); }}>Históricos</button>
-        </div>
-        <div className="clientes-search">
-          <input
-            type="text"
-            placeholder="Buscar por nombre, cédula o teléfono..."
-            value={searchTerm}
-            onChange={(e) => { setSearchTerm(e.target.value); setPage(1); }}
-          />
-        </div>
-      </div>
+      {/* Controles y Tabla */}
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden flex flex-col">
+        {/* Filtros */}
+        <div className="border-b border-slate-100 p-4 flex flex-col sm:flex-row gap-4 justify-between bg-slate-50/50">
+          <div className="flex gap-2 p-1 bg-white rounded-lg w-fit ring-1 ring-slate-200/50">
+            {[
+              { id: "TODOS", label: "Todos" },
+              { id: "CON_ORDENES", label: "Con Órdenes Activas" },
+              { id: "HISTORICOS", label: "Históricos" }
+            ].map(t => (
+              <button 
+                key={t.id}
+                onClick={() => { setTab(t.id); setPage(1); }}
+                className={`
+                  px-4 py-2 rounded-md text-sm font-medium transition-all
+                  ${tab === t.id 
+                    ? 'bg-slate-100 text-slate-900 shadow-sm' 
+                    : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'}
+                `}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
 
-      {/* Tabla */}
-      <div className="table-card">
-        <table className="gestioo-table clientes-table">
-          <thead>
-            <tr>
-              <th>CLIENTE</th>
-              <th>IDENTIFICACIÓN</th>
-              <th>CONTACTO</th>
-              <th>EQUIPOS</th>
-              <th>ÓRDENES ACTIVAS</th>
-              <th style={{ textAlign: "right" }}>ACCIONES</th>
-            </tr>
-          </thead>
-          <tbody>
-            {paginatedClientes.length === 0 ? (
+          <div className="relative">
+            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+              <Icono nombre="search" size={16} />
+            </span>
+            <input
+              type="text"
+              placeholder="Buscar por nombre, cédula..."
+              value={searchTerm}
+              onChange={(e) => { setSearchTerm(e.target.value); setPage(1); }}
+              className="pl-9 pr-4 py-2 rounded-xl border-slate-200 text-sm focus:ring-optifix-500 focus:border-optifix-500 w-full sm:w-72 shadow-sm"
+            />
+          </div>
+        </div>
+
+        {/* Tabla */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm text-slate-600">
+            <thead className="bg-slate-50/80 text-slate-500 uppercase text-[10px] font-bold tracking-wider">
               <tr>
-                <td colSpan="6" style={{ textAlign: "center", padding: "40px", color: "var(--text-dim)" }}>
-                  No se encontraron clientes registrados con ese criterio.
-                </td>
+                <th className="px-6 py-4">Cliente</th>
+                <th className="px-6 py-4">Identificación</th>
+                <th className="px-6 py-4">Contacto</th>
+                <th className="px-6 py-4">Equipos</th>
+                <th className="px-6 py-4">Órdenes Activas</th>
+                <th className="px-6 py-4 text-right">Acciones</th>
               </tr>
-            ) : (
-              paginatedClientes.map((c) => {
-                const clientEquipos = equipos.filter((eq) => eq.cliente_id === c.id);
-                const clientOrdenes = ordenes.filter((o) => o.cliente_id === c.id);
-                const activeOrdersCount = clientOrdenes.filter(o => o.estado_actual !== "ENTREGADO").length;
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {paginatedClientes.length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="px-6 py-12 text-center text-slate-500">
+                    <div className="flex flex-col items-center justify-center">
+                      <Icono nombre="users" size={32} className="text-slate-300 mb-3" />
+                      <p>No se encontraron clientes con esos filtros.</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                paginatedClientes.map((c) => {
+                  const clientEquipos = equipos.filter((eq) => eq.cliente_id === c.id);
+                  const clientOrdenes = ordenes.filter((o) => o.cliente_id === c.id);
+                  const activeOrdersCount = clientOrdenes.filter(o => o.estado_actual !== "ENTREGADO").length;
 
-                return (
-                  <tr key={c.id}>
-                    <td>
-                      <div className="cliente-avatar-cell">
-                        <div className="cliente-avatar" style={{ backgroundColor: colorAvatar(c.nombre) }}>
-                          {iniciales(c.nombre)}
+                  return (
+                    <tr key={c.id} className="hover:bg-slate-50/80 transition-colors group">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm ${colorAvatar(c.nombre)}`}>
+                            {iniciales(c.nombre)}
+                          </div>
+                          <div>
+                            <div className="font-bold text-slate-900">{c.nombre}</div>
+                            <div className="text-xs text-slate-500 truncate max-w-[150px]">{c.direccion || "Sin dirección"}</div>
+                          </div>
                         </div>
-                        <div>
-                          <div style={{ fontWeight: 700, color: "#0B1C30" }}>{c.nombre}</div>
-                          <div style={{ fontSize: "11px", color: "var(--text-dim)" }}>{c.direccion || "Sin dirección"}</div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">
+                          {c.identificacion}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center gap-1.5 text-sm text-slate-700">
+                            <Icono nombre="phone" size={14} className="text-slate-400" />
+                            {c.telefono || "N/A"}
+                          </div>
+                          <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                            <Icono nombre="mail" size={14} className="text-slate-400" />
+                            {c.email || "N/A"}
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                    <td>
-                      <span className="cliente-id-chip">{c.identificacion}</span>
-                    </td>
-                    <td>
-                      <div className="cliente-contact-row">
-                        <span title="Teléfono">📞 {c.telefono || "N/A"}</span>
-                      </div>
-                      <div className="cliente-contact-row" style={{ fontSize: "11px", color: "var(--text-dim)" }}>
-                        <span title="Email">✉️ {c.email || "N/A"}</span>
-                      </div>
-                    </td>
-                    <td>
-                      <span className="pipeline-chip" style={{ padding: "2px 8px", fontSize: "11px" }}>
-                        {clientEquipos.length} equipos
-                      </span>
-                    </td>
-                    <td>
-                      <span className="pill-badge-green" style={{ background: "#0B1C30", color: "#ffffff" }}>
-                        {activeOrdersCount} órdenes
-                      </span>
-                    </td>
-                    <td style={{ textAlign: "right" }}>
-                      <div style={{ display: "inline-flex", gap: "6px" }}>
-                        <a
-                          href={c.telefono ? `https://wa.me/${c.telefono.replace(/\D/g, "")}` : "#"}
-                          target={c.telefono ? "_blank" : "_self"}
-                          rel="noreferrer"
-                          className={`btn-outline-icon ${!c.telefono ? "disabled" : ""}`}
-                          title="WhatsApp"
-                          style={{ borderColor: c.telefono ? "#00873A" : "", color: c.telefono ? "#00873A" : "" }}
-                          onClick={(e) => { if (!c.telefono) e.preventDefault(); }}
-                        >
-                          💬
-                        </a>
-                        <button
-                          className="btn-outline-icon"
-                          onClick={() => handleOpenEdit(c)}
-                          title="Editar cliente"
-                        >
-                          ✏️
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-slate-100 text-slate-600">
+                          {clientEquipos.length} equipos
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${activeOrdersCount > 0 ? 'bg-optifix-50 text-optifix-700 ring-1 ring-optifix-600/20' : 'bg-slate-50 text-slate-500'}`}>
+                          {activeOrdersCount} activas
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <a
+                            href={c.telefono ? `https://wa.me/${c.telefono.replace(/\D/g, "")}` : "#"}
+                            target={c.telefono ? "_blank" : "_self"}
+                            rel="noreferrer"
+                            className={`p-2 rounded-lg transition-colors ${c.telefono ? 'text-emerald-600 hover:bg-emerald-50' : 'text-slate-300 cursor-not-allowed'}`}
+                            title="WhatsApp"
+                            onClick={(e) => { if (!c.telefono) e.preventDefault(); }}
+                          >
+                            <Icono nombre="whatsapp" size={18} />
+                          </a>
+                          <button
+                            className="p-2 text-slate-400 hover:text-optifix-600 hover:bg-optifix-50 rounded-lg transition-colors"
+                            onClick={() => handleOpenEdit(c)}
+                            title="Editar cliente"
+                          >
+                            <Icono nombre="pencil" size={18} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
         
         {/* Paginación */}
         {totalPages > 1 && (
-          <div className="pagination-controls">
-            <button disabled={page === 1} onClick={() => setPage(p => p - 1)}>Anterior</button>
-            <span>Página {page} de {totalPages}</span>
-            <button disabled={page === totalPages} onClick={() => setPage(p => p + 1)}>Siguiente</button>
+          <div className="border-t border-slate-100 p-4 flex items-center justify-between bg-slate-50/50">
+            <span className="text-sm text-slate-500">
+              Página <span className="font-medium text-slate-900">{page}</span> de <span className="font-medium text-slate-900">{totalPages}</span>
+            </span>
+            <div className="flex gap-2">
+              <button 
+                disabled={page === 1} 
+                onClick={() => setPage(p => p - 1)}
+                className="px-3 py-1.5 rounded-lg text-sm font-medium border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Anterior
+              </button>
+              <button 
+                disabled={page === totalPages} 
+                onClick={() => setPage(p => p + 1)}
+                className="px-3 py-1.5 rounded-lg text-sm font-medium border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Siguiente
+              </button>
+            </div>
           </div>
         )}
-      </div>
-
-      {/* 3 Tarjetas Inferiores */}
-      <div className="clientes-bottom-cards">
-        <div className="bottom-card">
-          <h4>Comunicación Centralizada</h4>
-          <p>Envía notificaciones de presupuestos y reparaciones directo a los clientes.</p>
-        </div>
-        <div className="bottom-card">
-          <h4>Trazabilidad</h4>
-          <p>Historial completo de reparaciones, notas y facturación por equipo.</p>
-        </div>
-        <div className="bottom-card dark-card">
-          <h4>Alta Rápida</h4>
-          <p>Registra clientes y equipos simultáneamente desde una nueva orden.</p>
-        </div>
       </div>
 
       <ClienteModal

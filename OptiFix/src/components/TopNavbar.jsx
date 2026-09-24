@@ -3,10 +3,12 @@ import { useNavigate } from "react-router-dom";
 import Icono from "./icons.jsx";
 import OptifixLogo from "./OptifixLogo.jsx";
 import { useWorkshop } from "../context/WorkshopContext.jsx";
+import { useAuth } from "../hooks/useAuth.js";
 
 export default function TopNavbar({ onOpenNewOrderModal }) {
   const navigate = useNavigate();
   const searchInputRef = useRef(null);
+  const { user, logout } = useAuth();
   const {
     searchQuery,
     setSearchQuery,
@@ -33,8 +35,15 @@ export default function TopNavbar({ onOpenNewOrderModal }) {
   const unreadCount = notificaciones.filter((n) => !n.leido).length;
 
   function salir() {
-    localStorage.removeItem("optifix_session");
+    logout();
     navigate("/login", { replace: true });
+  }
+
+  function getInitials(name) {
+    if (!name) return "OP";
+    const parts = name.trim().split(" ");
+    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   }
 
   return (
@@ -173,7 +182,7 @@ export default function TopNavbar({ onOpenNewOrderModal }) {
         </button>
 
         <div className="user-avatar-btn" title="Perfil de usuario">
-          <span>OP</span>
+          <span>{getInitials(user?.nombre)}</span>
         </div>
       </div>
     </header>

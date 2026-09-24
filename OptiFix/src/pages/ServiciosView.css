@@ -1,0 +1,54 @@
+.servicios-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.servicios-kpi-card {
+  display: flex; justify-content: space-between; align-items: center;
+  background: var(--bg-card); border: 1px solid var(--border-color, #d9e3ee);
+  border-radius: 12px; padding: 16px 18px;
+}
+.servicios-kpi-label { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--text-muted); margin-bottom: 4px; font-weight: 700; }
+.servicios-kpi-value { font-size: 21px; font-weight: 800; color: #0B1C30; }
+.servicios-kpi-icon {
+  width: 36px; height: 36px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0, 97, 148, .1); color: #006194; flex-shrink: 0;
+}
+
+.servicios-form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 20px; }
+.servicios-form-grid label { display: flex; flex-direction: column; gap: 7px; color: #475569; font-size: 12px; font-weight: 700; }
+.servicios-form-grid input, .servicios-form-grid select {
+  width: 100%; box-sizing: border-box; border: 1px solid #cbd5e1; border-radius: 7px;
+  background: #fff; color: #0f172a; padding: 10px 12px; font: inherit; font-weight: 400;
+}
+.servicios-form-grid input:focus, .servicios-form-grid select:focus {
+  outline: none; border-color: #006194;
+}
+
+.servicios-toolbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+.servicios-search {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--bg-input); border: 1px solid var(--border-color, #d9e3ee);
+  border-radius: 10px; padding: 9px 14px; min-width: 240px; color: var(--text-dim);
+  flex: 1; max-width: 380px;
+}
+.servicios-search input { border: none; background: transparent; outline: none; font-size: 13px; color: var(--text-main); width: 100%; }
+.servicios-tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+.servicios-tabs button {
+  border: 1px solid var(--border-color, #d9e3ee);
+  background: var(--bg-card);
+  padding: 7px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.servicios-tabs button.active {
+  background: #006194;
+  color: #fff;
+  border-color: #006194;
+}

@@ -2,10 +2,13 @@ import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import Icono from "./icons.jsx";
 import OptifixLogo from "./OptifixLogo.jsx";
+import { useAuth } from "../hooks/useAuth.js";
 
 export default function Sidebar({ collapsed, onToggle }) {
   const location = useLocation();
   const [isServiceCenterOpen, setIsServiceCenterOpen] = useState(true);
+  const { user } = useAuth();
+  const esAdmin = user?.rol === "admin";
 
   const isActive = (path) => location.pathname === path;
 
@@ -80,24 +83,28 @@ export default function Sidebar({ collapsed, onToggle }) {
               >
                 Clientes (Historial)
               </Link>
-              <Link
-                to="/estadisticas"
-                className={`nav-subitem ${isActive("/estadisticas") ? "active" : ""}`}
-              >
-                Estadísticas
-              </Link>
+              {esAdmin && (
+                <Link
+                  to="/estadisticas"
+                  className={`nav-subitem ${isActive("/estadisticas") ? "active" : ""}`}
+                >
+                  Estadísticas
+                </Link>
+              )}
             </div>
           )}
         </div>
 
-        {/* Cotizaciones */}
-        <Link
-          to="/cotizaciones"
-          className={`nav-item ${isActive("/cotizaciones") ? "active" : ""}`}
-        >
-          <Icono nombre="clipboard" size={18} />
-          {!collapsed && <span>Cotizaciones</span>}
-        </Link>
+        {/* Cotizaciones — solo Administrador */}
+        {esAdmin && (
+          <Link
+            to="/cotizaciones"
+            className={`nav-item ${isActive("/cotizaciones") ? "active" : ""}`}
+          >
+            <Icono nombre="clipboard" size={18} />
+            {!collapsed && <span>Cotizaciones</span>}
+          </Link>
+        )}
 
         {/* Productos */}
         <Link

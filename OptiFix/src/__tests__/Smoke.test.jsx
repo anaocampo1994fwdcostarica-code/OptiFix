@@ -44,6 +44,6 @@ describe("App smoke", () => {
       await screen.findByRole("heading", { name: /el .*control total.*de tu taller/i })
     ).toBeInTheDocument();
     expect(screen.getAllByRole("img", { name: /logo optifix/i }).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/gestión inteligente de taller/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/taller & erp/i).length).toBeGreaterThan(0);
   });
 });

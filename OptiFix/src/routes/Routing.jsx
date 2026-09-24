@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 
 import LandingPage from "../pages/LandingPage.jsx";
 import Login from "../pages/Login.jsx";
+import Register from "../pages/Register.jsx";
 import SeguimientoPublico from "../pages/SeguimientoPublico.jsx";
 import OrdenesList from "../pages/OrdenesList.jsx";
 import OrdenDetalle from "../pages/OrdenDetalle.jsx";
@@ -13,35 +14,95 @@ import ProductosView from "../pages/ProductosView.jsx";
 import ServiciosView from "../pages/ServiciosView.jsx";
 import CotizacionesView from "../pages/CotizacionesView.jsx";
 import GenericModuleView from "../pages/GenericModuleView.jsx";
-import Agenda from "../pages/Agenda.jsx";
+import AgendaView from "../pages/AgendaView.jsx";
+import ProtectedRoute from "../components/ProtectedRoute.jsx";
 
 export default function Routing({ onOpenNewOrderModal }) {
   return (
     <Routes>
+      {/* Rutas públicas */}
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<Login />} />
       <Route path="/login/admin" element={<Login />} />
       <Route path="/login/tecnico" element={<Login />} />
+      <Route path="/register" element={<Register />} />
       <Route path="/seguimiento/:id" element={<SeguimientoPublico />} />
 
+      {/* Rutas privadas — cualquier sesión (admin o técnico) */}
       <Route
         path="/ordenes"
-        element={<OrdenesList onOpenNewOrderModal={onOpenNewOrderModal} />}
+        element={
+          <ProtectedRoute>
+            <OrdenesList onOpenNewOrderModal={onOpenNewOrderModal} />
+          </ProtectedRoute>
+        }
       />
-      <Route path="/ordenes/:numero" element={<OrdenDetalle />} />
-
-      <Route path="/clientes" element={<ClientesView />} />
+      <Route
+        path="/ordenes/:numero"
+        element={
+          <ProtectedRoute>
+            <OrdenDetalle />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/clientes"
+        element={
+          <ProtectedRoute>
+            <ClientesView />
+          </ProtectedRoute>
+        }
+      />
       <Route
         path="/equipos"
-        element={<EquiposView onOpenNewOrderModal={onOpenNewOrderModal} />}
+        element={
+          <ProtectedRoute>
+            <EquiposView onOpenNewOrderModal={onOpenNewOrderModal} />
+          </ProtectedRoute>
+        }
       />
-      <Route path="/estadisticas" element={<EstadisticasView />} />
+      <Route
+        path="/agenda"
+        element={
+          <ProtectedRoute>
+            <AgendaView />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/productos"
+        element={
+          <ProtectedRoute>
+            <ProductosView />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/servicios"
+        element={
+          <ProtectedRoute>
+            <ServiciosView />
+          </ProtectedRoute>
+        }
+      />
 
-      {/* Módulos auxiliares */}
-      <Route path="/agenda" element={<Agenda />} />
-      <Route path="/cotizaciones" element={<CotizacionesView />} />
-      <Route path="/productos" element={<ProductosView />} />
-      <Route path="/servicios" element={<ServiciosView />} />
+      {/* Rutas privadas — exclusivas de Administrador */}
+      <Route
+        path="/estadisticas"
+        element={
+          <ProtectedRoute allowedRoles={["admin"]}>
+            <EstadisticasView />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/cotizaciones"
+        element={
+          <ProtectedRoute allowedRoles={["admin"]}>
+            <CotizacionesView />
+          </ProtectedRoute>
+        }
+      />
 
       <Route path="*" element={<Navigate to="/ordenes" replace />} />
     </Routes>

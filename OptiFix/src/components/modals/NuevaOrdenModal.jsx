@@ -1,29 +1,27 @@
-import React, { useState, useEffect, useRef } from "react";
-import { FaMicrophone, FaMagic, FaPlus, FaSearch, FaTimes, FaCalendarAlt, FaClipboardList, FaNotesMedical, FaRegCommentDots } from "react-icons/fa";
+import React, { useState, useEffect } from "react";
 import { useWorkshop } from "../../context/WorkshopContext.jsx";
-import CreandoContactoModal from "./CreandoContactoModal.jsx";
-import CreandoEquipoModal from "./CreandoEquipoModal.jsx";
 
 export default function NuevaOrdenModal({ isOpen, onClose, onOrdenCreada }) {
   const { clientes, equipos, addCliente, addEquipo, addOrden } = useWorkshop();
 
   const [activeTab, setActiveTab] = useState("General");
   
-  // Modals state
-  const [showContactoModal, setShowContactoModal] = useState(false);
-  const [showEquipoModal, setShowEquipoModal] = useState(false);
+  // Inline forms state
+  const [showClientForm, setShowClientForm] = useState(false);
+  const [showEquipmentForm, setShowEquipmentForm] = useState(false);
+
+  // Quick creation objects
+  const [newClient, setNewClient] = useState({ tipo_cliente: "Persona", nombre: "", identificacion: "", telefono: "", email: "" });
+  const [newEquipo, setNewEquipo] = useState({ tipo: "Laptop / Portátil", marca: "", modelo: "", serie: "" });
 
   // Form state - General
   const [clienteId, setClienteId] = useState("");
-  const [clienteNombre, setClienteNombre] = useState("");
-  const [clienteApellido, setClienteApellido] = useState("");
-  const [clienteTelefono, setClienteTelefono] = useState("");
   const [equipoId, setEquipoId] = useState("");
   const [referenciaExterna, setReferenciaExterna] = useState("");
   const [prioridad, setPrioridad] = useState("Normal");
   const [area, setArea] = useState("Entrada");
   const [estado, setEstado] = useState("RECEPCIÓN");
-  const [responsable, setResponsable] = useState("SERVITOTAL 800");
+  const [responsable, setResponsable] = useState("Sin Asignar (Cola General)");
   const [trabajo, setTrabajo] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [diagnosticoSeleccion, setDiagnosticoSeleccion] = useState("No");
@@ -36,57 +34,35 @@ export default function NuevaOrdenModal({ isOpen, onClose, onOrdenCreada }) {
   const [diagnosticoTexto, setDiagnosticoTexto] = useState("");
   const [anotaciones, setAnotaciones] = useState("");
 
-  const [errors, setErrors] = useState({});
-
   // Search state
   const [clienteQuery, setClienteQuery] = useState("");
   const [showClienteDropdown, setShowClienteDropdown] = useState(false);
   const [equipoQuery, setEquipoQuery] = useState("");
   const [showEquipoDropdown, setShowEquipoDropdown] = useState(false);
 
-  const clienteRef = useRef(null);
-  const equipoRef = useRef(null);
-
-  useEffect(() => {
-    function handler(e) {
-      if (clienteRef.current && !clienteRef.current.contains(e.target)) setShowClienteDropdown(false);
-      if (equipoRef.current && !equipoRef.current.contains(e.target)) setShowEquipoDropdown(false);
-    }
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
+  // Aux state for display
+  const [clienteNombre, setClienteNombre] = useState("");
+  const [clienteApellido, setClienteApellido] = useState("");
+  const [clienteTelefono, setClienteTelefono] = useState("");
 
   useEffect(() => {
     if (isOpen) {
       setActiveTab("General");
-      setClienteId("");
-      setClienteNombre("");
-      setClienteApellido("");
-      setClienteTelefono("");
-      setEquipoId("");
-      setClienteQuery("");
-      setEquipoQuery("");
-      setReferenciaExterna("");
-      setPrioridad("Normal");
-      setArea("Entrada");
-      setEstado("RECEPCIÓN");
-      setResponsable("SERVITOTAL 800");
-      setTrabajo("");
-      setDescripcion("");
-      setDiagnosticoSeleccion("No");
-      setGarantia("No");
-      setFechaPrometida("");
-      setPresupuesto("");
-      setAdelanto("");
-      setDiagnosticoTexto("");
-      setAnotaciones("");
-      setErrors({});
+      setClienteId(""); setEquipoId("");
+      setClienteQuery(""); setEquipoQuery("");
+      setReferenciaExterna(""); setPrioridad("Normal");
+      setArea("Entrada"); setEstado("RECEPCIÓN");
+      setResponsable("Sin Asignar (Cola General)");
+      setTrabajo(""); setDescripcion("");
+      setDiagnosticoSeleccion("No"); setGarantia("No");
+      setFechaPrometida(""); setPresupuesto(""); setAdelanto("");
+      setDiagnosticoTexto(""); setAnotaciones("");
+      setShowClientForm(false); setShowEquipmentForm(false);
     }
   }, [isOpen]);
 
   if (!isOpen) return null;
 
-  // Search handlers
   const clientesFiltrados = clientes.filter(c => 
     (c.nombre + " " + (c.apellido || "")).toLowerCase().includes(clienteQuery.toLowerCase()) || 
     (c.identificacion && c.identificacion.includes(clienteQuery))
@@ -102,65 +78,46 @@ export default function NuevaOrdenModal({ isOpen, onClose, onOrdenCreada }) {
     setClienteNombre(cli.nombre || "");
     setClienteApellido(cli.apellido || "");
     setClienteTelefono(cli.telefono || "");
-    setClienteQuery(`${cli.nombre} ${cli.apellido || ""} (${cli.identificacion})`);
+    setClienteQuery(cli.nombre + " " + (cli.apellido || ""));
     setShowClienteDropdown(false);
-    setErrors({ ...errors, cliente: null });
   };
 
   const handleSelectEquipo = (eq) => {
     setEquipoId(eq.id);
-    setEquipoQuery(`${eq.marca} ${eq.modelo} - ${eq.serie}`);
+    setEquipoQuery(eq.marca + " " + eq.modelo);
     setShowEquipoDropdown(false);
-    setErrors({ ...errors, equipo: null });
   };
 
-  const handleGuardarContacto = (data) => {
-    const nuevo = addCliente(data);
-    handleSelectCliente(nuevo);
-    setShowContactoModal(false);
+  const handleSaveQuickClient = () => {
+    if (!newClient.nombre || !newClient.identificacion || !newClient.telefono) {
+      alert("Por favor complete nombre, cédula y teléfono.");
+      return;
+    }
+    const cli = addCliente(newClient);
+    handleSelectCliente(cli);
+    setShowClientForm(false);
+    setNewClient({ tipo_cliente: "Persona", nombre: "", identificacion: "", telefono: "", email: "" });
   };
 
-  const handleGuardarEquipo = (data) => {
-    // Si se requiere un cliente_id para el equipo, usamos el seleccionado, o vacío
-    const nuevo = addEquipo({ ...data, cliente_id: clienteId });
-    handleSelectEquipo(nuevo);
-    setShowEquipoModal(false);
-  };
-
-  const validate = () => {
-    const errs = {};
-    if (!clienteId && !clienteNombre.trim()) errs.cliente = "Obligatorio";
-    if (!clienteId && !clienteApellido.trim()) errs.apellidoCliente = "Obligatorio";
-    if (!clienteId && !clienteTelefono.trim()) errs.telefonoCliente = "Obligatorio";
-    if (!equipoId) errs.equipo = "Obligatorio";
-    if (!trabajo.trim()) errs.trabajo = "Obligatorio";
-    setErrors(errs);
-    if (Object.keys(errs).length > 0) setActiveTab("General");
-    return Object.keys(errs).length === 0;
+  const handleSaveQuickEquipment = () => {
+    if (!newEquipo.marca || !newEquipo.modelo || !newEquipo.serie) {
+      alert("Por favor complete marca, modelo y número de serie.");
+      return;
+    }
+    const eq = addEquipo({ ...newEquipo, cliente_id: clienteId });
+    handleSelectEquipo(eq);
+    setShowEquipmentForm(false);
+    setNewEquipo({ tipo: "Laptop / Portátil", marca: "", modelo: "", serie: "" });
   };
 
   const handleSubmit = () => {
-    if (!validate()) return;
-
-    let clienteIdFinal = clienteId;
-    if (!clienteIdFinal) {
-      const nuevo = addCliente({
-        tipo_cliente: "Persona",
-        identificacion: "",
-        nombre: clienteNombre.trim(),
-        apellido: clienteApellido.trim(),
-        telefono: clienteTelefono.trim(),
-        email: "",
-        direccion: "",
-        notas: "",
-        correos: [],
-        telefonos: [clienteTelefono.trim()]
-      });
-      clienteIdFinal = nuevo.id;
+    if (!clienteId || !equipoId || !trabajo.trim()) {
+      alert("Por favor complete Cliente, Equipo y Trabajo solicitado.");
+      return;
     }
 
     const nuevaOrden = addOrden({
-      cliente_id: clienteIdFinal,
+      cliente_id: clienteId,
       equipo_id: equipoId,
       referencia_externa: referenciaExterna,
       prioridad,
@@ -175,7 +132,7 @@ export default function NuevaOrdenModal({ isOpen, onClose, onOrdenCreada }) {
       fecha_prometida: fechaPrometida,
       presupuesto,
       adelanto,
-      anotaciones // Necesita ser manejado en WorkshopContext o como nota
+      anotaciones
     });
 
     if (onOrdenCreada) onOrdenCreada(nuevaOrden);
@@ -183,327 +140,461 @@ export default function NuevaOrdenModal({ isOpen, onClose, onOrdenCreada }) {
   };
 
   return (
-    <>
-      <div className="modal-overlay" onClick={onClose} style={{ zIndex: 1000 }}>
-        <div className="modal-box" style={{ maxWidth: "1000px", padding: 0, overflow: "hidden", display: "flex", flexDirection: "column", height: "90vh" }} onClick={e => e.stopPropagation()}>
-          
-          {/* Header */}
-          <div style={{ padding: "16px 24px", borderBottom: "1px solid var(--border-color)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <h2 style={{ fontSize: "20px", fontWeight: 600, color: "var(--text-color)" }}>Creando Orden</h2>
-            <button className="modal-close-btn" onClick={onClose}>✕</button>
-          </div>
-
-          {/* Tabs */}
-          <div style={{ display: "flex", borderBottom: "1px solid var(--border-color)", padding: "0 24px", backgroundColor: "var(--bg-secondary)" }}>
-            <button 
-              style={{ padding: "12px 24px", display: "flex", alignItems: "center", gap: "8px", borderBottom: activeTab === "General" ? "2px solid #2563eb" : "2px solid transparent", color: activeTab === "General" ? "#2563eb" : "var(--text-color)", background: "none", borderTop: "none", borderLeft: "none", borderRight: "none", cursor: "pointer", fontWeight: activeTab === "General" ? 600 : 400 }}
-              onClick={() => setActiveTab("General")}
-            >
-              <FaClipboardList /> General
-            </button>
-            <button 
-              style={{ padding: "12px 24px", display: "flex", alignItems: "center", gap: "8px", borderBottom: activeTab === "Diagnóstico" ? "2px solid #2563eb" : "2px solid transparent", color: activeTab === "Diagnóstico" ? "#2563eb" : "var(--text-color)", background: "none", borderTop: "none", borderLeft: "none", borderRight: "none", cursor: "pointer", fontWeight: activeTab === "Diagnóstico" ? 600 : 400 }}
-              onClick={() => setActiveTab("Diagnóstico")}
-            >
-              <FaNotesMedical /> Diagnóstico
-            </button>
-            <button 
-              style={{ padding: "12px 24px", display: "flex", alignItems: "center", gap: "8px", borderBottom: activeTab === "Anotaciones" ? "2px solid #2563eb" : "2px solid transparent", color: activeTab === "Anotaciones" ? "#2563eb" : "var(--text-color)", background: "none", borderTop: "none", borderLeft: "none", borderRight: "none", cursor: "pointer", fontWeight: activeTab === "Anotaciones" ? 600 : 400 }}
-              onClick={() => setActiveTab("Anotaciones")}
-            >
-              <FaRegCommentDots /> Anotaciones
-            </button>
-          </div>
-
-          {/* Content */}
-          <div style={{ padding: "24px", overflowY: "auto", flex: 1 }}>
-            {activeTab === "General" && (
-              <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-                
-                {/* Datos generales Header & Referencia Externa */}
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                  <div>
-                    <h3 style={{ fontSize: "16px", fontWeight: 600, color: "var(--text-color)", margin: 0 }}>Datos generales</h3>
-                    <p style={{ fontSize: "12px", color: "#64748b", margin: "4px 0 0 0" }}>Completar la información básica de la orden.</p>
-                  </div>
-                  <div>
-                    <label className="form-label" style={{ fontSize: "12px", color: "#64748b", display: "flex", justifyContent: "flex-end" }}>Referencia externa ℹ️</label>
-                    <input className="form-input" style={{ width: "200px" }} value={referenciaExterna} onChange={e => setReferenciaExterna(e.target.value)} />
-                  </div>
-                </div>
-
-                {/* Cliente & Equipo */}
-                <div className="form-grid-2">
-                  <div ref={clienteRef} style={{ position: "relative" }}>
-                    <label className="form-label" style={{ fontSize: "12px", color: "#64748b" }}>Cliente <span className="req" style={{ color: "#ef4444" }}>*</span></label>
-                    <div style={{ display: "flex" }}>
-                      <div style={{ display: "flex", alignItems: "center", padding: "0 12px", backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border-color)", borderRight: "none", borderTopLeftRadius: "6px", borderBottomLeftRadius: "6px" }}>
-                        <FaSearch color="#94a3b8" />
-                      </div>
-                      <input 
-                        className={`form-input ${errors.cliente ? "input-error" : ""}`} 
-                        style={{ borderRadius: 0 }}
-                        placeholder="Buscar por nombre o DNI" 
-                        value={clienteQuery} onChange={e => { setClienteQuery(e.target.value); setClienteId(""); }}
-                        onFocus={() => setShowClienteDropdown(true)}
-                      />
-                      <div style={{ display: "flex", alignItems: "center", padding: "0 12px", backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border-color)", borderLeft: "none", borderRight: "none", cursor: "pointer" }}>
-                        <span style={{ fontSize: "10px" }}>▼</span>
-                      </div>
-                      <button 
-                        style={{ padding: "0 16px", backgroundColor: "#2563eb", border: "1px solid #2563eb", color: "white", borderTopRightRadius: "6px", borderBottomRightRadius: "6px", cursor: "pointer" }}
-                        onClick={() => setShowContactoModal(true)}
-                      >
-                        <FaPlus />
-                      </button>
-                    </div>
-                    {showClienteDropdown && clienteQuery && (
-                      <div className="marca-dropdown" style={{ zIndex: 1001 }}>
-                        {clientesFiltrados.map(c => (
-                          <div key={c.id} className="marca-option" onClick={() => handleSelectCliente(c)}>
-                            {c.nombre} {c.apellido || ""} ({c.identificacion})
-                          </div>
-                        ))}
-                        {clientesFiltrados.length === 0 && <div style={{ padding: "8px" }}>No se encontraron clientes</div>}
-                      </div>
-                    )}
-                  </div>
-
-                  <div ref={equipoRef} style={{ position: "relative" }}>
-                    <label className="form-label" style={{ fontSize: "12px", color: "#64748b" }}>Equipo <span className="req" style={{ color: "#ef4444" }}>*</span></label>
-                    <div style={{ display: "flex" }}>
-                      <div style={{ display: "flex", alignItems: "center", padding: "0 12px", backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border-color)", borderRight: "none", borderTopLeftRadius: "6px", borderBottomLeftRadius: "6px" }}>
-                        <FaSearch color="#94a3b8" />
-                      </div>
-                      <input 
-                        className={`form-input ${errors.equipo ? "input-error" : ""}`} 
-                        style={{ borderRadius: 0 }}
-                        placeholder="Buscar por n° serie o marca" 
-                        value={equipoQuery} onChange={e => { setEquipoQuery(e.target.value); setEquipoId(""); }}
-                        onFocus={() => setShowEquipoDropdown(true)}
-                      />
-                      <div style={{ display: "flex", alignItems: "center", padding: "0 12px", backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border-color)", borderLeft: "none", borderRight: "none", cursor: "pointer" }}>
-                        <span style={{ fontSize: "10px" }}>▼</span>
-                      </div>
-                      <button 
-                        style={{ padding: "0 16px", backgroundColor: "#2563eb", border: "1px solid #2563eb", color: "white", borderTopRightRadius: "6px", borderBottomRightRadius: "6px", cursor: "pointer" }}
-                        onClick={() => setShowEquipoModal(true)}
-                      >
-                        <FaPlus />
-                      </button>
-                    </div>
-                    {showEquipoDropdown && equipoQuery && (
-                      <div className="marca-dropdown" style={{ zIndex: 1001 }}>
-                        {equiposFiltrados.map(e => (
-                          <div key={e.id} className="marca-option" onClick={() => handleSelectEquipo(e)}>
-                            {e.marca} {e.modelo} - {e.serie}
-                          </div>
-                        ))}
-                        {equiposFiltrados.length === 0 && <div style={{ padding: "8px" }}>No se encontraron equipos</div>}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Datos del cliente (nuevo): nombre, apellido y teléfono */}
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "16px", padding: "16px", border: "1px solid var(--border-color)", borderRadius: "8px", backgroundColor: "var(--bg-secondary)" }}>
-                  <div>
-                    <label className="form-label" style={{ fontSize: "12px", color: "#64748b" }}>Nombre <span className="req" style={{ color: "#ef4444" }}>*</span></label>
-                    <input
-                      className={`form-input ${!clienteId && errors.cliente ? "input-error" : ""}`}
-                      placeholder="Nombre del cliente"
-                      value={clienteNombre}
-                      onChange={e => { setClienteNombre(e.target.value); setClienteId(""); setErrors({ ...errors, cliente: null }); }}
-                    />
-                  </div>
-                  <div>
-                    <label className="form-label" style={{ fontSize: "12px", color: "#64748b" }}>Apellido <span className="req" style={{ color: "#ef4444" }}>*</span></label>
-                    <input
-                      className={`form-input ${!clienteId && errors.apellidoCliente ? "input-error" : ""}`}
-                      placeholder="Apellido del cliente"
-                      value={clienteApellido}
-                      onChange={e => { setClienteApellido(e.target.value); setErrors({ ...errors, apellidoCliente: null }); }}
-                    />
-                  </div>
-                  <div>
-                    <label className="form-label" style={{ fontSize: "12px", color: "#64748b" }}># Teléfono <span className="req" style={{ color: "#ef4444" }}>*</span></label>
-                    <input
-                      className={`form-input ${!clienteId && errors.telefonoCliente ? "input-error" : ""}`}
-                      type="tel"
-                      placeholder="Ej: 8888-1234"
-                      value={clienteTelefono}
-                      onChange={e => { setClienteTelefono(e.target.value); setErrors({ ...errors, telefonoCliente: null }); }}
-                    />
-                  </div>
-                  <div style={{ gridColumn: "1 / -1", fontSize: "12px", color: "#64748b" }}>
-                    💡 Completá nombre, apellido y teléfono para crear un cliente nuevo
-                    automáticamente. Si elegís uno existente del listado, sus datos se copiarán aquí.
-                  </div>
-                </div>
-
-                {/* Priority, Area, Status, Responsable */}
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1.5fr", gap: "16px" }}>
-                  <div>
-                    <label className="form-label" style={{ fontSize: "12px", color: "#64748b" }}>Prioridad</label>
-                    <select className="form-input" value={prioridad} onChange={e => setPrioridad(e.target.value)}>
-                      <option>Baja</option>
-                      <option>Normal</option>
-                      <option>Alta</option>
-                      <option>Urgente</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="form-label" style={{ fontSize: "12px", color: "#64748b" }}>Área</label>
-                    <select className="form-input" value={area} onChange={e => setArea(e.target.value)}>
-                      <option>Entrada</option>
-                      <option>Taller</option>
-                      <option>Atención al cliente</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="form-label" style={{ fontSize: "12px", color: "#64748b" }}>Estado</label>
-                    <select className="form-input" value={estado} onChange={e => setEstado(e.target.value)}>
-                      <option>RECEPCIÓN</option>
-                      <option>REVISIÓN</option>
-                      <option>ESPERANDO REPUESTOS</option>
-                      <option>REPARADO</option>
-                      <option>ENTREGADO</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="form-label" style={{ fontSize: "12px", color: "#64748b" }}>Responsable</label>
-                    <select className="form-input" value={responsable} onChange={e => setResponsable(e.target.value)}>
-                      <option>SERVITOTAL 800</option>
-                      <option>Técnico Principal</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Trabajo & Descripcion */}
-                <div className="form-grid-2">
-                  <div>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <label className="form-label" style={{ fontSize: "12px", color: "#64748b" }}>Trabajo <span className="req" style={{ color: "#ef4444" }}>*</span></label>
-                      <div style={{ display: "flex", gap: "4px", color: "#94a3b8" }}>
-                        <FaMagic size={14} style={{ cursor: "pointer" }} />
-                        <FaMicrophone size={14} style={{ cursor: "pointer" }} />
-                      </div>
-                    </div>
-                    <textarea 
-                      className={`form-input ${errors.trabajo ? "input-error" : ""}`} 
-                      rows={3} 
-                      placeholder="Trabajo a realizar" 
-                      value={trabajo} onChange={e => { setTrabajo(e.target.value); setErrors({...errors, trabajo: null}); }} 
-                    />
-                  </div>
-                  <div>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <label className="form-label" style={{ fontSize: "12px", color: "#64748b" }}>Descripción (Estado general)</label>
-                      <div style={{ display: "flex", gap: "4px", color: "#94a3b8" }}>
-                        <FaMagic size={14} style={{ cursor: "pointer" }} />
-                        <FaMicrophone size={14} style={{ cursor: "pointer" }} />
-                      </div>
-                    </div>
-                    <textarea 
-                      className="form-input" 
-                      rows={3} 
-                      value={descripcion} onChange={e => setDescripcion(e.target.value)} 
-                    />
-                  </div>
-                </div>
-
-                {/* Bottom Row */}
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1.5fr 1.5fr 1.5fr", gap: "16px" }}>
-                  <div>
-                    <label className="form-label" style={{ fontSize: "12px", color: "#64748b" }}>Diagnóstico</label>
-                    <select className="form-input" value={diagnosticoSeleccion} onChange={e => setDiagnosticoSeleccion(e.target.value)}>
-                      <option>No</option>
-                      <option>Sí</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="form-label" style={{ fontSize: "12px", color: "#64748b" }}>Garantía</label>
-                    <select className="form-input" value={garantia} onChange={e => setGarantia(e.target.value)}>
-                      <option>No</option>
-                      <option>Sí</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="form-label" style={{ fontSize: "12px", color: "#64748b" }}>Fecha prometida</label>
-                    <div style={{ display: "flex" }}>
-                      <input type="date" className="form-input" style={{ borderRight: "none", borderTopRightRadius: 0, borderBottomRightRadius: 0 }} value={fechaPrometida} onChange={e => setFechaPrometida(e.target.value)} />
-                      <div style={{ display: "flex", alignItems: "center", padding: "0 12px", backgroundColor: "#eff6ff", border: "1px solid var(--border-color)", borderLeft: "none", color: "#3b82f6", borderTopRightRadius: "6px", borderBottomRightRadius: "6px" }}>
-                        <FaCalendarAlt />
-                      </div>
-                    </div>
-                  </div>
-                  <div>
-                    <label className="form-label" style={{ fontSize: "12px", color: "#64748b" }}>Presupuesto</label>
-                    <div style={{ display: "flex" }}>
-                      <div style={{ display: "flex", alignItems: "center", padding: "0 12px", backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border-color)", borderRight: "none", borderTopLeftRadius: "6px", borderBottomLeftRadius: "6px", fontSize: "12px" }}>
-                        ₡
-                      </div>
-                      <input className="form-input" type="number" style={{ borderRadius: 0 }} placeholder="0,00" value={presupuesto} onChange={e => setPresupuesto(e.target.value)} />
-                      <button style={{ padding: "0 12px", backgroundColor: "#eff6ff", border: "1px solid var(--border-color)", borderLeft: "none", color: "#3b82f6", borderTopRightRadius: "6px", borderBottomRightRadius: "6px", cursor: "pointer" }}>
-                        +
-                      </button>
-                    </div>
-                  </div>
-                  <div>
-                    <label className="form-label" style={{ fontSize: "12px", color: "#64748b" }}>Adelanto</label>
-                    <div style={{ display: "flex" }}>
-                      <div style={{ display: "flex", alignItems: "center", padding: "0 12px", backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border-color)", borderRight: "none", borderTopLeftRadius: "6px", borderBottomLeftRadius: "6px", fontSize: "12px" }}>
-                        ₡
-                      </div>
-                      <input className="form-input" type="number" style={{ borderRadius: 0, backgroundColor: "var(--bg-secondary)" }} placeholder="Importe" value={adelanto} onChange={e => setAdelanto(e.target.value)} />
-                      <button style={{ padding: "0 12px", backgroundColor: "#eff6ff", border: "1px solid var(--border-color)", borderLeft: "none", color: "#3b82f6", borderTopRightRadius: "6px", borderBottomRightRadius: "6px", cursor: "pointer" }}>
-                        +
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-            )}
-
-            {activeTab === "Diagnóstico" && (
-              <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
-                <h3 style={{ fontSize: "16px", fontWeight: 600, color: "var(--text-color)", margin: "0 0 16px 0" }}>Diagnóstico Técnico</h3>
-                <textarea 
-                  className="form-input" 
-                  style={{ flex: 1, minHeight: "300px", resize: "none" }} 
-                  placeholder="Escriba aquí los detalles del diagnóstico..."
-                  value={diagnosticoTexto}
-                  onChange={e => setDiagnosticoTexto(e.target.value)}
-                />
-              </div>
-            )}
-
-            {activeTab === "Anotaciones" && (
-              <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
-                <h3 style={{ fontSize: "16px", fontWeight: 600, color: "var(--text-color)", margin: "0 0 16px 0" }}>Anotaciones Privadas</h3>
-                <textarea 
-                  className="form-input" 
-                  style={{ flex: 1, minHeight: "300px", resize: "none" }} 
-                  placeholder="Anotaciones internas (no visibles para el cliente)..."
-                  value={anotaciones}
-                  onChange={e => setAnotaciones(e.target.value)}
-                />
-              </div>
-            )}
-          </div>
-
-          {/* Footer */}
-          <div style={{ padding: "16px 24px", borderTop: "1px solid var(--border-color)", display: "flex", justifyContent: "flex-end", gap: "12px", backgroundColor: "var(--bg-secondary)" }}>
-            <button className="btn-secondary" style={{ backgroundColor: "#e2e8f0", color: "#475569", border: "none" }} onClick={onClose}>Cancelar</button>
-            <button className="btn-primary" style={{ backgroundColor: "#2563eb" }} onClick={handleSubmit}>💾 Guardar Orden</button>
-          </div>
-
-        </div>
+    <div className="fixed inset-0 bg-slate-900/40 z-50 flex items-center justify-center p-4">
+      <main className="w-full max-w-7xl bg-white rounded-2xl shadow-2xl border border-slate-200/80 flex flex-col max-h-[96vh] overflow-hidden relative animate-in fade-in zoom-in-95 duration-200" data-purpose="service-order-modal">
+      <header className="bg-white border-b border-slate-200 px-6 py-4 flex flex-wrap items-center justify-between gap-4 select-none">
+      <div className="flex items-center gap-4">
+      <div className="flex items-center shrink-0 pr-1">
+        <div className="w-8 h-8 rounded-full bg-optifix-600 flex items-center justify-center text-white font-bold text-xl mr-2">O</div>
       </div>
+      <div>
+      <div className="flex items-center gap-2.5">
+      <span className="text-xs font-extrabold tracking-wider uppercase text-optifix-600 bg-optifix-50 px-2 py-0.5 rounded border border-optifix-100">OptiFix ERP v3.4</span>
+      <span className="font-mono text-xs font-semibold px-2 py-0.5 bg-slate-100 text-slate-700 rounded border border-slate-200" id="order-id-badge">
+                    #ORD-NUEVA
+                  </span>
+      </div>
+      <h1 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+                  Nueva Orden de Servicio Técnico
+                </h1>
+      </div>
+      </div>
+      <div className="hidden lg:flex items-center gap-3 bg-slate-50 border border-slate-200/80 px-4 py-2 rounded-xl text-xs font-medium">
+      <div className="flex items-center gap-1.5 text-optifix-600 font-semibold">
+      <span className="w-5 h-5 rounded-full bg-optifix-600 text-white flex items-center justify-center text-[11px] font-mono">1</span>
+      <span className="">Cliente &amp; Contacto</span>
+      </div>
+      <i className="ph ph-caret-right text-slate-300"></i>
+      <div className="flex items-center gap-1.5 text-optifix-600 font-semibold">
+      <span className="w-5 h-5 rounded-full bg-optifix-600 text-white flex items-center justify-center text-[11px] font-mono">2</span>
+      <span className="">Dispositivo</span>
+      </div>
+      <i className="ph ph-caret-right text-slate-300"></i>
+      <div className="flex items-center gap-1.5 text-optifix-600 font-semibold">
+      <span className="w-5 h-5 rounded-full bg-optifix-600 text-white flex items-center justify-center text-[11px] font-mono">3</span>
+      <span className="">Diagnóstico &amp; Términos</span>
+      </div>
+      </div>
+      <div className="flex items-center gap-2">
+      <button className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors" title="Ver guía rápida / Atajos" type="button">
+      <i className="ph ph-keyboard text-lg"></i>
+      </button>
+      <button onClick={onClose} className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors ml-1" title="Cerrar modal" type="button">
+      <i className="ph-bold ph-x text-xl"></i>
+      </button>
+      </div>
+      </header>
+      <div className="overflow-y-auto px-6 py-6 space-y-6 flex-1 bg-surface-subtle modal-scroll" data-purpose="modal-content-area" onClick={() => {setShowClienteDropdown(false); setShowEquipoDropdown(false);}}>
+      <section aria-label="Selección de Entidades" className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <article className="bg-white rounded-xl border border-slate-200/90 shadow-sm p-5 flex flex-col justify-between" data-purpose="client-selector-card">
+      <div>
+      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center gap-2">
+      <span className="p-1.5 bg-optifix-50 text-optifix-600 rounded-lg border border-optifix-100">
+      <i className="ph-bold ph-user text-base"></i>
+      </span>
+      <label className="text-sm font-bold text-slate-800">
+                        Cliente Solicitante <span className="text-rose-500 font-bold">*</span>
+      </label>
+      </div>
+      <button onClick={() => setShowClientForm(!showClientForm)} className="inline-flex items-center gap-1.5 text-xs font-semibold text-optifix-600 hover:text-optifix-700 bg-optifix-50 hover:bg-optifix-100/80 px-2.5 py-1 rounded-lg border border-optifix-200 transition-colors" type="button">
+      <i className="ph-bold ph-user-plus"></i>
+      <span className="">+ Nuevo Cliente</span>
+      </button>
+      </div>
+      <div className="relative mb-3.5" onClick={e => e.stopPropagation()}>
+      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+      <i className="ph ph-magnifying-glass text-lg"></i>
+      </div>
+      <input value={clienteQuery} onChange={e => { setClienteQuery(e.target.value); setClienteId(''); setShowClienteDropdown(true); }} onFocus={() => setShowClienteDropdown(true)} className="w-full pl-9 pr-24 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-optifix-500/30 focus:border-optifix-500 transition-shadow" placeholder="Buscar por Nombre, Cédula / DNI, o Teléfono..." type="text" />
+      <div className="absolute inset-y-1 right-1 flex items-center gap-1 pr-1">
+      {clienteId && <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+      <i className="ph-fill ph-check-circle mr-1"></i> Verificado
+                      </span>}
+      <button className="p-1.5 text-slate-400 hover:text-slate-600 rounded hover:bg-slate-100" type="button" onClick={() => setShowClienteDropdown(!showClienteDropdown)}>
+      <i className="ph ph-caret-down"></i>
+      </button>
+      </div>
+      {showClienteDropdown && (
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg z-50 max-h-60 overflow-y-auto">
+          {clientesFiltrados.map(c => (
+            <div key={c.id} onClick={() => handleSelectCliente(c)} className="px-4 py-2 hover:bg-slate-50 cursor-pointer border-b border-slate-100 last:border-0">
+              <div className="font-semibold text-sm">{c.nombre} {c.apellido}</div>
+              <div className="text-xs text-slate-500">{c.identificacion} • {c.telefono}</div>
+            </div>
+          ))}
+          {clientesFiltrados.length === 0 && <div className="px-4 py-3 text-sm text-slate-500">No hay resultados</div>}
+        </div>
+      )}
+      </div>
+      {clienteId && (
+      <div className="bg-gradient-to-br from-slate-50 to-blue-50/30 rounded-xl p-3.5 border border-slate-200/80 text-xs text-slate-600 space-y-2">
+      <div className="flex items-start justify-between">
+      <div className="flex items-center gap-3">
+      <div className="w-10 h-10 rounded-full bg-slate-200/80 border border-slate-300 flex items-center justify-center text-slate-500 overflow-hidden relative">
+      <i className="ph-bold ph-user text-xl"></i>
+      </div>
+      <div>
+      <h4 className="font-bold text-slate-900 text-sm">{clienteNombre} {clienteApellido}</h4>
+      <p className="font-mono text-slate-500 text-[11px]">Tel: {clienteTelefono}</p>
+      </div>
+      </div>
+      <button onClick={() => setClienteId('')} className="text-xs text-optifix-600 hover:text-optifix-800 font-medium flex items-center gap-1" type="button">
+      <i className="ph ph-pencil-simple"></i> Cambiar
+                      </button>
+      </div>
+      </div>
+      )}
+      {showClientForm && (
+      <div className="mt-3 pt-3 border-t border-dashed border-slate-200 bg-slate-50/60 p-3.5 rounded-xl text-xs space-y-3">
+      <div className="flex items-center justify-between">
+      <span className="font-bold text-slate-800 flex items-center gap-1.5">
+      <i className="ph ph-identification-card text-optifix-600"></i> Ficha Rápida de Cliente
+                      </span>
+      <span className="text-[10px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
+                        Se guardará automáticamente
+                      </span>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+      <div>
+      <label className="block text-[11px] font-semibold text-slate-600 mb-1">Tipo de Cliente</label>
+      <select value={newClient.tipo_cliente} onChange={e => setNewClient({...newClient, tipo_cliente: e.target.value})} className="w-full text-xs rounded-lg border-slate-300 py-1.5">
+      <option value="Persona">Persona</option>
+      <option value="Empresa">Empresa</option>
+      </select>
+      </div>
+      <div>
+      <label className="block text-[11px] font-semibold text-slate-600 mb-1">DNI / Cédula <span className="text-rose-500">*</span></label>
+      <input value={newClient.identificacion} onChange={e => setNewClient({...newClient, identificacion: e.target.value})} className="w-full text-xs font-mono rounded-lg border-slate-300 py-1.5" placeholder="Ej: 1-0988-0234" type="text" />
+      </div>
+      <div>
+      <label className="block text-[11px] font-semibold text-slate-600 mb-1">Nombre <span className="text-rose-500">*</span></label>
+      <input value={newClient.nombre} onChange={e => setNewClient({...newClient, nombre: e.target.value})} className="w-full text-xs rounded-lg border-slate-300 py-1.5" placeholder="Nombre" type="text" />
+      </div>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+      <div>
+      <label className="block text-[11px] font-semibold text-slate-600 mb-1">Teléfono Móvil (WhatsApp) <span className="text-rose-500">*</span></label>
+      <div className="relative">
+      <input value={newClient.telefono} onChange={e => setNewClient({...newClient, telefono: e.target.value})} className="w-full text-xs font-mono rounded-lg border-slate-300 py-1.5 pl-7" placeholder="+506 8888-8888" type="text" />
+      <i className="ph-bold ph-whatsapp-logo text-emerald-500 absolute left-2 top-2 text-xs"></i>
+      </div>
+      </div>
+      <div>
+      <label className="block text-[11px] font-semibold text-slate-600 mb-1">Correo Electrónico</label>
+      <input value={newClient.email} onChange={e => setNewClient({...newClient, email: e.target.value})} className="w-full text-xs rounded-lg border-slate-300 py-1.5" placeholder="cliente@correo.com" type="email" />
+      </div>
+      </div>
+      <button onClick={handleSaveQuickClient} className="w-full bg-optifix-600 hover:bg-optifix-700 text-white text-xs font-bold py-2 rounded-lg mt-2 transition-colors">Guardar y Seleccionar Cliente</button>
+      </div>
+      )}
+      </div>
+      </article>
+      <article className="bg-white rounded-xl border border-slate-200/90 shadow-sm p-5 flex flex-col justify-between" data-purpose="equipment-selector-card">
+      <div>
+      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center gap-2">
+      <span className="p-1.5 bg-optifix-50 text-optifix-600 rounded-lg border border-optifix-100">
+      <i className="ph-bold ph-laptop text-base"></i>
+      </span>
+      <label className="text-sm font-bold text-slate-800">
+                        Dispositivo / Equipo <span className="text-rose-500 font-bold">*</span>
+      </label>
+      </div>
+      <button onClick={() => setShowEquipmentForm(!showEquipmentForm)} className="inline-flex items-center gap-1.5 text-xs font-semibold text-optifix-600 hover:text-optifix-700 bg-optifix-50 hover:bg-optifix-100/80 px-2.5 py-1 rounded-lg border border-optifix-200 transition-colors" type="button">
+      <i className="ph-bold ph-plus-circle"></i>
+      <span className="">+ Registrar Equipo</span>
+      </button>
+      </div>
+      <div className="relative mb-3.5" onClick={e => e.stopPropagation()}>
+      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+      <i className="ph ph-barcode text-lg"></i>
+      </div>
+      <input value={equipoQuery} onChange={e => { setEquipoQuery(e.target.value); setEquipoId(''); setShowEquipoDropdown(true); }} onFocus={() => setShowEquipoDropdown(true)} className="w-full pl-9 pr-24 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-optifix-500/30 focus:border-optifix-500 transition-shadow" placeholder="Buscar por N° de Serie, Marca o Modelo..." type="text" />
+      <div className="absolute inset-y-1 right-1 flex items-center gap-1 pr-1">
+      {equipoId && <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-50 text-optifix-700 border border-blue-200">
+                        Seleccionado
+                      </span>}
+      <button className="p-1.5 text-slate-400 hover:text-slate-600 rounded hover:bg-slate-100" type="button" onClick={() => setShowEquipoDropdown(!showEquipoDropdown)}>
+      <i className="ph ph-caret-down"></i>
+      </button>
+      </div>
+      {showEquipoDropdown && (
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg z-50 max-h-60 overflow-y-auto">
+          {equiposFiltrados.map(e => (
+            <div key={e.id} onClick={() => handleSelectEquipo(e)} className="px-4 py-2 hover:bg-slate-50 cursor-pointer border-b border-slate-100 last:border-0">
+              <div className="font-semibold text-sm">{e.marca} {e.modelo}</div>
+              <div className="text-xs text-slate-500">S/N: {e.serie}</div>
+            </div>
+          ))}
+          {equiposFiltrados.length === 0 && <div className="px-4 py-3 text-sm text-slate-500">No hay resultados</div>}
+        </div>
+      )}
+      </div>
+      {equipoId && (() => {
+        const eq = equipos.find(e => e.id === equipoId);
+        return eq ? (
+      <div className="bg-gradient-to-br from-slate-50 to-blue-50/30 rounded-xl p-3.5 border border-slate-200/80 flex items-center gap-4">
+      <div className="relative w-16 h-16 rounded-xl bg-white border border-slate-200 p-1 flex items-center justify-center shadow-xs shrink-0 group">
+      <i className="ph-light ph-laptop text-3xl text-slate-400 group-hover:text-optifix-600 transition-colors"></i>
+      <button className="absolute -bottom-1 -right-1 bg-white hover:bg-slate-50 border border-slate-300 rounded-full p-1 text-slate-600 shadow-sm" title="Tomar / Cargar foto" type="button">
+      <i className="ph-bold ph-camera text-[10px]"></i>
+      </button>
+      </div>
+      <div className="flex-1 min-w-0">
+      <div className="flex items-center justify-between">
+      <div className="flex items-center gap-2">
+      <span className="font-bold text-slate-900 text-sm truncate">{eq.marca} {eq.modelo}</span>
+      </div>
+      <button onClick={() => setEquipoId('')} className="text-xs text-optifix-600 hover:text-optifix-800 font-medium flex items-center gap-1" type="button">
+      <i className="ph ph-pencil-simple"></i> Cambiar
+                        </button>
+      </div>
+      <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
+      <span className="">Marca: <strong className="text-slate-700 font-semibold">{eq.marca}</strong></span>
+      <span className="">•</span>
+      <span className="">Modelo: <strong className="text-slate-700 font-semibold">{eq.modelo}</strong></span>
+      <span className="">•</span>
+      <span className="font-mono text-slate-700 bg-slate-200/60 px-1 rounded text-[11px]">S/N: {eq.serie}</span>
+      </div>
+      </div>
+      </div>) : null;
+      })()}
+      {showEquipmentForm && (
+      <div className="mt-3 pt-3 border-t border-dashed border-slate-200 bg-slate-50/60 p-3.5 rounded-xl text-xs space-y-3">
+      <div className="flex items-center justify-between">
+      <span className="font-bold text-slate-800 flex items-center gap-1.5">
+      <i className="ph ph-cpu text-optifix-600"></i> Registrar Nuevo Dispositivo
+                      </span>
+      <label className="inline-flex items-center gap-1.5 cursor-pointer">
+      <input className="rounded border-slate-300 text-optifix-600 focus:ring-optifix-500 text-xs" type="checkbox" />
+      <span className="text-[11px] text-slate-600">Sin N° serie visible</span>
+      </label>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+      <div>
+      <label className="block text-[11px] font-semibold text-slate-600 mb-1">Categoría / Tipo <span className="text-rose-500">*</span></label>
+      <select value={newEquipo.tipo} onChange={e => setNewEquipo({...newEquipo, tipo: e.target.value})} className="w-full text-xs rounded-lg border-slate-300 py-1.5">
+      <option value="Laptop / Portátil">Laptop / Portátil</option>
+      <option value="Smartphone / Móvil">Smartphone / Móvil</option>
+      <option value="Consola de Videojuego">Consola de Videojuego</option>
+      <option value="Tablet">Tablet</option>
+      <option value="Monitor / TV">Monitor / TV</option>
+      <option value="Genérico / Otro">Genérico / Otro</option>
+      </select>
+      </div>
+      <div>
+      <label className="block text-[11px] font-semibold text-slate-600 mb-1">Marca <span className="text-rose-500">*</span></label>
+      <input value={newEquipo.marca} onChange={e => setNewEquipo({...newEquipo, marca: e.target.value})} className="w-full text-xs rounded-lg border-slate-300 py-1.5" placeholder="Ej: Apple, Lenovo, HP" type="text" />
+      </div>
+      <div>
+      <label className="block text-[11px] font-semibold text-slate-600 mb-1">Modelo Comercial <span className="text-rose-500">*</span></label>
+      <input value={newEquipo.modelo} onChange={e => setNewEquipo({...newEquipo, modelo: e.target.value})} className="w-full text-xs rounded-lg border-slate-300 py-1.5" placeholder="Ej: IdeaPad 3 15ITL05" type="text" />
+      </div>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+      <div>
+      <label className="block text-[11px] font-semibold text-slate-600 mb-1">N° de Serie Físico <span className="text-rose-500">*</span></label>
+      <input value={newEquipo.serie} onChange={e => setNewEquipo({...newEquipo, serie: e.target.value})} className="w-full text-xs font-mono rounded-lg border-slate-300 py-1.5" placeholder="Escanear o digitar SN" type="text" />
+      </div>
+      <div>
+      <label className="block text-[11px] font-semibold text-slate-600 mb-1">Accesorios Dejados</label>
+      <input className="w-full text-xs rounded-lg border-slate-300 py-1.5" placeholder="Cargador original..." type="text" />
+      </div>
+      </div>
+      <button onClick={handleSaveQuickEquipment} className="w-full bg-optifix-600 hover:bg-optifix-700 text-white text-xs font-bold py-2 rounded-lg mt-2 transition-colors">Guardar y Seleccionar Equipo</button>
+      </div>
+      )}
+      </div>
+      </article>
+      </section>
+      <section className="bg-white rounded-xl border border-slate-200/90 shadow-sm overflow-hidden" data-purpose="service-specifications-tabs">
+      <div className="border-b border-slate-200 px-5 pt-3 bg-slate-50/50 flex flex-wrap items-center justify-between gap-4">
+      <nav aria-label="Tabs de la Orden" className="flex items-center gap-2 -mb-px">
+      <button onClick={() => setActiveTab('General')} className={"inline-flex items-center gap-2 px-4 py-2.5 font-bold text-xs rounded-t-lg border-b-2 " + (activeTab === 'General' ? "border-optifix-600 text-optifix-700 bg-white shadow-xs" : "border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-100/70 transition-colors")} type="button">
+      <i className="ph-bold ph-sliders text-sm"></i>
+      <span className="">Datos Generales &amp; Operación</span>
+      </button>
+      <button onClick={() => setActiveTab('Diagnóstico')} className={"inline-flex items-center gap-2 px-4 py-2.5 font-bold text-xs rounded-t-lg border-b-2 " + (activeTab === 'Diagnóstico' ? "border-optifix-600 text-optifix-700 bg-white shadow-xs" : "border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-100/70 transition-colors")} type="button">
+      <i className="ph ph-stethoscope text-sm"></i>
+      <span className="">Diagnóstico Inicial</span>
+      </button>
+      <button onClick={() => setActiveTab('Anotaciones')} className={"inline-flex items-center gap-2 px-4 py-2.5 font-bold text-xs rounded-t-lg border-b-2 " + (activeTab === 'Anotaciones' ? "border-optifix-600 text-optifix-700 bg-white shadow-xs" : "border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-100/70 transition-colors")} type="button">
+      <i className="ph ph-notebook text-sm"></i>
+      <span className="">Anotaciones Internas</span>
+      </button>
+      </nav>
+      <div className="pb-2">
+      <div className="flex items-center gap-1.5 bg-white border border-slate-200 px-2.5 py-1 rounded-lg shadow-xs">
+      <label className="text-[11px] font-medium text-slate-500 flex items-center gap-1">
+                      Ref. Externa / Ticket:
+      </label>
+      <input value={referenciaExterna} onChange={e => setReferenciaExterna(e.target.value)} className="w-24 text-xs font-mono font-medium border-0 p-0 focus:ring-0 text-slate-800 placeholder-slate-400" placeholder="OP-882" type="text" />
+      </div>
+      </div>
+      </div>
+      <div className="p-6 space-y-6">
+      {activeTab === 'General' && (
+      <>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+      <div>
+      <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center justify-between">
+      <span className="">Prioridad</span>
+      </label>
+      <div className="relative">
+      <select value={prioridad} onChange={e => setPrioridad(e.target.value)} className="w-full text-xs font-semibold rounded-lg border-slate-300 focus:border-optifix-500 focus:ring-optifix-500/20 py-2 pl-2.5 pr-8">
+      <option value="Baja">🟢 Baja (72 hrs)</option>
+      <option value="Normal">🔵 Normal (24-48 hrs)</option>
+      <option value="Alta">🟠 Alta Prioritaria (24 hrs)</option>
+      <option value="Urgente">🔴 Urgencia / Express (Inmediata)</option>
+      </select>
+      </div>
+      </div>
+      <div>
+      <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      Área de Derivación
+                    </label>
+      <select value={area} onChange={e => setArea(e.target.value)} className="w-full text-xs font-semibold rounded-lg border-slate-300 focus:border-optifix-500 focus:ring-optifix-500/20 py-2 pl-2.5 pr-8">
+      <option value="Entrada">📥 Mesa de Entrada / Recepción</option>
+      <option value="Taller">🔬 Taller / Laboratorio</option>
+      <option value="Software">💻 Área Sistemas / Firmware</option>
+      </select>
+      </div>
+      <div>
+      <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      Estado Inicial de Orden
+                    </label>
+      <select value={estado} onChange={e => setEstado(e.target.value)} className="w-full text-xs font-bold uppercase rounded-lg border-slate-300 bg-slate-50 focus:border-optifix-500 focus:ring-optifix-500/20 py-2 pl-2.5 pr-8 text-optifix-700">
+      <option value="RECEPCIÓN">RECEPCIÓN / POR REVISAR</option>
+      <option value="DIAGNÓSTICO">EN DIAGNÓSTICO</option>
+      <option value="PRESUPUESTO">PRESUPUESTADO</option>
+      </select>
+      </div>
+      <div>
+      <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      Técnico Responsable
+                    </label>
+      <div className="relative">
+      <select value={responsable} onChange={e => setResponsable(e.target.value)} className="w-full text-xs font-medium rounded-lg border-slate-300 focus:border-optifix-500 focus:ring-optifix-500/20 py-2 pl-8 pr-8">
+      <option value="Mario Soto (Técnico Master - L2)">Mario Soto (Técnico Master - L2)</option>
+      <option value="Esteban Quirós (Laboratorio Micro)">Esteban Quirós (Laboratorio Micro)</option>
+      <option value="Laura Cordero (Garantías & Diagnóstico)">Laura Cordero (Garantías &amp; Diagnóstico)</option>
+      <option value="Sin Asignar (Cola General)">Sin Asignar (Cola General)</option>
+      </select>
+      <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400">
+      <i className="ph-bold ph-user-gear text-sm"></i>
+      </div>
+      </div>
+      </div>
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      <div className="space-y-1.5">
+      <div className="flex items-center justify-between">
+      <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+      <span className="">Trabajo Solicitado / Motivo de Ingreso</span>
+      <span className="text-rose-500 font-bold">*</span>
+      </label>
+      </div>
+      <textarea value={trabajo} onChange={e => setTrabajo(e.target.value)} className="w-full text-xs font-normal rounded-xl border-slate-300 focus:border-optifix-500 focus:ring-optifix-500/20 p-3 placeholder-slate-400 transition-shadow" placeholder="Describa puntualmente lo que solicita el cliente..." rows={3}></textarea>
+      </div>
+      <div className="space-y-1.5">
+      <div className="flex items-center justify-between">
+      <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+      <span className="">Inspección Visual &amp; Accesorios Recibidos</span>
+      </label>
+      </div>
+      <textarea value={descripcion} onChange={e => setDescripcion(e.target.value)} className="w-full text-xs font-normal rounded-xl border-slate-300 focus:border-optifix-500 focus:ring-optifix-500/20 p-3 placeholder-slate-400 transition-shadow" placeholder="Rayones, golpes perimetrales, faltantes de tornillería..." rows={3}></textarea>
+      </div>
+      </div>
+      <div className="pt-2 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 items-end">
+      <div>
+      <label className="block text-[11px] font-semibold text-slate-600 mb-1.5">Diagnóstico Previo</label>
+      <select value={diagnosticoSeleccion} onChange={e => setDiagnosticoSeleccion(e.target.value)} className="w-full text-xs rounded-lg border-slate-300 focus:ring-optifix-500 py-2">
+      <option value="Sí">Requerido (Por evaluar)</option>
+      <option value="No">No (Falla identificada)</option>
+      </select>
+      </div>
+      <div>
+      <label className="block text-[11px] font-semibold text-slate-600 mb-1.5">Garantía de Reparación</label>
+      <select value={garantia} onChange={e => setGarantia(e.target.value)} className="w-full text-xs rounded-lg border-slate-300 focus:ring-optifix-500 py-2">
+      <option value="No">Servicio Estándar (No)</option>
+      <option value="Sí">Reingreso por Garantía (Sí)</option>
+      </select>
+      </div>
+      <div>
+      <label className="block text-[11px] font-semibold text-slate-600 mb-1.5">Fecha Prometida de Entrega</label>
+      <div className="relative">
+      <input value={fechaPrometida} onChange={e => setFechaPrometida(e.target.value)} className="w-full text-xs font-medium rounded-lg border-slate-300 focus:ring-optifix-500 py-2 pl-3 pr-2 text-slate-700" type="date" />
+      </div>
+      </div>
+      <div>
+      <label className="block text-[11px] font-semibold text-slate-600 mb-1.5 flex items-center justify-between">
+      <span className="">Presupuesto Estimado</span>
+      <span className="text-[10px] text-slate-400 font-mono">CRC</span>
+      </label>
+      <div className="relative flex items-center">
+      <span className="absolute left-3 text-xs font-mono font-bold text-slate-400">₡</span>
+      <input value={presupuesto} onChange={e => setPresupuesto(e.target.value)} className="w-full text-xs font-mono font-bold text-slate-900 rounded-lg border-slate-300 focus:ring-optifix-500 py-2 pl-7 pr-7 text-right" type="number" />
+      </div>
+      </div>
+      <div>
+      <label className="block text-[11px] font-semibold text-slate-600 mb-1.5 flex items-center justify-between">
+      <span className="">Adelanto / Seña</span>
+      </label>
+      <div className="relative flex items-center">
+      <span className="absolute left-3 text-xs font-mono font-bold text-slate-400">₡</span>
+      <input value={adelanto} onChange={e => setAdelanto(e.target.value)} className="w-full text-xs font-mono font-bold text-emerald-700 rounded-lg border-slate-300 focus:ring-optifix-500 py-2 pl-7 pr-7 text-right bg-emerald-50/20" placeholder="0.00" type="number" />
+      </div>
+      </div>
+      </div>
+      </>
+      )}
 
-      <CreandoContactoModal isOpen={showContactoModal} onClose={() => setShowContactoModal(false)} onGuardar={handleGuardarContacto} />
-      <CreandoEquipoModal isOpen={showEquipoModal} onClose={() => setShowEquipoModal(false)} onGuardar={handleGuardarEquipo} />
-    </>
+      {activeTab === 'Diagnóstico' && (
+        <div className="flex flex-col h-64">
+          <label className="block text-xs font-bold text-slate-700 mb-2">Diagnóstico Inicial</label>
+          <textarea value={diagnosticoTexto} onChange={e => setDiagnosticoTexto(e.target.value)} className="flex-1 w-full text-xs font-normal rounded-xl border-slate-300 focus:border-optifix-500 focus:ring-optifix-500/20 p-3 placeholder-slate-400 resize-none" placeholder="Escriba aquí los detalles del diagnóstico..."></textarea>
+        </div>
+      )}
+
+      {activeTab === 'Anotaciones' && (
+        <div className="flex flex-col h-64">
+          <label className="block text-xs font-bold text-slate-700 mb-2">Anotaciones Privadas</label>
+          <textarea value={anotaciones} onChange={e => setAnotaciones(e.target.value)} className="flex-1 w-full text-xs font-normal rounded-xl border-slate-300 focus:border-optifix-500 focus:ring-optifix-500/20 p-3 placeholder-slate-400 resize-none" placeholder="Anotaciones internas (no visibles para el cliente)..."></textarea>
+        </div>
+      )}
+
+      </div>
+      </section>
+      </div>
+      <footer className="bg-white border-t border-slate-200 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 select-none shadow-modal z-10" data-purpose="footer-order-actions">
+      <div className="flex items-center gap-4 w-full sm:w-auto overflow-x-auto py-1">
+      <div className="flex items-center gap-2 text-xs text-slate-600 bg-slate-50 border border-slate-200/80 px-3 py-1.5 rounded-lg shrink-0">
+      <i className="ph-fill ph-check-circle text-emerald-500"></i>
+      <span className="">Cliente: <strong className="text-slate-900 font-semibold">{clienteNombre || 'No seleccionado'}</strong></span>
+      </div>
+      <div className="flex items-center gap-2 text-xs text-slate-600 bg-slate-50 border border-slate-200/80 px-3 py-1.5 rounded-lg shrink-0">
+      <i className="ph-fill ph-check-circle text-emerald-500"></i>
+      <span className="">Equipo: <strong className="text-slate-900 font-semibold">{equipoId ? equipos.find(e => e.id === equipoId)?.modelo : 'No seleccionado'}</strong></span>
+      </div>
+      <div className="flex items-center gap-2 text-xs font-mono text-slate-600 bg-slate-50 border border-slate-200/80 px-3 py-1.5 rounded-lg shrink-0">
+      <span className="">Saldo Restante:</span>
+      <span className="font-bold text-slate-900">₡{Number((presupuesto || 0) - (adelanto || 0)).toLocaleString('es-CR')}</span>
+      </div>
+      </div>
+      <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
+      <button onClick={onClose} className="px-4 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-100 active:bg-slate-200 transition-colors" type="button">
+                Cancelar
+              </button>
+      <button onClick={handleSubmit} className="px-5 py-2.5 rounded-xl bg-optifix-500 hover:bg-optifix-600 active:bg-optifix-700 text-white text-xs font-bold shadow-md shadow-optifix-500/25 flex items-center gap-2 transition-all transform active:scale-95" type="button">
+      <i className="ph-bold ph-printer text-base"></i>
+      <span className="">Crear Orden &amp; Imprimir Boleta</span>
+      <span className="h-4 w-px bg-white/30 mx-0.5"></span>
+      <i className="ph-fill ph-whatsapp-logo text-emerald-300 text-base" title="Envía notificación inmediata al WhatsApp del cliente"></i>
+      </button>
+      </div>
+      </footer>
+      </main>
+    </div>
   );
 }

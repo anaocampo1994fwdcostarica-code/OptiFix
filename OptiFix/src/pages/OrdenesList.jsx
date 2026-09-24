@@ -78,9 +78,6 @@ export default function OrdenesList({ onOpenNewOrderModal }) {
             Gestión completa del flujo de equipos en reparación — OptiFix Centro de Servicios
           </p>
         </div>
-        <button className="btn-primary" onClick={onOpenNewOrderModal}>
-          <span>Ingresar Equipo / Nueva Orden</span>
-        </button>
       </div>
 
       {/* Pestañas de Filtro con los 4 estados exactos */}

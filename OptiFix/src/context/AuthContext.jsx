@@ -2,45 +2,46 @@ import { createContext, useEffect, useState } from "react";
 
 export const AuthContext = createContext(null);
 
-// AuthProvider centraliza TODO lo relacionado a la sesión ciudadana:
-// - el usuario autenticado (nombre, tipo, expedientes activos)
-// - el token JWT de acceso devuelto por POST /auth/login-ciudadano
+const SESSION_KEY = "optifix_session";
+
+// AuthProvider centraliza toda la sesión del taller:
+// - el usuario autenticado (nombre, usuario, rol: "admin" | "tecnico")
 // - login / logout y persistencia en localStorage
+// - status: "verificando" | "autenticado" | "no-autenticado"
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
-  const [status, setStatus] = useState("verificando"); // verificando | autenticado | no-autenticado
+  const [status, setStatus] = useState("verificando");
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("optifix_usuario");
-    const storedToken = localStorage.getItem("optifix_token");
-    if (storedUser && storedToken) {
-      setUser(JSON.parse(storedUser));
-      setToken(storedToken);
-      setStatus("autenticado");
-    } else {
+    try {
+      const stored = localStorage.getItem(SESSION_KEY);
+      if (stored) {
+        setUser(JSON.parse(stored));
+        setStatus("autenticado");
+      } else {
+        setStatus("no-autenticado");
+      }
+    } catch (e) {
       setStatus("no-autenticado");
     }
   }, []);
 
-  function login(usuarioBackend, jwtToken) {
-    localStorage.setItem("optifix_usuario", JSON.stringify(usuarioBackend));
-    localStorage.setItem("optifix_token", jwtToken);
-    setUser(usuarioBackend);
-    setToken(jwtToken);
+  function login(usuario) {
+    const sesion = { nombre: usuario.nombre, usuario: usuario.usuario, rol: usuario.rol };
+    localStorage.setItem(SESSION_KEY, JSON.stringify(sesion));
+    setUser(sesion);
     setStatus("autenticado");
+    return sesion;
   }
 
   function logout() {
-    localStorage.removeItem("optifix_usuario");
-    localStorage.removeItem("optifix_token");
+    localStorage.removeItem(SESSION_KEY);
     setUser(null);
-    setToken(null);
     setStatus("no-autenticado");
   }
 
   return (
-    <AuthContext.Provider value={{ user, token, status, login, logout }}>
+    <AuthContext.Provider value={{ user, status, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
