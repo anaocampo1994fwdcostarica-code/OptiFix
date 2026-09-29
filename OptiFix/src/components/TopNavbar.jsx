@@ -4,11 +4,13 @@ import Icono from "./icons.jsx";
 import OptifixLogo from "./OptifixLogo.jsx";
 import { useWorkshop } from "../context/WorkshopContext.jsx";
 import { useAuth } from "../hooks/useAuth.js";
+import { useTranslation } from "react-i18next";
 
 export default function TopNavbar({ onOpenNewOrderModal }) {
   const navigate = useNavigate();
   const searchInputRef = useRef(null);
   const { user, logout } = useAuth();
+  const { t, i18n } = useTranslation();
   const {
     searchQuery,
     setSearchQuery,
@@ -62,7 +64,7 @@ export default function TopNavbar({ onOpenNewOrderModal }) {
           ref={searchInputRef}
           type="text"
           className="topbar-search-input"
-          placeholder="Buscar orden, cliente o equipo [/]"
+          placeholder={t("search.placeholder")}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
@@ -70,7 +72,7 @@ export default function TopNavbar({ onOpenNewOrderModal }) {
 
         {/* Resultados de Búsqueda Global */}
         {searchResults && (
-          <div className="global-search-dropdown">
+          <div className="global-search-dropdown bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg rounded-md z-50 overflow-hidden">
             {searchResults.totalCount === 0 ? (
               <div style={{ padding: "12px 14px", color: "var(--text-dim)", fontSize: "12px" }}>
                 Sin resultados para "{searchQuery}"
@@ -151,6 +153,14 @@ export default function TopNavbar({ onOpenNewOrderModal }) {
 
       {/* Botones de acción derecha */}
       <div className="topbar-actions">
+        <button
+          className="topbar-language-btn"
+          onClick={() => i18n.changeLanguage(i18n.language === "es" ? "en" : "es")}
+          title={t("action.language")}
+          aria-label={t("action.language")}
+        >
+          {i18n.language === "es" ? "EN" : "ES"}
+        </button>
         <button className="topbar-icon-btn" onClick={toggleTheme} title="Cambiar Tema">
           <Icono nombre={theme === "light" ? "moon" : "sun"} size={18} />
         </button>
@@ -161,7 +171,7 @@ export default function TopNavbar({ onOpenNewOrderModal }) {
           title="Crear nueva orden de trabajo"
         >
           <Icono nombre="plus" size={15} />
-          <span>Nueva Orden</span>
+          <span>{t("action.newOrder")}</span>
         </button>
 
         <button className="topbar-icon-btn" title="Mensajes internos">
@@ -178,7 +188,7 @@ export default function TopNavbar({ onOpenNewOrderModal }) {
         </button>
 
         <button className="topbar-logout-btn" onClick={salir} title="Cerrar sesión">
-          Salir
+          {t("action.logout")}
         </button>
 
         <div className="user-avatar-btn" title="Perfil de usuario">

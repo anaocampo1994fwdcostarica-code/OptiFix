@@ -410,10 +410,10 @@ export function WorkshopProvider({ children }) {
   };
 
   // ── ARCHIVOS ──────────────────────────────────────────────────────────────────
-  const addArchivo = (ordenId, { nombre, tipo = "image/jpeg", tamano = "1.1 MB" }) => {
+  const addArchivo = (ordenId, { nombre, tipo = "image/jpeg", tamano = "1.1 MB", vistaPrevia = null }) => {
     const newF = {
       id: `arc-${Date.now()}`,
-      nombre, tipo, tamano,
+      nombre, tipo, tamano, vistaPrevia,
       fecha: new Date().toLocaleDateString("es-CR")
     };
     setData((prev) => ({
@@ -425,6 +425,14 @@ export function WorkshopProvider({ children }) {
         return o;
       })
     }));
+  };
+
+  const deleteArchivo = (ordenId, archivoId) => {
+    setData((prev) => ({ ...prev, ordenes: prev.ordenes.map((orden) =>
+      orden.id === ordenId || orden.numero === Number(ordenId)
+        ? { ...orden, archivos: (orden.archivos || []).filter((archivo) => archivo.id !== archivoId) }
+        : orden
+    ) }));
   };
 
   // ── RESET DEMO ────────────────────────────────────────────────────────────────
@@ -513,6 +521,7 @@ export function WorkshopProvider({ children }) {
     addTarea,
     addNota,
     addArchivo,
+    deleteArchivo,
     resetToSeedData
   };
 

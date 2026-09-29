@@ -3,11 +3,13 @@ import { Link, useLocation } from "react-router-dom";
 import Icono from "./icons.jsx";
 import OptifixLogo from "./OptifixLogo.jsx";
 import { useAuth } from "../hooks/useAuth.js";
+import { useTranslation } from "react-i18next";
 
 export default function Sidebar({ collapsed, onToggle }) {
   const location = useLocation();
   const [isServiceCenterOpen, setIsServiceCenterOpen] = useState(true);
   const { user } = useAuth();
+  const { t } = useTranslation();
   const esAdmin = user?.rol === "admin";
 
   const isActive = (path) => location.pathname === path;
@@ -36,7 +38,7 @@ export default function Sidebar({ collapsed, onToggle }) {
           className={`nav-item ${isActive("/dashboard") ? "active" : ""}`}
         >
           <Icono nombre="barchart" size={18} />
-          {!collapsed && <span>General / Dashboard</span>}
+          {!collapsed && <span>{t("nav.dashboard")}</span>}
         </Link>
         {/* Agenda */}
         <Link
@@ -44,7 +46,7 @@ export default function Sidebar({ collapsed, onToggle }) {
           className={`nav-item ${isActive("/agenda") ? "active" : ""}`}
         >
           <Icono nombre="calendar" size={18} />
-          {!collapsed && <span>Agenda</span>}
+          {!collapsed && <span>{t("nav.agenda")}</span>}
         </Link>
 
         {/* Centro de Servicios Acordeón */}
@@ -56,7 +58,7 @@ export default function Sidebar({ collapsed, onToggle }) {
           >
             <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
               <Icono nombre="wrench" size={18} />
-              {!collapsed && <span>Centro de Servicios</span>}
+              {!collapsed && <span>{t("nav.serviceCenter")}</span>}
             </div>
             {!collapsed && (
               <Icono
@@ -76,26 +78,26 @@ export default function Sidebar({ collapsed, onToggle }) {
                     : ""
                 }`}
               >
-                Órdenes de trabajo
+                {t("nav.orders")}
               </Link>
               <Link
                 to="/equipos"
                 className={`nav-subitem ${isActive("/equipos") ? "active" : ""}`}
               >
-                Equipos (Historial)
+                {t("nav.equipment")}
               </Link>
               <Link
                 to="/clientes"
                 className={`nav-subitem ${isActive("/clientes") ? "active" : ""}`}
               >
-                Clientes (Historial)
+                {t("nav.clients")}
               </Link>
               {esAdmin && (
                 <Link
                   to="/estadisticas"
                   className={`nav-subitem ${isActive("/estadisticas") ? "active" : ""}`}
                 >
-                  Estadísticas
+                  {t("nav.statistics")}
                 </Link>
               )}
             </div>
@@ -109,14 +111,14 @@ export default function Sidebar({ collapsed, onToggle }) {
             className={`nav-item ${isActive("/cotizaciones") ? "active" : ""}`}
           >
             <Icono nombre="clipboard" size={18} />
-            {!collapsed && <span>Cotizaciones</span>}
+            {!collapsed && <span>{t("nav.quotes")}</span>}
           </Link>
         )}
 
         {esAdmin && (
           <Link to="/usuarios" className={`nav-item ${isActive("/usuarios") ? "active" : ""}`}>
             <Icono nombre="users" size={18} />
-            {!collapsed && <span>Usuarios y permisos</span>}
+            {!collapsed && <span>{t("nav.users")}</span>}
           </Link>
         )}
 
@@ -126,7 +128,7 @@ export default function Sidebar({ collapsed, onToggle }) {
           className={`nav-item ${isActive("/productos") ? "active" : ""}`}
         >
           <Icono nombre="box" size={18} />
-          {!collapsed && <span>Productos</span>}
+          {!collapsed && <span>{t("nav.products")}</span>}
         </Link>
 
         {/* Servicios */}
@@ -135,7 +137,7 @@ export default function Sidebar({ collapsed, onToggle }) {
           className={`nav-item ${isActive("/servicios") ? "active" : ""}`}
         >
           <Icono nombre="wrench" size={18} />
-          {!collapsed && <span>Servicios</span>}
+          {!collapsed && <span>{t("nav.services")}</span>}
         </Link>
       </nav>
     </aside>

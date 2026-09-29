@@ -376,6 +376,7 @@ font-size:12px}
 .topbar-actions{display:flex;
 align-items:center;
 gap:10px}
+.topbar-language-btn{min-width:34px;height:30px;padding:0 8px;border-radius:8px;border:1px solid var(--border-color);background:transparent;color:var(--text-muted);font-size:11px;font-weight:800;cursor:pointer;transition:var(--transition)}.topbar-language-btn:hover{background:var(--bg-card);color:var(--accent-blue-hover);border-color:var(--accent-blue)}
 .topbar-icon-btn{background:transparent;
 border:none;
 color:var(--text-muted);
@@ -1470,3 +1471,18 @@ html:not(.light-mode) .erp-directory-pagination>span,html:not(.light-mode) .erp-
 html:not(.light-mode) .erp-directory-pagination .text-slate-900{color:#e8f4ff!important}
 html:not(.light-mode) .erp-directory-pagination button{background:#0d2943!important;border-color:#24506f!important;color:#b8d7ee!important}
 html:not(.light-mode) .erp-directory-pagination button:hover:not(:disabled){background:#143b5d!important;color:#fff!important}
+
+/* Dropdown de búsqueda: contraste correcto tanto en claro como en oscuro. */
+.global-search-dropdown{max-height:24rem;background:#fff!important;border:1px solid #e5e7eb!important;border-radius:6px!important;overflow-y:auto}
+.global-search-dropdown .search-category-title{padding:8px 16px;background:#f9fafb;color:#6b7280;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.global-search-dropdown .search-result-item{padding:8px 16px;background:transparent;color:#111827;transition:background-color .15s ease}
+.global-search-dropdown .search-result-item:hover{background:#f3f4f6}
+.global-search-dropdown .search-result-item span:first-child{color:#111827!important;font-weight:600}
+html:not(.light-mode) .global-search-dropdown{background:#1f2937!important;border-color:#374151!important}
+html:not(.light-mode) .global-search-dropdown .search-category-title{background:rgba(31,41,55,.8);color:#9ca3af}
+html:not(.light-mode) .global-search-dropdown .search-result-item{color:#f8fafc}
+html:not(.light-mode) .global-search-dropdown .search-result-item:hover{background:#334155}
+html:not(.light-mode) .global-search-dropdown .search-result-item span:first-child{color:#fff!important}
+
+.print-order-template{width:100%;min-height:100vh;padding:32px;background:#fff;color:#111827;font-family:Arial,sans-serif}.print-order-template *{box-sizing:border-box}.print-order-header{display:flex;justify-content:space-between;gap:24px;padding-bottom:18px;border-bottom:2px solid #cbd5e1}.print-order-header div{display:flex;flex-direction:column;gap:4px}.print-order-header strong{font-size:28px;color:#0369a1}.print-order-header h1{margin:0;font-size:22px;color:#111827}.print-order-header span,.print-order-template p{font-size:13px;color:#475569;margin:4px 0}.print-order-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin:24px 0}.print-order-template h2{margin:0 0 8px;font-size:15px;color:#111827}.print-order-work{margin-bottom:20px;padding:14px;background:#f8fafc;border:1px solid #e2e8f0}.print-order-table{width:100%;border-collapse:collapse;font-size:13px}.print-order-table th,.print-order-table td{padding:10px;border-bottom:1px solid #e2e8f0;text-align:left;color:#111827}.print-order-table th{background:#f1f5f9}.print-order-table th:not(:first-child),.print-order-table td:not(:first-child){text-align:right}.print-order-totals{margin:20px 0 0 auto;width:min(100%,300px)}.print-order-totals p{display:flex;justify-content:space-between}.print-order-total{padding-top:10px;border-top:2px solid #94a3b8;font-size:16px!important;color:#0369a1!important}
+.file-preview-modal{position:fixed;inset:0;z-index:200;background:rgba(2,10,20,.82);display:grid;place-items:center;padding:24px}.file-preview-dialog{position:relative;width:min(100%,900px);max-height:90vh;background:#0b2239;border:1px solid #24506f;border-radius:12px;padding:18px}.file-preview-dialog>button{position:absolute;right:8px;top:8px;z-index:1;width:32px;height:32px;border:0;border-radius:50%;background:#ef4444;color:#fff;font-size:22px;cursor:pointer}.file-preview-dialog img{display:block;max-width:100%;max-height:78vh;margin:auto;object-fit:contain;border-radius:7px}.file-preview-dialog p{margin:10px 0 0;color:#dbe7f3;font-size:13px;text-align:center}

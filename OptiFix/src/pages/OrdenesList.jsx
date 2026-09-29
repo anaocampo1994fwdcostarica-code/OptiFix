@@ -2,19 +2,12 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useWorkshop } from "../context/WorkshopContext.jsx";
 import { getEstadoBadge } from "../utils/estadoColors.js";
+import { useTranslation } from "react-i18next";
 import "./OrdenesList.css";
 
 const PAGE_SIZE = 6;
 
 // Filtros exactos solicitados
-const PIPELINE_TABS = [
-  { id: "TODOS",    label: "Todas las órdenes" },
-  { id: "ENTRADA",  label: "Entrada" },
-  { id: "TRAMITE",  label: "En trámite" },
-  { id: "TALLER",   label: "En taller" },
-  { id: "SALIDA",   label: "SALIDA / ENTREGADO" }
-];
-
 function matchTab(orden, tabId) {
   const estado = (orden.estado_actual || "").toUpperCase();
   const etapa  = (orden.etapa_categoria || "").toUpperCase();
@@ -41,9 +34,14 @@ function matchTab(orden, tabId) {
 
 export default function OrdenesList({ onOpenNewOrderModal }) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { ordenes, equipos, clientes } = useWorkshop();
   const [activeTab, setActiveTab] = useState("TODOS");
   const [page, setPage] = useState(1);
+  const pipelineTabs = [
+    { id: "TODOS", label: t("orders.all") }, { id: "ENTRADA", label: t("orders.entry") },
+    { id: "TRAMITE", label: t("orders.progress") }, { id: "TALLER", label: t("orders.workshop") }, { id: "SALIDA", label: t("orders.delivered") }
+  ];
 
   const filteredOrdenes = ordenes.filter((o) => matchTab(o, activeTab));
   
@@ -58,7 +56,7 @@ export default function OrdenesList({ onOpenNewOrderModal }) {
         <span>/</span>
         <span>Taller</span>
         <span>/</span>
-        <span className="breadcrumb-current">Órdenes de Trabajo</span>
+        <span className="breadcrumb-current">{t("nav.orders")}</span>
       </div>
 
       {/* Título de sección + botón nueva orden */}
@@ -72,17 +70,17 @@ export default function OrdenesList({ onOpenNewOrderModal }) {
       }}>
         <div>
           <h1 style={{ fontSize: "24px", fontWeight: 700, color: "#0f172a", marginBottom: "4px" }}>
-            Todas las órdenes
+            {t("orders.title")}
           </h1>
           <p style={{ color: "var(--text-muted)", fontSize: "13px" }}>
-            Gestión completa del flujo de equipos en reparación — OptiFix Centro de Servicios
+            {t("orders.description")}
           </p>
         </div>
       </div>
 
       {/* Pestañas de Filtro con los 4 estados exactos */}
       <div className="order-tabs-bar" style={{ marginBottom: "20px" }}>
-        {PIPELINE_TABS.map((tab) => {
+        {pipelineTabs.map((tab) => {
           const count = ordenes.filter((o) => matchTab(o, tab.id)).length;
           return (
             <button
@@ -121,7 +119,7 @@ export default function OrdenesList({ onOpenNewOrderModal }) {
               <th>MODELO</th>
               <th>CLIENTE</th>
               <th>INGRESO</th>
-              <th style={{ textAlign: "right" }}>ACCIÓN</th>
+              <th style={{ textAlign: "right" }}>{t("orders.action")}</th>
             </tr>
           </thead>
           <tbody>
@@ -198,7 +196,7 @@ export default function OrdenesList({ onOpenNewOrderModal }) {
                         }}
                         title="Ver detalle"
                       >
-                        Ver detalle
+                        {t("orders.viewDetail")}
                       </button>
                     </td>
                   </tr>

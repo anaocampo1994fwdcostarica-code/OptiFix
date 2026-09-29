@@ -1,10 +1,12 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useReactToPrint } from "react-to-print";
 import Icono from "../components/icons.jsx";
 import { useWorkshop } from "../context/WorkshopContext.jsx";
 import { getEstadoBadge } from "../utils/estadoColors.js";
 import ItemProductoModal from "../components/modals/ItemProductoModal.jsx";
 import CambiarEstadoModal from "../components/modals/CambiarEstadoModal.jsx";
+import ReporteOrdenPDF from "../components/ReporteOrdenPDF.jsx";
 
 export default function OrdenDetalle() {
   const { numero } = useParams();
@@ -20,6 +22,7 @@ export default function OrdenDetalle() {
     addTarea,
     addNota,
     addArchivo,
+    deleteArchivo,
     changeOrdenStatus
   } = useWorkshop();
 
@@ -28,6 +31,10 @@ export default function OrdenDetalle() {
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
   const [nuevaTareaTexto, setNuevaTareaTexto] = useState("");
   const [nuevaNotaTexto, setNuevaNotaTexto] = useState("");
+  const [archivosPendientes, setArchivosPendientes] = useState([]);
+  const [archivoVistaPrevia, setArchivoVistaPrevia] = useState(null);
+  const componenteImprimirRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   const orden = ordenes.find((o) => String(o.numero) === String(numero) || o.id === numero);
 
@@ -55,10 +62,11 @@ export default function OrdenDetalle() {
   const total = Math.max(0, subtotal - adelanto);
 
   const isEntregado = orden.estado_actual === "ENTREGADO" || (orden.etapa_categoria === "SALIDA" && orden.fecha_entrega);
+  const reactToPrint = useReactToPrint({ contentRef: componenteImprimirRef, documentTitle: `Orden_Servicio_${orden.numero}` });
 
   const handlePrint = () => {
     // Permite que React termine de pintar la orden antes de invocar el diálogo.
-    requestAnimationFrame(() => window.print());
+    reactToPrint();
   };
 
   const handleWhatsApp = () => {
@@ -85,19 +93,41 @@ export default function OrdenDetalle() {
     setNuevaNotaTexto("");
   };
 
-  const handleSimulateUpload = () => {
-    const fileName = prompt("Nombre del archivo / fotografía a adjuntar:", "foto_diagnostico_adicional.jpg");
-    if (fileName) {
-      addArchivo(orden.id, {
-        nombre: fileName,
-        tipo: fileName.endsWith(".pdf") ? "application/pdf" : "image/jpeg",
-        tamano: "1.2 MB"
-      });
-    }
+  const handleFileChange = async (event) => {
+    const archivos = Array.from(event.target.files || []);
+    if (!archivos.length) return;
+    const pendientes = await Promise.all(archivos.map(async (archivo) => ({
+      id: `pendiente-${archivo.name}-${archivo.lastModified}`,
+      nombre: archivo.name,
+      tipo: archivo.type || "application/octet-stream",
+      tamano: `${(archivo.size / 1024 / 1024).toFixed(2)} MB`,
+      preview: archivo.type.startsWith("image/") ? URL.createObjectURL(archivo) : null,
+      vistaPrevia: archivo.type.startsWith("image/") ? await new Promise((resolve) => { const reader = new FileReader(); reader.onload = () => resolve(reader.result); reader.readAsDataURL(archivo); }) : null
+    })));
+    setArchivosPendientes((actuales) => [...actuales, ...pendientes]);
+    event.target.value = "";
   };
+
+  const guardarArchivosPendientes = () => {
+    archivosPendientes.forEach(({ nombre, tipo, tamano, preview, vistaPrevia }) => {
+      addArchivo(orden.id, { nombre, tipo, tamano, vistaPrevia });
+      if (preview) URL.revokeObjectURL(preview);
+    });
+    setArchivosPendientes([]);
+  };
+
+  const quitarArchivoPendiente = (id) => setArchivosPendientes((actuales) => {
+    const archivo = actuales.find((item) => item.id === id);
+    if (archivo?.preview) URL.revokeObjectURL(archivo.preview);
+    return actuales.filter((item) => item.id !== id);
+  });
 
   return (
     <div className="page-container printable-order">
+      <input ref={fileInputRef} type="file" multiple accept="image/*,.pdf" onChange={handleFileChange} style={{ display: "none" }} />
+      <div className="hidden">
+        <PlantillaImpresion ref={componenteImprimirRef} datosOrden={{ orden, cliente, equipo, items, subtotal, adelanto, total }} />
+      </div>
       {/* Breadcrumb idéntico a Captura 2 */}
       <div className="breadcrumb-nav">
         <span style={{ cursor: "pointer" }} onClick={() => navigate("/ordenes")}>
@@ -129,6 +159,7 @@ export default function OrdenDetalle() {
         </div>
 
         <div className="order-actions-bar">
+          <ReporteOrdenPDF orden={orden} cliente={cliente} equipo={equipo} archivos={orden.archivos || []} />
           <button className="btn-outline-icon" onClick={handlePrint} title="Imprimir orden">
             <Icono nombre="printer" size={16} />
           </button>
@@ -583,17 +614,30 @@ export default function OrdenDetalle() {
             <h3 style={{ fontSize: "15px", color: "#ffffff" }}>
               Documentación Digital y Fotografías del Equipo
             </h3>
-            <button className="btn-primary" onClick={handleSimulateUpload}>
+            <button className="btn-primary" onClick={() => fileInputRef.current?.click()}>
               <Icono nombre="plus" size={14} />
               <span>Adjuntar Archivo / Foto</span>
             </button>
+            {archivosPendientes.length > 0 && <button className="btn-secondary" onClick={guardarArchivosPendientes}>Guardar cambios ({archivosPendientes.length})</button>}
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "14px" }}>
+            {archivosPendientes.map((arc) => (
+              <div key={arc.id} style={{ position: "relative", background: "var(--bg-input)", border: "1px solid var(--accent-blue)", borderRadius: "8px", padding: "14px", display: "flex", flexDirection: "column", gap: "8px" }}>
+                <button type="button" onClick={() => quitarArchivoPendiente(arc.id)} aria-label={`Quitar ${arc.nombre}`} style={{ position: "absolute", top: "7px", right: "7px", width: "25px", height: "25px", border: 0, borderRadius: "50%", background: "var(--accent-red)", color: "#fff", cursor: "pointer", zIndex: 1 }}>×</button>
+                {arc.preview && <button type="button" onClick={() => setArchivoVistaPrevia({ nombre: arc.nombre, src: arc.preview })} aria-label={`Ver ${arc.nombre}`} style={{ position: "absolute", top: "7px", right: "39px", width: "25px", height: "25px", border: 0, borderRadius: "50%", background: "#fff", color: "#0b1f38", cursor: "pointer", zIndex: 1 }}><Icono nombre="eye" size={15} /></button>}
+                <div style={{ height: "90px", background: "#0c1f33", borderRadius: "6px", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--accent-cyan)" }}>
+                  {arc.preview ? <img src={arc.preview} alt={`Vista previa de ${arc.nombre}`} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <Icono nombre="file-text" size={36} />}
+                </div>
+                <div style={{ fontWeight: 600, color: "#ffffff", fontSize: "12px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{arc.nombre}</div>
+                <small style={{ color: "var(--accent-blue-hover)" }}>Pendiente de guardar · {arc.tamano}</small>
+              </div>
+            ))}
             {(orden.archivos || []).map((arc) => (
               <div
                 key={arc.id}
                 style={{
+                  position: "relative",
                   background: "var(--bg-input)",
                   border: "1px solid var(--border-color)",
                   borderRadius: "8px",
@@ -603,8 +647,10 @@ export default function OrdenDetalle() {
                   gap: "8px"
                 }}
               >
-                <div style={{ height: "90px", background: "#0c1f33", borderRadius: "6px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--accent-cyan)" }}>
-                  <Icono nombre={arc.tipo.includes("pdf") ? "file-text" : "camera"} size={36} />
+                <button type="button" onClick={() => deleteArchivo(orden.id, arc.id)} aria-label={`Eliminar ${arc.nombre}`} style={{ position: "absolute", top: "7px", right: "7px", width: "25px", height: "25px", border: 0, borderRadius: "50%", background: "var(--accent-red)", color: "#fff", cursor: "pointer", zIndex: 1 }}>×</button>
+                {arc.vistaPrevia && <button type="button" onClick={() => setArchivoVistaPrevia({ nombre: arc.nombre, src: arc.vistaPrevia })} aria-label={`Ver ${arc.nombre}`} style={{ position: "absolute", top: "7px", right: "39px", width: "25px", height: "25px", border: 0, borderRadius: "50%", background: "#fff", color: "#0b1f38", cursor: "pointer", zIndex: 1 }}><Icono nombre="eye" size={15} /></button>}
+                <div style={{ height: "90px", background: "#0c1f33", borderRadius: "6px", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--accent-cyan)" }}>
+                  {arc.vistaPrevia ? <img src={arc.vistaPrevia} alt={arc.nombre} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <Icono nombre={arc.tipo.includes("pdf") ? "file-text" : "camera"} size={36} />}
                 </div>
                 <div style={{ fontWeight: 600, color: "#ffffff", fontSize: "12px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                   {arc.nombre}
@@ -616,6 +662,7 @@ export default function OrdenDetalle() {
               </div>
             ))}
           </div>
+          {archivoVistaPrevia && <div className="file-preview-modal" onClick={() => setArchivoVistaPrevia(null)}><div className="file-preview-dialog" onClick={(event) => event.stopPropagation()}><button onClick={() => setArchivoVistaPrevia(null)} aria-label="Cerrar vista previa">×</button><img src={archivoVistaPrevia.src} alt={archivoVistaPrevia.nombre} /><p>{archivoVistaPrevia.nombre}</p></div></div>}
         </div>
       )}
 
@@ -661,3 +708,14 @@ export default function OrdenDetalle() {
     </div>
   );
 }
+
+const PlantillaImpresion = React.forwardRef(function PlantillaImpresion({ datosOrden }, ref) {
+  const { orden, cliente, equipo, items, subtotal, adelanto, total } = datosOrden || {};
+  return <div ref={ref} className="print-order-template">
+    <header className="print-order-header"><div><strong>OptiFix</strong><span>Centro de servicios técnicos</span></div><div><h1>Orden de Servicio N° {orden?.numero || "Nueva"}</h1><span>Fecha: {orden?.fecha_ingreso || "—"}</span></div></header>
+    <section className="print-order-grid"><div><h2>Datos del cliente</h2><p><b>Nombre:</b> {cliente?.nombre || "—"}</p><p><b>Contacto:</b> {cliente?.telefono || "—"}</p><p><b>Email:</b> {cliente?.email || "—"}</p></div><div><h2>Datos del equipo</h2><p><b>Equipo:</b> {equipo?.tipo || "—"}</p><p><b>Modelo:</b> {[equipo?.marca, equipo?.modelo].filter(Boolean).join(" ") || "—"}</p><p><b>Serie:</b> {equipo?.serie || "—"}</p></div></section>
+    <section className="print-order-work"><h2>Trabajo solicitado</h2><p>{orden?.trabajo_solicitado || "Sin detalle"}</p><p><b>Estado actual:</b> {orden?.estado_actual || "—"}</p></section>
+    <table className="print-order-table"><thead><tr><th>Descripción</th><th>Cant.</th><th>Importe</th></tr></thead><tbody>{items?.length ? items.map((item) => <tr key={item.id}><td>{item.descripcion}</td><td>{item.cantidad}</td><td>₡ {Number(item.importe || 0).toFixed(2)}</td></tr>) : <tr><td colSpan="3">Sin productos o servicios registrados.</td></tr>}</tbody></table>
+    <section className="print-order-totals"><p>Subtotal <b>₡ {Number(subtotal || 0).toFixed(2)}</b></p><p>Adelanto <b>- ₡ {Number(adelanto || 0).toFixed(2)}</b></p><p className="print-order-total">Total pendiente <b>₡ {Number(total || 0).toFixed(2)}</b></p></section>
+  </div>;
+});
