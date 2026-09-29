@@ -55,7 +55,7 @@ export default function ProductosView() {
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", flexWrap: "wrap", gap: "12px" }}>
         <div>
-          <h1 style={{ fontSize: "22px", color: "#0B1C30", fontWeight: 700, margin: 0 }}>Catálogo de Repuestos</h1>
+          <h1 style={{ fontSize: "22px", color: "var(--text-heading)", fontWeight: 700, margin: 0 }}>Catálogo de Repuestos</h1>
           <p style={{ color: "var(--text-muted)", fontSize: "13px", marginTop: "4px" }}>
             Gestión de inventario de repuestos, consumibles y componentes.
           </p>

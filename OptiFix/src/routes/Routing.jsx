@@ -15,7 +15,11 @@ import ServiciosView from "../pages/ServiciosView.jsx";
 import CotizacionesView from "../pages/CotizacionesView.jsx";
 import GenericModuleView from "../pages/GenericModuleView.jsx";
 import AgendaView from "../pages/AgendaView.jsx";
+import DashboardView from "../pages/DashboardView.jsx";
+import UsuariosView from "../pages/UsuariosView.jsx";
 import ProtectedRoute from "../components/ProtectedRoute.jsx";
+
+import NuevaOrdenView from "../pages/NuevaOrdenView.jsx";
 
 export default function Routing({ onOpenNewOrderModal }) {
   return (
@@ -29,6 +33,26 @@ export default function Routing({ onOpenNewOrderModal }) {
       <Route path="/seguimiento/:id" element={<SeguimientoPublico />} />
 
       {/* Rutas privadas — cualquier sesión (admin o técnico) */}
+      <Route
+        path="/usuarios"
+        element={<ProtectedRoute allowedRoles={["admin"]}><UsuariosView /></ProtectedRoute>}
+      />
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <DashboardView onOpenNewOrderModal={onOpenNewOrderModal} />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/nueva-orden"
+        element={
+          <ProtectedRoute>
+            <NuevaOrdenView onOrdenCreada={() => {}} />
+          </ProtectedRoute>
+        }
+      />
       <Route
         path="/ordenes"
         element={
@@ -104,7 +128,7 @@ export default function Routing({ onOpenNewOrderModal }) {
         }
       />
 
-      <Route path="*" element={<Navigate to="/ordenes" replace />} />
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
   );
 }

@@ -16,3 +16,16 @@
   border-radius: 7px; display: flex; align-items: center; justify-content: center;
   font-weight: 700;
 }
+.order-detail-button{background:#dbeafe!important;border-color:#bfdbfe!important;color:#1d4ed8!important;padding:6px 12px!important;width:auto!important;height:auto!important;border-radius:6px!important;font-size:12px;font-weight:700}.order-detail-button:hover{background:#bfdbfe!important;color:#1d4ed8!important}
+
+/* Tabla de órdenes: superficie limpia, sin fondos grises rígidos. */
+.orders-table-card{background:var(--bg-card)!important;border-color:var(--border-color)!important;box-shadow:0 8px 20px rgba(0,0,0,.08)!important}
+.orders-table th{background:var(--bg-input)!important;color:var(--text-muted)!important;border-bottom:1px solid var(--border-color)!important}
+.orders-table-row{background:var(--clr-datatable-bg)!important}
+.orders-table td{background:var(--clr-datatable-bg)!important;color:var(--text-main)!important;border-bottom:1px solid var(--border-subtle)!important}
+.orders-table td div{color:inherit!important}
+.orders-table .orders-table-status{color:#fff!important}
+.orders-table-row:hover,.gestioo-table .orders-table-row:hover{background:var(--clr-datatable-bg-hover)!important}
+:root.light-mode .orders-table-card{background:#fff!important}
+:root.light-mode .orders-table th{background:#f8fafc!important;color:#475569!important}
+:root.light-mode .orders-table-row:hover,.light-mode .gestioo-table .orders-table-row:hover{background:#f8fafc!important}

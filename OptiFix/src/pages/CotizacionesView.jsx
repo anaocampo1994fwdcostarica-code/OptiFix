@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useWorkshop } from "../context/WorkshopContext.jsx";
+import { useAuth } from "../hooks/useAuth.js";
 import "./CotizacionesView.css";
 
 const nuevoItem = () => ({ descripcion: "", cantidad: 1, precio: "" });
@@ -10,6 +11,7 @@ function money(value) {
 
 export default function CotizacionesView() {
   const { clientes, cotizaciones, addCotizacion } = useWorkshop();
+  const { user } = useAuth();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selected, setSelected] = useState(null);
   const [clienteId, setClienteId] = useState("");
@@ -41,9 +43,18 @@ export default function CotizacionesView() {
     )));
   }
 
+  const canCreateQuotation = user?.roles?.includes("crear_cotizacion") || user?.rol === "admin";
+  const [printPending, setPrintPending] = useState(false);
+
+  useEffect(() => {
+    if (!printPending || !selected || !clienteSeleccionado) return;
+    const frame = requestAnimationFrame(() => { window.print(); setPrintPending(false); });
+    return () => cancelAnimationFrame(frame);
+  }, [printPending, selected, clienteSeleccionado]);
+
   function printQuotation(quotation) {
     setSelected(quotation);
-    window.setTimeout(() => window.print(), 0);
+    setPrintPending(true);
   }
 
   return (
@@ -57,10 +68,10 @@ export default function CotizacionesView() {
           <h1>Cotizaciones y Presupuestos</h1>
           <p>Prepara propuestas para tus clientes y genera una copia lista para imprimir o guardar como PDF.</p>
         </div>
-        <button className="btn-primary" onClick={openForm}>Nueva cotización</button>
+        {canCreateQuotation && <button className="btn-primary" onClick={openForm}>Nueva cotización</button>}
       </header>
 
-      {isFormOpen && (
+      {isFormOpen && canCreateQuotation && (
         <form className="quotation-form" onSubmit={saveQuotation}>
           <div className="quotation-form-heading">
             <div><h2>Nueva cotización</h2><p>Completa los datos de la propuesta.</p></div>

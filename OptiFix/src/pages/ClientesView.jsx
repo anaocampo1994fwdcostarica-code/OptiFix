@@ -110,10 +110,10 @@ export default function ClientesView() {
       </div>
 
       {/* Controles y Tabla */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden flex flex-col">
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden flex flex-col erp-directory-card">
         {/* Filtros */}
-        <div className="border-b border-slate-100 p-4 flex flex-col sm:flex-row gap-4 justify-between bg-slate-50/50">
-          <div className="flex gap-2 p-1 bg-white rounded-lg w-fit ring-1 ring-slate-200/50">
+        <div className="border-b border-slate-100 p-4 flex flex-col sm:flex-row gap-4 justify-between bg-slate-50/50 erp-directory-toolbar">
+          <div className="flex gap-2 p-1 bg-white rounded-lg w-fit ring-1 ring-slate-200/50 erp-directory-tabs">
             {[
               { id: "TODOS", label: "Todos" },
               { id: "CON_ORDENES", label: "Con Órdenes Activas" },
@@ -150,7 +150,7 @@ export default function ClientesView() {
 
         {/* Tabla */}
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-600">
+          <table className="w-full text-left text-sm text-slate-600 erp-directory-table">
             <thead className="bg-slate-50/80 text-slate-500 uppercase text-[10px] font-bold tracking-wider">
               <tr>
                 <th className="px-6 py-4">Cliente</th>
@@ -178,7 +178,7 @@ export default function ClientesView() {
                   const activeOrdersCount = clientOrdenes.filter(o => o.estado_actual !== "ENTREGADO").length;
 
                   return (
-                    <tr key={c.id} className="hover:bg-slate-50/80 transition-colors group">
+                    <tr key={c.id} className="hover:bg-slate-50/80 transition-colors group erp-directory-row">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm ${colorAvatar(c.nombre)}`}>
@@ -248,7 +248,7 @@ export default function ClientesView() {
         
         {/* Paginación */}
         {totalPages > 1 && (
-          <div className="border-t border-slate-100 p-4 flex items-center justify-between bg-slate-50/50">
+          <div className="border-t border-slate-100 p-4 flex items-center justify-between bg-slate-50/50 erp-directory-pagination">
             <span className="text-sm text-slate-500">
               Página <span className="font-medium text-slate-900">{page}</span> de <span className="font-medium text-slate-900">{totalPages}</span>
             </span>

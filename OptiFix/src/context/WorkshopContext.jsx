@@ -16,9 +16,9 @@ const MARCAS_SEED = [
 
 // Usuarios semilla para autenticación (admin / técnico)
 const USUARIOS_SEED = [
-  { id: "user-1", nombre: "Administrador", usuario: "admin", password: "admin123", rol: "admin" },
-  { id: "user-2", nombre: "Técnico Principal", usuario: "tecnico", password: "tec123", rol: "tecnico" },
-  { id: "user-3", nombre: "Usuario Demo", usuario: "demo", password: "demo", rol: "admin" },
+  { id: "user-1", nombre: "Administrador", usuario: "admin", password: "admin123", rol: "admin", roles: ["ver_ordenes", "crear_orden", "crear_cotizacion", "gestionar_usuarios"] },
+  { id: "user-2", nombre: "Técnico Principal", usuario: "tecnico", password: "tec123", rol: "tecnico", roles: ["ver_ordenes", "crear_orden"] },
+  { id: "user-3", nombre: "Usuario Demo", usuario: "demo", password: "demo", rol: "admin", roles: ["ver_ordenes", "crear_orden", "crear_cotizacion", "gestionar_usuarios"] },
 ];
 
 export function WorkshopProvider({ children }) {
@@ -95,9 +95,17 @@ export function WorkshopProvider({ children }) {
       usuario: usuarioData.usuario.trim(),
       password: usuarioData.password,
       rol: usuarioData.rol === "tecnico" ? "tecnico" : "admin",
+      roles: usuarioData.roles || (usuarioData.rol === "tecnico" ? ["ver_ordenes", "crear_orden"] : ["ver_ordenes", "crear_orden", "crear_cotizacion", "gestionar_usuarios"]),
     };
     setData((prev) => ({ ...prev, usuarios: [...(prev.usuarios || []), nuevo] }));
     return { usuario: nuevo };
+  };
+
+  const updateUsuario = (id, fields) => {
+    setData((prev) => ({
+      ...prev,
+      usuarios: (prev.usuarios || []).map((user) => user.id === id ? { ...user, ...fields } : user)
+    }));
   };
 
   // ── CLIENTES CRUD ─────────────────────────────────────────────────────────────
@@ -476,6 +484,7 @@ export function WorkshopProvider({ children }) {
     marcas: data.marcas || MARCAS_SEED,
     usuarios: data.usuarios || USUARIOS_SEED,
     addUsuario,
+    updateUsuario,
     notificaciones: data.notificaciones || [],
     estadisticas: data.estadisticas || {},
     activeStageFilter,

@@ -83,7 +83,7 @@ export default function ServiciosView() {
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", flexWrap: "wrap", gap: "12px" }}>
         <div>
-          <h1 style={{ fontSize: "22px", color: "#0B1C30", fontWeight: 700, margin: 0 }}>Gestión de Servicios</h1>
+          <h1 style={{ fontSize: "22px", color: "var(--text-heading)", fontWeight: 700, margin: 0, background: "transparent" }}>Gestión de Servicios</h1>
           <p style={{ color: "var(--text-muted)", fontSize: "13px", marginTop: "4px" }}>
             Administre el catálogo de servicios, diagnósticos y reparaciones.
           </p>
@@ -121,7 +121,7 @@ export default function ServiciosView() {
 
       {formAbierto && (
         <div className="table-card" style={{ marginBottom: "20px", padding: "20px" }}>
-          <h3 style={{ margin: "0 0 16px", color: "#0B1C30", fontSize: "16px" }}>{formData.id ? "Editar Servicio" : "Nuevo Servicio"}</h3>
+          <h3 style={{ margin: "0 0 16px", color: "var(--text-heading)", fontSize: "16px" }}>{formData.id ? "Editar Servicio" : "Nuevo Servicio"}</h3>
           <div className="servicios-form-grid">
             <label>Código <input value={formData.codigo} onChange={e => setFormData({...formData, codigo: e.target.value})} placeholder="SRV-..." /></label>
             <label>Nombre <input value={formData.nombre} onChange={e => setFormData({...formData, nombre: e.target.value})} /></label>
@@ -186,15 +186,15 @@ export default function ServiciosView() {
             ) : (
               paginados.map(s => (
                 <tr key={s.id}>
-                  <td style={{ fontWeight: 600, color: "#0B1C30", fontSize: "12px" }}>{s.codigo}</td>
-                  <td style={{ color: "#0f172a", fontWeight: 500 }}>{s.nombre}</td>
+                  <td style={{ fontWeight: 600, color: "var(--text-heading)", fontSize: "12px" }}>{s.codigo}</td>
+                  <td style={{ color: "var(--text-heading)", fontWeight: 500 }}>{s.nombre}</td>
                   <td>
                     <span style={{ padding: "4px 8px", borderRadius: "6px", fontSize: "11px", fontWeight: 600, ...estiloCategoria(s.categoria) }}>
                       {s.categoria}
                     </span>
                   </td>
                   <td style={{ color: "var(--text-muted)", fontSize: "12px" }}>{s.duracion}</td>
-                  <td style={{ textAlign: "right", fontWeight: 700, color: "#0B1C30" }}>
+                  <td style={{ textAlign: "right", fontWeight: 700, color: "var(--text-heading)" }}>
                     ₡{s.precio.toLocaleString("es-CR", { minimumFractionDigits: 2 })}
                   </td>
                   <td style={{ textAlign: "center" }}>

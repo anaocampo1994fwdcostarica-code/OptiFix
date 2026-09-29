@@ -1,16 +1,15 @@
 import React, { useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import Sidebar from "./components/Sidebar.jsx";
 import TopNavbar from "./components/TopNavbar.jsx";
 import NotificationDrawer from "./components/NotificationDrawer.jsx";
 import Routing from "./routes/Routing.jsx";
-import NuevaOrdenModal from "./components/modals/NuevaOrdenModal.jsx";
 import { useAuth } from "./hooks/useAuth.js";
 
 export default function App() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [isNewOrderModalOpen, setIsNewOrderModalOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const { status } = useAuth();
 
   const isPublicRoute =
@@ -28,7 +27,7 @@ export default function App() {
   if (!mostrarShellPrivado) {
     return (
       <div className="gestioo-public-layout" style={{ minHeight: "100vh", backgroundColor: "var(--bg-app)" }}>
-        <Routing onOpenNewOrderModal={() => setIsNewOrderModalOpen(true)} />
+        <Routing onOpenNewOrderModal={() => navigate('/nueva-orden')} />
       </div>
     );
   }
@@ -43,21 +42,15 @@ export default function App() {
 
       {/* Área Principal */}
       <div className="gestioo-main-area">
-        <TopNavbar onOpenNewOrderModal={() => setIsNewOrderModalOpen(true)} />
+        <TopNavbar onOpenNewOrderModal={() => navigate('/nueva-orden')} />
 
         <main style={{ flex: 1 }}>
-          <Routing onOpenNewOrderModal={() => setIsNewOrderModalOpen(true)} />
+          <Routing onOpenNewOrderModal={() => navigate('/nueva-orden')} />
         </main>
       </div>
 
       {/* Cajón Lateral de Notificaciones (Captura 3) */}
       <NotificationDrawer />
-
-      {/* Modal Global para Crear Nueva Orden */}
-      <NuevaOrdenModal
-        isOpen={isNewOrderModalOpen}
-        onClose={() => setIsNewOrderModalOpen(false)}
-      />
     </div>
   );
 }

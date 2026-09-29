@@ -120,10 +120,10 @@ export default function EquiposView({ onOpenNewOrderModal }) {
       </div>
 
       {/* Controles y Tabla */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden flex flex-col">
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden flex flex-col erp-directory-card">
         {/* Filtros */}
-        <div className="border-b border-slate-100 p-4 flex flex-col lg:flex-row gap-4 justify-between bg-slate-50/50">
-          <div className="flex flex-wrap gap-2 p-1 bg-white rounded-lg w-fit ring-1 ring-slate-200/50">
+        <div className="border-b border-slate-100 p-4 flex flex-col lg:flex-row gap-4 justify-between bg-slate-50/50 erp-directory-toolbar">
+          <div className="flex flex-wrap gap-2 p-1 bg-white rounded-lg w-fit ring-1 ring-slate-200/50 erp-directory-tabs">
             {[
               { id: "TODOS", label: `Todos (${counts.TODOS})` },
               { id: "PANTALLAS", label: `Pantallas (${counts.PANTALLAS})` },
@@ -162,7 +162,7 @@ export default function EquiposView({ onOpenNewOrderModal }) {
 
         {/* Tabla */}
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-600">
+          <table className="w-full text-left text-sm text-slate-600 erp-directory-table">
             <thead className="bg-slate-50/80 text-slate-500 uppercase text-[10px] font-bold tracking-wider">
               <tr>
                 <th className="px-6 py-4">Equipo / Modelo</th>
@@ -189,7 +189,7 @@ export default function EquiposView({ onOpenNewOrderModal }) {
                   const lastOrder = eqOrdenes.length > 0 ? eqOrdenes[eqOrdenes.length - 1] : null;
 
                   return (
-                    <tr key={e.id} className="hover:bg-slate-50/80 transition-colors group">
+                    <tr key={e.id} className="hover:bg-slate-50/80 transition-colors group erp-directory-row">
                       <td className="px-6 py-4">
                         <div className="flex flex-col gap-1">
                           <div className="flex items-center gap-2">
@@ -246,7 +246,7 @@ export default function EquiposView({ onOpenNewOrderModal }) {
         
         {/* Paginación */}
         {totalPages > 1 && (
-          <div className="border-t border-slate-100 p-4 flex items-center justify-between bg-slate-50/50">
+          <div className="border-t border-slate-100 p-4 flex items-center justify-between bg-slate-50/50 erp-directory-pagination">
             <span className="text-sm text-slate-500">
               Página <span className="font-medium text-slate-900">{page}</span> de <span className="font-medium text-slate-900">{totalPages}</span>
             </span>

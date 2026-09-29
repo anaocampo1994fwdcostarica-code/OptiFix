@@ -63,23 +63,11 @@ export function LoginCard({ initialRole = "admin" }) {
         <div className="brand-center">
           <OptifixBrand size={48} textSize={26} taglineSize={9} />
         </div>
-        <h1 className="heading">Login</h1>
-        <p className="login-sub">Acceso de {ETIQUETAS_ROL[tab]}</p>
+        <h1 className="heading">Acceso</h1>
+        <p className="login-sub">Ingrese sus credenciales para continuar</p>
       </div>
 
-      {/* Dos accesos separados: Administrador / Técnico */}
-      <div className="login-tabs">
-        {["admin", "tecnico"].map((id) => (
-          <button
-            key={id}
-            type="button"
-            onClick={() => cambiarTab(id)}
-            className={`login-tab-btn ${tab === id ? "active" : ""}`}
-          >
-            {ETIQUETAS_ROL[id]}
-          </button>
-        ))}
-      </div>
+
 
       {/* Formulario específico del rol activo */}
       <form onSubmit={handleSubmit} className="login-form">
@@ -132,14 +120,11 @@ export function LoginCard({ initialRole = "admin" }) {
         Entrar en modo demo
       </button>
 
-      {/* Credenciales del rol activo */}
+      {/* Credenciales de prueba completas */}
       <div className="login-credentials">
-        <p className="cred-title">Credenciales de prueba · {ETIQUETAS_ROL[tab]}</p>
-        {tab === "admin" ? (
-          <p>Admin: <code>admin / admin123</code></p>
-        ) : (
-          <p>Técnico: <code>tecnico / tec123</code></p>
-        )}
+        <p className="cred-title">Credenciales de prueba</p>
+        <p>Admin: <code>admin / admin123</code></p>
+        <p>Técnico: <code>tecnico / tec123</code></p>
         <p>Demo: <code>demo / demo</code></p>
       </div>
 
@@ -164,8 +149,16 @@ export default function Login() {
         flexDirection: "column",
         background: "linear-gradient(135deg, #0a2547 0%, #0d4d8a 55%, #38bdf8 120%)",
         fontFamily: "'Inter', 'Outfit', sans-serif",
+        position: "relative"
       }}
     >
+      <div style={{ position: "absolute", top: 24, left: 24, zIndex: 10 }}>
+        <Link to="/" className="inline-flex items-center gap-2 text-white hover:text-white transition-colors bg-white/10 hover:bg-white/20 px-4 py-2.5 rounded-xl backdrop-blur-sm font-semibold text-sm shadow-sm border border-white/10">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          Volver al Inicio
+        </Link>
+      </div>
+
       <div
         style={{
           flex: 1,

@@ -9,33 +9,37 @@
   --brand-tint: #EFF4FF;
   --font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: "JetBrains Mono", "Courier New", monospace;
-  --bg-app: #eaf3fb;
---bg-sidebar: #dfeaf5;
---bg-card: #f8fbff;
---bg-card-hover: #edf6ff;
---bg-input: #edf4fa;
---bg-table-alt: #f3f8fd;
---border-color: #cfe0ec;
---border-subtle: #dfeaf4;
---accent-blue: #0f7bc9;
---accent-blue-hover: #0f6bb3;
---accent-cyan: #2b9ad5;
---accent-green: #2eb67d;
---accent-green-bg: #e8fff1;
---accent-lime: #7bc043;
---accent-lime-bg: #edf9e5;
---accent-red: #ef4444;
---accent-red-bg: #fee2e2;
---accent-yellow: #fbbf24;
---accent-purple: #8b5cf6;
---text-main: #1a2d3f;
---text-muted: #587089;
---text-dim: #748aa1;
---text-heading: #0f1f2f;
---radius-sm: 4px;
---radius-md: 8px;
---radius-lg: 12px;
---radius-full: 9999px;
+  --bg-app: #061426;
+  --bg-sidebar: #0b1f38;
+  --bg-card: #0f294a;
+  --bg-card-hover: #14345c;
+  --bg-input: #0b1f38;
+  --bg-table-alt: #0a2444;
+  --border-color: #1a3c63;
+  --border-subtle: #122d4f;
+  --accent-blue: #36a2fa;
+  --accent-blue-hover: #7cc2fd;
+  --accent-cyan: #2b9ad5;
+  --accent-green: #2eb67d;
+  --accent-green-bg: #033621;
+  --accent-lime: #7bc043;
+  --accent-lime-bg: #1c360a;
+  --accent-red: #ef4444;
+  --accent-red-bg: #4a0d0d;
+  --accent-yellow: #fbbf24;
+  --accent-purple: #8b5cf6;
+  --text-main: #e2e8f0;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+  --text-heading: #f8fafc;
+  --clr-datatable-bg: transparent;
+  --clr-datatable-bg-hover: rgba(30, 41, 59, .5);
+  --clr-datatable-btn: transparent;
+  --clr-datatable-btn-hover: rgba(255, 255, 255, .1);
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
 --shadow-sm: 0 2px 4px rgba(16, 38, 58, .06);
 --shadow-md: 0 4px 12px rgba(16, 38, 58, .08);
 --shadow-lg: 0 10px 24px rgba(26, 52, 78, .12);
@@ -63,6 +67,8 @@
 --accent-red-bg: #fee2e2;
 --accent-yellow: #fbbf24;
 --accent-purple: #8b5cf6}
+/* Superficies de tabla en modo claro: conservan contraste sin fondos pesados. */
+:root.light-mode{--clr-datatable-bg:transparent;--clr-datatable-bg-hover:#f8fafc;--clr-datatable-btn:transparent;--clr-datatable-btn-hover:#eef6ff}
 .optifix-brand{display:flex;
 align-items:center;
 gap:16px;
@@ -911,7 +917,7 @@ height:10px;
 border-radius:var(--radius-full);
 background-color:var(--accent-cyan);
 border:2px solid var(--bg-app)}
-@media print{.gestioo-sidebar,.gestioo-topbar,.notifications-drawer,.btn-primary,.btn-outline-icon{display:none!important}
+@media print{.gestioo-sidebar,.gestioo-topbar,.notifications-drawer,.btn-primary,.btn-outline-icon{display:none!important}}
 .contact-modal{width:min(100%,1035px)!important;max-width:1035px!important;max-height:calc(100vh - 28px);overflow-y:auto!important;background:#fff!important;border:1px solid #cfd3d8!important;border-radius:12px!important;box-shadow:0 18px 50px #17202d38;color:#3f424a}
 .contact-modal>div:first-child{padding:24px 30px 18px!important;border-bottom:1px solid #e8e8ea!important}
 .contact-modal h2{font-size:26px!important;font-weight:700!important;color:#3e424a!important}
@@ -930,30 +936,6 @@ border:2px solid var(--bg-app)}
 contact-modal .contact-form-column>div:nth-child(4){padding:17px!important;margin-top:0;background:#ef5a0b!important;border-radius:12px!important;font-size:18px!important}
 .contact-modal-footer{padding:14px 30px 18px!important;background:#fff!important;border-top:1px solid #e8e8ea!important}.contact-modal-footer .btn-secondary,.contact-modal-footer .btn-primary{min-height:46px;padding:10px 20px!important;border-radius:10px!important;font-size:16px;font-weight:600}.contact-modal-footer .btn-primary{background:#197bb8!important}
 @media (max-width:700px){.contact-modal-body{flex-direction:column;gap:20px!important;padding:18px!important}.contact-photo-column{width:100%!important;flex-basis:auto}.contact-photo-placeholder{width:140px!important;height:140px!important}.contact-modal .contact-form-column>div:nth-child(1) .form-grid-2,.contact-modal .form-grid-2{grid-template-columns:1fr}.contact-modal .contact-lists{flex-direction:column;gap:20px!important}.contact-modal>div:first-child,.contact-modal-footer{padding-left:18px!important;padding-right:18px!important}}
-
-/* Keep authenticated module headings and table content readable on the light layout. */
-.gestioo-main-area .page-container h1,
-.gestioo-main-area .page-container h2,
-.gestioo-main-area .page-container h3,
-.gestioo-main-area .page-container h4{color:#0f172a!important}
-.gestioo-main-area .page-container p{color:#526174!important}
-.gestioo-main-area .page-container .gestioo-table td,
-.gestioo-main-area .page-container .gestioo-table td strong{color:#0f172a!important}
-.gestioo-main-area .page-container .gestioo-table td[style*="monospace"]{color:#334155!important}
-.gestioo-main-area .page-container .gestioo-table td div[style*="text-dim"],
-.gestioo-main-area .page-container .gestioo-table td div[style*="fontSize"]{color:#64748b!important}
-.gestioo-main-area .page-container .work-order-meta-card{background:#fff!important;border-color:#dbe5f1!important}
-.gestioo-main-area .page-container .kpi-card{background:#fff!important;border-color:#dbe5f1!important}
-.gestioo-main-area .page-container .kpi-card h4,
-.gestioo-main-area .page-container .kpi-value{color:#0f172a!important}
-.gestioo-main-area .page-container .breadcrumb-nav{color:#64748b!important}
-.gestioo-main-area .page-container .breadcrumb-current{color:#075e96!important}
-body{background:#fff!important;
-color:#000!important}
-.entity-info-card,.work-order-meta-card,.table-card{border:1px solid #cccccc!important;
-background:#fff!important;
-color:#000!important}
-}
 
 /* ==========================================================================
    OPTIFIX - LANDING PAGE (Página de inicio pública)
@@ -1382,3 +1364,109 @@ color:#000!important}
     margin-top:8px}
   .step-arrow{display:none}
 }
+
+/* ==========================================================================
+   Dark Mode Overrides for Tailwind Classes
+   ========================================================================== */
+html:not(.light-mode) .text-slate-900,
+html:not(.light-mode) .text-slate-800,
+html:not(.light-mode) .text-slate-700,
+html:not(.light-mode) .text-gray-900,
+html:not(.light-mode) .text-gray-800 {
+  color: var(--text-heading) !important;
+}
+
+html:not(.light-mode) .text-slate-600,
+html:not(.light-mode) .text-slate-500,
+html:not(.light-mode) .text-gray-600,
+html:not(.light-mode) .text-gray-500 {
+  color: var(--text-muted) !important;
+}
+
+html:not(.light-mode) .bg-white,
+html:not(.light-mode) .bg-slate-50 {
+  background-color: var(--bg-card) !important;
+}
+
+html:not(.light-mode) .bg-slate-100 {
+  background-color: var(--bg-input) !important;
+}
+
+html:not(.light-mode) .border-slate-200,
+html:not(.light-mode) .border-slate-300 {
+  border-color: var(--border-color) !important;
+}
+
+/* Contraste consistente para formularios, títulos y tablas en ambos temas. */
+input,select,textarea{color:var(--text-main);background-color:var(--bg-input)}
+.gestioo-table th{color:var(--text-muted)}
+.gestioo-table tbody tr:hover{background-color:var(--bg-card-hover)}
+:root.light-mode .gestioo-table tbody tr:hover{background-color:#f8fafc}
+
+/* La boleta nunca hereda el tema oscuro ni se oculta al abrir la impresión. */
+@media print{
+  .printable-order{background:#fff!important;color:#000!important;padding:0!important;margin:0!important}
+  .printable-order *{color:#000!important;text-shadow:none!important}
+  .printable-order .order-status,.printable-order .chevron-stage-pill{color:#fff!important}
+  .printable-order .entity-info-card,.printable-order .work-order-meta-card{background:#fff!important;border-color:#cbd5e1!important;box-shadow:none!important}
+  .printable-order .order-header-row,.printable-order .breadcrumb-nav,.printable-order .order-actions-bar,.printable-order .order-tabs-bar,.printable-order .modal-overlay{display:none!important}
+}
+
+/* =====================================================================
+   OPTIFIX DARK ERP — superficie unificada para todos los módulos
+   ===================================================================== */
+html:not(.light-mode) body,html:not(.light-mode) .gestioo-layout,html:not(.light-mode) .gestioo-main-area{background:#061426!important;color:#e2e8f0}
+html:not(.light-mode) .gestioo-sidebar{background:#081d32;border-color:#123553;box-shadow:8px 0 24px rgba(0,0,0,.14)}
+html:not(.light-mode) .sidebar-header{height:76px;border-color:#123553}
+html:not(.light-mode) .gestioo-topbar{background:rgba(6,20,38,.92);border-color:#123553;box-shadow:0 5px 18px rgba(0,0,0,.13)}
+html:not(.light-mode) .topbar-search-input,html:not(.light-mode) .search-shortcut-kbd{background:#091d31;border-color:#173b5b;color:#dbeafe}
+html:not(.light-mode) .user-avatar-btn{background:#102d49;border-color:#285070;color:#dbeafe}
+html:not(.light-mode) .page-container{background:#061426}
+html:not(.light-mode) .page-container h1,html:not(.light-mode) .page-container h2,html:not(.light-mode) .page-container h3,html:not(.light-mode) .page-container h4{color:#f8fafc!important;background:transparent!important}
+html:not(.light-mode) .page-container p{color:#94a3b8}
+html:not(.light-mode) .table-card,html:not(.light-mode) .work-order-meta-card,html:not(.light-mode) .entity-info-card,html:not(.light-mode) .kpi-card{background:#0b2239!important;border-color:#1a3c5b!important;box-shadow:none}
+html:not(.light-mode) .gestioo-table th{background:#0a1d31!important;border-color:#1a3c5b!important;color:#9db4cb!important}
+html:not(.light-mode) .gestioo-table td{background:transparent!important;border-color:#153653!important;color:#dbe7f3!important}
+html:not(.light-mode) .gestioo-table tbody tr{background:transparent!important}
+html:not(.light-mode) .gestioo-table tbody tr:hover{background:#102d49!important}
+html:not(.light-mode) .gestioo-table td[style],html:not(.light-mode) .gestioo-table td div[style]{color:#dbe7f3!important}
+html:not(.light-mode) .order-tabs-bar{border-color:#173b5b}
+html:not(.light-mode) .order-tab-btn{color:#8eaac4}
+html:not(.light-mode) .order-tab-btn.active{background:#102d49;color:#55b8f7;border-color:#2b9ad5}
+html:not(.light-mode) .meta-finances,html:not(.light-mode) .task-item-row{background:#091d31;border-color:#173b5b}
+html:not(.light-mode) .entity-avatar-placeholder{background:#102d49;color:#76c4f4}
+html:not(.light-mode) .form-input,html:not(.light-mode) .form-select,html:not(.light-mode) .form-textarea{background:#091d31!important;border-color:#1a3c5b!important;color:#e2e8f0!important}
+html:not(.light-mode) .btn-outline-icon,html:not(.light-mode) .btn-secondary{background:#0d2943;border-color:#205075;color:#b9d4ea}
+html:not(.light-mode) .btn-outline-icon:hover,html:not(.light-mode) .btn-secondary:hover{background:#143b5d;color:#fff}
+html:not(.light-mode) .productos-kpi-card,html:not(.light-mode) .producto-card,html:not(.light-mode) .quotation-form,html:not(.light-mode) .quotation-list,html:not(.light-mode) .quotation-preview{background:#0b2239!important;border-color:#1a3c5b!important}
+html:not(.light-mode) .producto-nombre,html:not(.light-mode) .producto-precio,html:not(.light-mode) .productos-kpi-value{color:#f8fafc!important}
+html:not(.light-mode) .quotation-form input,html:not(.light-mode) .quotation-form select,html:not(.light-mode) .quotation-form textarea,html:not(.light-mode) .quotation-list-row{background:#091d31;color:#e2e8f0;border-color:#173b5b}
+html:not(.light-mode) .quotation-list-row:hover{background:#102d49}
+html:not(.light-mode) .dashboard-hero,html:not(.light-mode) .dashboard-card,html:not(.light-mode) .kpi-new,html:not(.light-mode) .quick-link{background:#0b2239;border-color:#1a3c5b;box-shadow:none}
+html:not(.light-mode) .dashboard-table th{color:#9db4cb;border-color:#1a3c5b}
+html:not(.light-mode) .dashboard-table td{color:#dbe7f3;border-color:#153653}
+html:not(.light-mode) .dashboard-table tbody tr:hover{background:#102d49}
+html:not(.light-mode) .nav-item{color:#9db4cb}
+html:not(.light-mode) .nav-item:hover,html:not(.light-mode) .nav-group-header:hover{background:#102d49;color:#f8fafc}
+html:not(.light-mode) .nav-item.active{background:linear-gradient(90deg,rgba(54,162,250,.18),rgba(54,162,250,.04));border-left-color:#36a2fa;color:#8bd0ff}
+html:not(.light-mode) .nav-subitem{color:#8eaac4}
+html:not(.light-mode) .nav-subitem.active{background:rgba(54,162,250,.14);color:#7bc9fb}
+
+/* Directorios: misma tabla navy de la pantalla de órdenes de referencia. */
+html:not(.light-mode) .erp-directory-card{background:#0b2239!important;border:1px solid #24506f!important;border-radius:12px!important;box-shadow:none!important}
+html:not(.light-mode) .erp-directory-toolbar{background:#0b2239!important;border-color:#24506f!important}
+html:not(.light-mode) .erp-directory-tabs{background:#071a2d!important;border:1px solid #1f4a6c!important;box-shadow:none!important}
+html:not(.light-mode) .erp-directory-tabs button{background:transparent!important;color:#8eaac4!important}
+html:not(.light-mode) .erp-directory-tabs button.bg-slate-100{background:#123d61!important;color:#74c9fb!important;box-shadow:none!important}
+html:not(.light-mode) .erp-directory-table{background:transparent!important;color:#dbe7f3!important}
+html:not(.light-mode) .erp-directory-table thead,html:not(.light-mode) .erp-directory-table th{background:#0a1d31!important;color:#8fb0cc!important;border-color:#24506f!important}
+html:not(.light-mode) .erp-directory-table tbody,html:not(.light-mode) .erp-directory-table td{background:transparent!important;color:#e2edf7!important;border-color:#24506f!important}
+html:not(.light-mode) .erp-directory-row:hover,html:not(.light-mode) .erp-directory-row:hover td{background:#102d49!important}
+html:not(.light-mode) .erp-directory-table .bg-slate-100{background:#09233d!important;color:#b5d9f3!important}
+html:not(.light-mode) .erp-directory-table .text-slate-900,html:not(.light-mode) .erp-directory-table .text-slate-700{color:#f1f7fc!important}
+html:not(.light-mode) .erp-directory-table .text-slate-500,html:not(.light-mode) .erp-directory-table .text-slate-600{color:#9db8cf!important}
+html:not(.light-mode) .erp-directory-pagination{background:#0b2239!important;border-color:#24506f!important}
+html:not(.light-mode) .erp-directory-pagination>span,html:not(.light-mode) .erp-directory-pagination .text-slate-500{color:#8eaac4!important}
+html:not(.light-mode) .erp-directory-pagination .text-slate-900{color:#e8f4ff!important}
+html:not(.light-mode) .erp-directory-pagination button{background:#0d2943!important;border-color:#24506f!important;color:#b8d7ee!important}
+html:not(.light-mode) .erp-directory-pagination button:hover:not(:disabled){background:#143b5d!important;color:#fff!important}

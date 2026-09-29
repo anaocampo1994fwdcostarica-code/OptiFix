@@ -1,0 +1,15 @@
+import React, { useState } from "react";
+import { useWorkshop } from "../context/WorkshopContext.jsx";
+import "./UsuariosView.css";
+
+const AVAILABLE_PERMISSIONS = ["ver_ordenes", "crear_orden", "crear_cotizacion", "gestionar_usuarios"];
+const EMPTY_USER = { nombre: "", usuario: "", password: "", rol: "tecnico", roles: ["ver_ordenes", "crear_orden"] };
+
+export default function UsuariosView() {
+  const { usuarios, addUsuario, updateUsuario } = useWorkshop();
+  const [form, setForm] = useState(EMPTY_USER);
+  const [message, setMessage] = useState("");
+  const togglePermission = (permission) => setForm((current) => ({ ...current, roles: current.roles.includes(permission) ? current.roles.filter((item) => item !== permission) : [...current.roles, permission] }));
+  const saveUser = (event) => { event.preventDefault(); if (!form.nombre.trim() || !form.usuario.trim() || !form.password) return; const result = addUsuario(form); if (result?.error) { setMessage(result.error); return; } setForm(EMPTY_USER); setMessage("Usuario agregado correctamente."); };
+  return <div className="page-container users-page"><div className="breadcrumb-nav"><span>Principal</span><span>/</span><span className="breadcrumb-current">Usuarios y permisos</span></div><header className="users-header"><div><h1>Usuarios y permisos</h1><p>Administra el acceso operativo del equipo de OptiFix.</p></div></header><section className="users-layout"><form className="user-form" onSubmit={saveUser}><h2>Agregar usuario</h2><label>Nombre completo<input value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} required /></label><label>Usuario<input value={form.usuario} onChange={(e) => setForm({ ...form, usuario: e.target.value })} required /></label><label>Contraseña<input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required /></label><label>Tipo de usuario<select value={form.rol} onChange={(e) => setForm({ ...form, rol: e.target.value })}><option value="tecnico">Técnico</option><option value="admin">Administrador</option></select></label><fieldset><legend>Permisos</legend>{AVAILABLE_PERMISSIONS.map((permission) => <label className="permission-check" key={permission}><input type="checkbox" checked={form.roles.includes(permission)} onChange={() => togglePermission(permission)} /> {permission.replace(/_/g, " ")}</label>)}</fieldset>{message && <p className="user-message">{message}</p>}<button className="btn-primary" type="submit">Guardar usuario</button></form><section className="user-list"><h2>Usuarios registrados</h2>{usuarios.map((user) => <article key={user.id}><div><strong>{user.nombre}</strong><small>@{user.usuario} · {user.rol}</small><p>{(user.roles || []).join(" · ") || "Sin permisos asignados"}</p></div><label className="user-role">Rol<select value={user.rol} onChange={(e) => updateUsuario(user.id, { rol: e.target.value })}><option value="tecnico">Técnico</option><option value="admin">Administrador</option></select></label></article>)}</section></section></div>;
+}

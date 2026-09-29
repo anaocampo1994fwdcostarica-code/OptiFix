@@ -27,7 +27,12 @@ export function AuthProvider({ children }) {
   }, []);
 
   function login(usuario) {
-    const sesion = { nombre: usuario.nombre, usuario: usuario.usuario, rol: usuario.rol };
+    const sesion = {
+      nombre: usuario.nombre,
+      usuario: usuario.usuario,
+      rol: usuario.rol,
+      roles: usuario.roles || (usuario.rol === "admin" ? ["ver_ordenes", "crear_orden", "crear_cotizacion", "gestionar_usuarios"] : ["ver_ordenes", "crear_orden"])
+    };
     localStorage.setItem(SESSION_KEY, JSON.stringify(sesion));
     setUser(sesion);
     setStatus("autenticado");

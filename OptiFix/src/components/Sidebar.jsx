@@ -15,7 +15,7 @@ export default function Sidebar({ collapsed, onToggle }) {
   return (
     <aside className={`gestioo-sidebar ${collapsed ? "collapsed" : ""}`}>
       <div className="sidebar-header">
-        <Link to="/ordenes" className="brand-logo">
+        <Link to="/dashboard" className="brand-logo">
           <span className="brand-key-badge">
             <OptifixLogo size={28} />
           </span>
@@ -31,6 +31,13 @@ export default function Sidebar({ collapsed, onToggle }) {
       </div>
 
       <nav className="sidebar-nav">
+        <Link
+          to="/dashboard"
+          className={`nav-item ${isActive("/dashboard") ? "active" : ""}`}
+        >
+          <Icono nombre="barchart" size={18} />
+          {!collapsed && <span>General / Dashboard</span>}
+        </Link>
         {/* Agenda */}
         <Link
           to="/agenda"
@@ -103,6 +110,13 @@ export default function Sidebar({ collapsed, onToggle }) {
           >
             <Icono nombre="clipboard" size={18} />
             {!collapsed && <span>Cotizaciones</span>}
+          </Link>
+        )}
+
+        {esAdmin && (
+          <Link to="/usuarios" className={`nav-item ${isActive("/usuarios") ? "active" : ""}`}>
+            <Icono nombre="users" size={18} />
+            {!collapsed && <span>Usuarios y permisos</span>}
           </Link>
         )}
 

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Icono from "../components/icons.jsx";
 import { useWorkshop } from "../context/WorkshopContext.jsx";
+import { getEstadoBadge } from "../utils/estadoColors.js";
 import ItemProductoModal from "../components/modals/ItemProductoModal.jsx";
 import CambiarEstadoModal from "../components/modals/CambiarEstadoModal.jsx";
 
@@ -56,7 +57,18 @@ export default function OrdenDetalle() {
   const isEntregado = orden.estado_actual === "ENTREGADO" || (orden.etapa_categoria === "SALIDA" && orden.fecha_entrega);
 
   const handlePrint = () => {
-    window.print();
+    // Permite que React termine de pintar la orden antes de invocar el diálogo.
+    requestAnimationFrame(() => window.print());
+  };
+
+  const handleWhatsApp = () => {
+    const telefono = (cliente.telefono || "").replace(/\D/g, "");
+    if (!telefono) {
+      alert("Esta orden no tiene un teléfono de cliente registrado.");
+      return;
+    }
+    const mensaje = `Hola ${cliente.nombre || ""}, adjuntamos los detalles de su orden N°${orden.numero} en OptiFix. Estado actual: ${orden.estado_actual}.`;
+    window.open(`https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`, "_blank", "noopener,noreferrer");
   };
 
   const handleAddTareaSubmit = (e) => {
@@ -85,7 +97,7 @@ export default function OrdenDetalle() {
   };
 
   return (
-    <div className="page-container">
+    <div className="page-container printable-order">
       {/* Breadcrumb idéntico a Captura 2 */}
       <div className="breadcrumb-nav">
         <span style={{ cursor: "pointer" }} onClick={() => navigate("/ordenes")}>
@@ -122,13 +134,10 @@ export default function OrdenDetalle() {
           </button>
           <button
             className="btn-outline-icon"
-            onClick={() => {
-              navigator.clipboard?.writeText(window.location.href);
-              alert("Enlace copiado al portapapeles");
-            }}
-            title="Copiar enlace"
+            onClick={handleWhatsApp}
+            title="Enviar detalles por WhatsApp"
           >
-            <Icono nombre="link" size={16} />
+            <Icono nombre="whatsapp" size={16} />
           </button>
           <button
             className="btn-outline-icon"

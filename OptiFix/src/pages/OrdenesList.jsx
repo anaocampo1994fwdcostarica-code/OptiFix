@@ -110,8 +110,8 @@ export default function OrdenesList({ onOpenNewOrderModal }) {
       </div>
 
       {/* Tabla de Órdenes */}
-      <div className="table-card">
-        <table className="gestioo-table">
+      <div className="table-card orders-table-card">
+        <table className="gestioo-table orders-table">
           <thead>
             <tr>
               <th style={{ width: "110px" }}>N°</th>
@@ -146,7 +146,7 @@ export default function OrdenesList({ onOpenNewOrderModal }) {
                 return (
                   <tr
                     key={orden.id}
-                    className="table-row-clickable"
+                    className="table-row-clickable orders-table-row"
                     onClick={() => navigate(`/ordenes/${orden.numero}`)}
                   >
                     <td>
@@ -155,7 +155,7 @@ export default function OrdenesList({ onOpenNewOrderModal }) {
                       </div>
                     </td>
                     <td>
-                      <span style={{
+                      <span className="orders-table-status" style={{
                         background: estadoBadge.bg,
                         color: estadoBadge.color,
                         padding: "3px 8px",
@@ -190,7 +190,7 @@ export default function OrdenesList({ onOpenNewOrderModal }) {
                     </td>
                     <td style={{ textAlign: "right" }}>
                       <button
-                        className="btn-outline-icon"
+                        className="btn-outline-icon order-detail-button"
                         style={{ display: "inline-flex" }}
                         onClick={(e) => {
                           e.stopPropagation();
