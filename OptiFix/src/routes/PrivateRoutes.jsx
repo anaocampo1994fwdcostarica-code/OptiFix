@@ -1,7 +1,7 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth.js";
 
-// PrivateRoutes protege un grupo de rutas (Portal Ciudadano).
+// PrivateRoutes protege las rutas privadas del panel de OptiFix.
 // - Si todavía no se sabe si hay sesión -> pantalla de carga (evita parpadeo).
 // - Si no hay sesión -> redirige a /login, guardando a dónde quería ir.
 // - Si todo bien -> <Outlet /> renderiza la ruta hija real.

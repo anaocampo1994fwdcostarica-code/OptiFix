@@ -3,6 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { useWorkshop } from "../context/WorkshopContext.jsx";
 import Icono from "../components/icons.jsx";
 import { getEstadoBadge } from "../utils/estadoColors.js";
+import { useTranslation } from "react-i18next";
+import { useExchangeRate } from "../hooks/useExchangeRate.js";
 import "./DashboardView.css";
 
 const money = new Intl.NumberFormat("es-CR", { style: "currency", currency: "CRC", maximumFractionDigits: 0 });
@@ -14,8 +16,10 @@ function formatDate() {
 
 export default function DashboardView({ onOpenNewOrderModal }) {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
   const { ordenes, clientes, equipos, cotizaciones } = useWorkshop();
   const [filter, setFilter] = useState("Todas");
+  const exchangeRate = useExchangeRate();
 
   const stats = useMemo(() => {
     const active = ordenes.filter((o) => o.estado_actual !== "ENTREGADO");
@@ -30,24 +34,32 @@ export default function DashboardView({ onOpenNewOrderModal }) {
   const pendingQuotes = cotizaciones.filter((quote) => quote.estado === "PENDIENTE").length;
   const agenda = stats.active.slice(0, 4);
 
+  const moneyForLanguage = new Intl.NumberFormat(i18n.language === "en" ? "en-US" : "es-CR", { style: "currency", currency: "CRC", maximumFractionDigits: 0 });
+  const today = new Intl.DateTimeFormat(i18n.language === "en" ? "en-US" : "es-CR", { weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(new Date());
+
   return <div className="dashboard page-container">
     <section className="dashboard-hero">
       <div>
-        <div className="dashboard-status"><span /> Taller operativo <time>{formatDate()}</time></div>
-        <h1>Centro de Control &amp; Operaciones</h1>
-        <p>Monitoreo unificado de servicio técnico, recepción, inventario y compromisos de entrega.</p>
+        <div className="dashboard-status"><span /> {t("dashboard.operational")} <time>{today}</time></div>
+        <h1>{t("page.dashboard")}</h1>
+        <p>{t("dashboard.monitoring")}</p>
       </div>
       <div className="dashboard-actions">
-        <button className="dashboard-secondary" onClick={() => window.print()}><Icono nombre="printer" size={16} /> Boleta rápida</button>
-        <button className="dashboard-primary" onClick={onOpenNewOrderModal}><Icono nombre="plus" size={16} /> Nueva orden de servicio</button>
+        <button className="dashboard-secondary" onClick={() => window.print()}><Icono nombre="printer" size={16} /> {t("dashboard.quickReceipt")}</button>
+        <button className="dashboard-primary" onClick={onOpenNewOrderModal}><Icono nombre="plus" size={16} /> {t("dashboard.newServiceOrder")}</button>
       </div>
     </section>
 
+    <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between dashboard-exchange-rate" role="status">
+      <div><p className="text-xs text-slate-400 font-medium uppercase">Tipo de cambio referencial</p><p className="text-lg font-bold text-slate-800">{exchangeRate.loading ? "Cargando…" : `1 USD ≈ ₡${Number(exchangeRate.rate).toFixed(2)}`}</p><small>{exchangeRate.source}</small></div>
+      <span className="p-2 bg-blue-50 text-blue-600 rounded-lg">💱</span>
+    </div>
+
     <section className="dashboard-kpis">
-      <Kpi icon="wrench" tone="blue" label="Órdenes en taller" value={stats.active.length} detail={`${stats.recepcion.length} en recepción · ${stats.banco.length} en banco`} />
-      <Kpi icon="barchart" tone="green" label="Facturación estimada" value={money.format(stats.total)} detail="Productos y servicios de órdenes abiertas" />
-      <Kpi icon="calendar-check" tone="purple" label="Agenda técnica" value={agenda.length} detail="Seguimientos operativos pendientes" />
-      <Kpi icon="box" tone="orange" label="Cotizaciones pendientes" value={pendingQuotes} detail="Requieren confirmación del cliente" />
+      <Kpi icon="wrench" tone="blue" label={t("dashboard.ordersInWorkshop")} value={stats.active.length} detail={`${stats.recepcion.length} ${t("dashboard.inReception")} · ${stats.banco.length} ${t("dashboard.inBench")}`} />
+      <Kpi icon="barchart" tone="green" label={t("dashboard.estimatedBilling")} value={moneyForLanguage.format(stats.total)} detail={t("dashboard.openOrderProducts")} />
+      <Kpi icon="calendar-check" tone="purple" label={t("dashboard.technicalAgenda")} value={agenda.length} detail={t("dashboard.pendingFollowups")} />
+      <Kpi icon="box" tone="orange" label={t("dashboard.pendingQuotes")} value={pendingQuotes} detail={t("dashboard.customerConfirmation")} />
     </section>
 
     <section className="automation-banner"><Icono nombre="whatsapp" size={21} /><span><strong>Canal automatizado WhatsApp &amp; SMS activo.</strong> Mantén informados a tus clientes sobre cada cambio de estado.</span><button>Ver historial →</button></section>

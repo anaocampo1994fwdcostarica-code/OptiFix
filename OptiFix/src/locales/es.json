@@ -1,0 +1,16 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "agenda": "Agenda",
+    "serviceCenter": "Centro de Servicios",
+    "workOrders": "Órdenes de trabajo",
+    "equipmentHistory": "Equipos (Historial)",
+    "clientsHistory": "Clientes (Historial)",
+    "statistics": "Estadísticas",
+    "quotes": "Cotizaciones",
+    "usersPermissions": "Usuarios y permisos",
+    "products": "Productos",
+    "services": "Servicios"
+  },
+  "common": { "loading": "Cargando...", "save": "Guardar", "cancel": "Cancelar" }
+}

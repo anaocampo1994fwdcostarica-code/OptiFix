@@ -48,6 +48,17 @@ const STEPS = [
     desc: "Una vez finalizado, se registra la entrega, se calcula el total y se emite el comprobante digital."
   }
 ];
+
+const BENEFITS = [
+  ["Operación profesional", "Estandarizá la recepción, diagnóstico, presupuesto y entrega para que cada orden tenga información clara y trazable."],
+  ["Control en tiempo real", "Consultá estados, cargas de trabajo, clientes, equipos e importes desde un único panel de control."],
+  ["Adaptado a tu taller", "Configurá servicios, productos, técnicos y permisos de acuerdo con la forma en que ya trabaja tu equipo."],
+  ["Siempre disponible", "Trabajá desde computadora, tablet o celular sin instalaciones locales y con una experiencia consistente."]
+];
+
+const MODULES = [
+  "Órdenes de trabajo digitales", "Historial por cliente y equipo", "Cotizaciones y adelantos", "Inventario de productos y servicios", "Agenda técnica", "Notificaciones por WhatsApp", "Boletas y reportes PDF", "Usuarios y permisos"
+];
 export default function LandingPage() {
   return (
     <div className="landing-root">
@@ -166,6 +177,29 @@ export default function LandingPage() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      <section className="landing-section landing-value-section">
+        <div className="landing-section-inner">
+          <div className="landing-section-label">Una operación más ordenada</div>
+          <h2 className="landing-section-title">Herramientas para trabajar mejor hoy y crecer mañana.</h2>
+          <p className="landing-section-sub">OptiFix centraliza la operación diaria del taller para que el equipo dedique menos tiempo a buscar información y más tiempo a reparar.</p>
+          <div className="landing-benefits-grid">
+            {BENEFITS.map(([title, desc], index) => <article className="landing-benefit" key={title}><span>0{index + 1}</span><h3>{title}</h3><p>{desc}</p></article>)}
+          </div>
+        </div>
+      </section>
+
+      <section className="landing-section landing-modules-section">
+        <div className="landing-section-inner landing-modules-layout">
+          <div>
+            <div className="landing-section-label">Todo conectado</div>
+            <h2 className="landing-section-title">El sistema adecuado para un servicio técnico moderno.</h2>
+            <p className="landing-section-sub">Desde el primer ingreso hasta la entrega, cada módulo comparte la misma información para evitar duplicados, pérdidas de datos y seguimientos incompletos.</p>
+            <Link to="/login/admin" className="btn-landing-primary">Conocer el panel</Link>
+          </div>
+          <ul className="landing-modules-list">{MODULES.map((module) => <li key={module}><span>✓</span>{module}</li>)}</ul>
         </div>
       </section>
 

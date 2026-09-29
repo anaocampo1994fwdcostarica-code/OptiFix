@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useWorkshop } from "../context/WorkshopContext.jsx";
 import { useAuth } from "../hooks/useAuth.js";
+import { useExchangeRate } from "../hooks/useExchangeRate.js";
 import "./CotizacionesView.css";
 
 const nuevoItem = () => ({ descripcion: "", cantidad: 1, precio: "" });
@@ -18,6 +19,8 @@ export default function CotizacionesView() {
   const [vigencia, setVigencia] = useState(15);
   const [notas, setNotas] = useState("");
   const [items, setItems] = useState([nuevoItem()]);
+  const exchangeRate = useExchangeRate();
+  const formTotal = items.reduce((sum, item) => sum + Number(item.cantidad || 0) * Number(item.precio || 0), 0);
 
   const clienteSeleccionado = clientes.find((cliente) => cliente.id === selected?.cliente_id);
 
@@ -70,6 +73,7 @@ export default function CotizacionesView() {
         </div>
         {canCreateQuotation && <button className="btn-primary" onClick={openForm}>Nueva cotización</button>}
       </header>
+      <p className="quotation-exchange-rate">💱 Referencia de repuestos importados: {exchangeRate.loading ? "consultando USD/CRC…" : `US$1 = ₡${Number(exchangeRate.rate).toLocaleString("es-CR")} (${exchangeRate.source})`}</p>
 
       {isFormOpen && canCreateQuotation && (
         <form className="quotation-form" onSubmit={saveQuotation}>
@@ -100,6 +104,7 @@ export default function CotizacionesView() {
               </div>
             ))}
           </div>
+          <div className="quotation-currency-note"><span>💱 Total referencial</span><strong>{money(formTotal)}</strong><small>{exchangeRate.loading ? "Consultando equivalente USD…" : `≈ US$${(formTotal / exchangeRate.rate).toFixed(2)} · 1 USD ≈ ₡${Number(exchangeRate.rate).toFixed(2)}`}</small></div>
           <label>Notas para el cliente<textarea rows="3" value={notas} onChange={(event) => setNotas(event.target.value)} placeholder="Condiciones, tiempos de entrega o información adicional" /></label>
           <div className="quotation-form-actions"><button type="button" className="btn-secondary" onClick={() => setIsFormOpen(false)}>Cancelar</button><button className="btn-primary" type="submit">Guardar cotización</button></div>
         </form>

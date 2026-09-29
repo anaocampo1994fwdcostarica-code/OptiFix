@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useWorkshop } from "../context/WorkshopContext.jsx";
+import AsistenteDiagnostico from "../components/ai/AsistenteDiagnostico.jsx";
 
 /* ────────────────────────────────────────────────────────────────
    OptiFix Logo SVG – Inline component (isotipo con punto naranja)
@@ -811,6 +812,7 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
                 placeholder="Escriba aquí los detalles del diagnóstico técnico de entrada..."
                 rows={8}
               ></textarea>
+              <AsistenteDiagnostico fallaReportada={trabajo || diagnosticoTexto} equipo={selectedEquipo} onAplicar={(resultado) => setDiagnosticoTexto(`${diagnosticoTexto}${diagnosticoTexto ? "\n\n" : ""}Sugerencia IA:\n${resultado.posiblesCausas?.join("\n") || ""}`)} />
             </div>
           )}
 

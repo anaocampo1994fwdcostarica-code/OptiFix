@@ -4,28 +4,9 @@ import App from "../App.jsx";
 import { AuthProvider } from "../context/AuthContext.jsx";
 import { WorkshopProvider } from "../context/WorkshopContext.jsx";
 
-const METRICAS_MOCK = {
-  tramites_resueltos_label: "+2.4M",
-  disponibilidad_label: "99.8%",
-  porcentaje_firma_digital: 100,
-  sla_red_institucional: "99.9%",
-  estado_servidores: "OPERATIVO_LINEA",
-};
-
 beforeEach(() => {
   localStorage.clear();
-  global.fetch = jest.fn((url) => {
-    if (url.includes("/metricas/publicas")) {
-      return Promise.resolve({ ok: true, json: () => Promise.resolve(METRICAS_MOCK) });
-    }
-    if (url.includes("/categorias")) {
-      return Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ categorias: [] }),
-      });
-    }
-    return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
-  });
+  global.fetch = jest.fn(() => Promise.resolve({ ok: true, json: () => Promise.resolve({}) }));
 });
 
 describe("App smoke", () => {

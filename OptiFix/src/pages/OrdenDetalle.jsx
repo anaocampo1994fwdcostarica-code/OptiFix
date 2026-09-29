@@ -6,7 +6,7 @@ import { useWorkshop } from "../context/WorkshopContext.jsx";
 import { getEstadoBadge } from "../utils/estadoColors.js";
 import ItemProductoModal from "../components/modals/ItemProductoModal.jsx";
 import CambiarEstadoModal from "../components/modals/CambiarEstadoModal.jsx";
-import ReporteOrdenPDF from "../components/ReporteOrdenPDF.jsx";
+import { VistaPreviaReporteOrden } from "../components/ReporteOrdenPDF.jsx";
 
 export default function OrdenDetalle() {
   const { numero } = useParams();
@@ -33,6 +33,7 @@ export default function OrdenDetalle() {
   const [nuevaNotaTexto, setNuevaNotaTexto] = useState("");
   const [archivosPendientes, setArchivosPendientes] = useState([]);
   const [archivoVistaPrevia, setArchivoVistaPrevia] = useState(null);
+  const [mostrarVistaPreviaReporte, setMostrarVistaPreviaReporte] = useState(false);
   const componenteImprimirRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -62,7 +63,16 @@ export default function OrdenDetalle() {
   const total = Math.max(0, subtotal - adelanto);
 
   const isEntregado = orden.estado_actual === "ENTREGADO" || (orden.etapa_categoria === "SALIDA" && orden.fecha_entrega);
-  const reactToPrint = useReactToPrint({ contentRef: componenteImprimirRef, documentTitle: `Orden_Servicio_${orden.numero}` });
+  const reactToPrint = useReactToPrint({
+    contentRef: componenteImprimirRef,
+    documentTitle: `Orden_Servicio_${orden.numero}`,
+    pageStyle: `
+      @page { size: auto; margin: 12mm; }
+      html, body { background: #ffffff !important; color: #111827 !important; }
+      .print-order-template { display: block !important; visibility: visible !important; background: #ffffff !important; color: #111827 !important; }
+      .print-order-template * { visibility: visible !important; }
+    `
+  });
 
   const handlePrint = () => {
     // Permite que React termine de pintar la orden antes de invocar el diálogo.
@@ -125,9 +135,23 @@ export default function OrdenDetalle() {
   return (
     <div className="page-container printable-order">
       <input ref={fileInputRef} type="file" multiple accept="image/*,.pdf" onChange={handleFileChange} style={{ display: "none" }} />
-      <div className="hidden">
-        <PlantillaImpresion ref={componenteImprimirRef} datosOrden={{ orden, cliente, equipo, items, subtotal, adelanto, total }} />
+      {/* Debe estar montada para react-to-print, pero no puede usar display:none. */}
+      <div className="print-source" aria-hidden="true">
+        <PlantillaImpresion ref={componenteImprimirRef} datosOrden={{ orden, cliente, equipo, items, subtotal, adelanto, total, archivos: orden.archivos || [] }} />
       </div>
+      {mostrarVistaPreviaReporte && (
+        <VistaPreviaReporteOrden
+          orden={orden}
+          cliente={cliente}
+          equipo={equipo}
+          archivos={orden.archivos || []}
+          onClose={() => setMostrarVistaPreviaReporte(false)}
+          onPrint={() => {
+            setMostrarVistaPreviaReporte(false);
+            window.setTimeout(handlePrint, 0);
+          }}
+        />
+      )}
       {/* Breadcrumb idéntico a Captura 2 */}
       <div className="breadcrumb-nav">
         <span style={{ cursor: "pointer" }} onClick={() => navigate("/ordenes")}>
@@ -159,8 +183,7 @@ export default function OrdenDetalle() {
         </div>
 
         <div className="order-actions-bar">
-          <ReporteOrdenPDF orden={orden} cliente={cliente} equipo={equipo} archivos={orden.archivos || []} />
-          <button className="btn-outline-icon" onClick={handlePrint} title="Imprimir orden">
+          <button className="btn-outline-icon" onClick={() => setMostrarVistaPreviaReporte(true)} title="Vista previa e impresión de orden">
             <Icono nombre="printer" size={16} />
           </button>
           <button
@@ -387,7 +410,7 @@ export default function OrdenDetalle() {
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <button className="btn-outline-icon" onClick={handlePrint} title="Imprimir reporte">
+            <button className="btn-outline-icon" onClick={() => setMostrarVistaPreviaReporte(true)} title="Vista previa e impresión de orden">
               <Icono nombre="printer" size={16} />
             </button>
             <button
@@ -710,12 +733,26 @@ export default function OrdenDetalle() {
 }
 
 const PlantillaImpresion = React.forwardRef(function PlantillaImpresion({ datosOrden }, ref) {
-  const { orden, cliente, equipo, items, subtotal, adelanto, total } = datosOrden || {};
-  return <div ref={ref} className="print-order-template">
+  const { orden, cliente, equipo, items, subtotal, adelanto, total, archivos = [] } = datosOrden || {};
+  const fotosAdjuntas = archivos.filter((archivo) => typeof archivo?.vistaPrevia === "string" && archivo.vistaPrevia.trim().length > 0);
+  return <div ref={ref} className="print-order-template" style={{ display: "block", minHeight: "100vh", padding: "32px", backgroundColor: "#ffffff", color: "#111827", fontFamily: "Arial, sans-serif" }}>
     <header className="print-order-header"><div><strong>OptiFix</strong><span>Centro de servicios técnicos</span></div><div><h1>Orden de Servicio N° {orden?.numero || "Nueva"}</h1><span>Fecha: {orden?.fecha_ingreso || "—"}</span></div></header>
     <section className="print-order-grid"><div><h2>Datos del cliente</h2><p><b>Nombre:</b> {cliente?.nombre || "—"}</p><p><b>Contacto:</b> {cliente?.telefono || "—"}</p><p><b>Email:</b> {cliente?.email || "—"}</p></div><div><h2>Datos del equipo</h2><p><b>Equipo:</b> {equipo?.tipo || "—"}</p><p><b>Modelo:</b> {[equipo?.marca, equipo?.modelo].filter(Boolean).join(" ") || "—"}</p><p><b>Serie:</b> {equipo?.serie || "—"}</p></div></section>
     <section className="print-order-work"><h2>Trabajo solicitado</h2><p>{orden?.trabajo_solicitado || "Sin detalle"}</p><p><b>Estado actual:</b> {orden?.estado_actual || "—"}</p></section>
     <table className="print-order-table"><thead><tr><th>Descripción</th><th>Cant.</th><th>Importe</th></tr></thead><tbody>{items?.length ? items.map((item) => <tr key={item.id}><td>{item.descripcion}</td><td>{item.cantidad}</td><td>₡ {Number(item.importe || 0).toFixed(2)}</td></tr>) : <tr><td colSpan="3">Sin productos o servicios registrados.</td></tr>}</tbody></table>
+    <section className="print-order-attachments">
+      <h2>Fotografías adjuntas del equipo</h2>
+      {fotosAdjuntas.length > 0 ? (
+        <div className="print-order-photo-grid">
+          {fotosAdjuntas.map((archivo) => (
+            <figure key={archivo.id || archivo.nombre}>
+              <img src={archivo.vistaPrevia} alt={archivo.nombre || "Fotografía adjunta"} />
+              <figcaption>{archivo.nombre || "Fotografía del equipo"}</figcaption>
+            </figure>
+          ))}
+        </div>
+      ) : <p>No hay fotografías adjuntas en esta orden.</p>}
+    </section>
     <section className="print-order-totals"><p>Subtotal <b>₡ {Number(subtotal || 0).toFixed(2)}</b></p><p>Adelanto <b>- ₡ {Number(adelanto || 0).toFixed(2)}</b></p><p className="print-order-total">Total pendiente <b>₡ {Number(total || 0).toFixed(2)}</b></p></section>
   </div>;
 });

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import Icono from "../icons.jsx";
+import { notificarN8n } from "../../services/n8nService.js";
 
 const ESTADOS_DISPONIBLES = [
   { estado: "RECEPCIÓN", etapa: "ENTRADA", desc: "Equipo recién ingresado a recepción" },
@@ -22,6 +23,7 @@ export default function CambiarEstadoModal({ isOpen, onClose, orden, onConfirmCh
     const targetObj = ESTADOS_DISPONIBLES.find((e) => e.estado === selectedEstado);
     const etapa = targetObj ? targetObj.etapa : "TALLER";
     onConfirmChange(orden.id, selectedEstado, etapa, detalle || `Cambio de estado a ${selectedEstado}`);
+    if (selectedEstado === "ENTREGADO") notificarN8n("order-delivered", { numero: orden.numero, orden, estado: selectedEstado });
     onClose();
   };
 

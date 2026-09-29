@@ -152,6 +152,19 @@
 .landing-cta-btn:hover { color: #064e7c; background: #eaf6ff; }
 .landing-footer { background: #fff; border-top: 1px solid var(--landing-border); }
 
+.landing-value-section { background: #fff; }
+.landing-benefits-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 32px; }
+.landing-benefit { padding: 22px; border-top: 3px solid #59a9d7; background: #f8fbff; border-radius: 7px; }
+.landing-benefit > span { display: block; margin-bottom: 18px; color: #0a78a9; font-size: 11px; font-weight: 800; letter-spacing: .08em; }
+.landing-benefit h3 { margin: 0 0 8px; color: var(--landing-ink); font-size: 14px; }
+.landing-benefit p { margin: 0; color: var(--landing-muted); font-size: 11px; line-height: 1.65; }
+.landing-modules-section { background: #eef6fd; }
+.landing-modules-layout { display: grid; grid-template-columns: minmax(0, .95fr) minmax(300px, .8fr); align-items: center; gap: 72px; }
+.landing-modules-layout .btn-landing-primary { margin-top: 24px; }
+.landing-modules-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 0; padding: 22px; list-style: none; background: #fff; border: 1px solid #dbe5f1; border-radius: 9px; box-shadow: 0 14px 28px rgba(31,54,81,.08); }
+.landing-modules-list li { display: flex; align-items: center; gap: 8px; color: #334155; font-size: 12px; font-weight: 600; }
+.landing-modules-list span { display: grid; place-items: center; width: 19px; height: 19px; flex: 0 0 19px; color: #fff; background: #0784c7; border-radius: 50%; font-size: 11px; }
+
 @media (max-width: 900px) {
   .landing-nav { padding: 10px 20px; }
   .landing-nav-links { gap: 12px; }.landing-nav-links a:not(.landing-nav-cta) { display: none; }
@@ -162,6 +175,7 @@
   .landing-hero { padding: 40px 18px 46px; }.landing-hero-title { font-size: 2.55rem; }
   .landing-hero-actions > * { flex: 1 1 100%; }.landing-stats-row { gap: 14px; }
   .landing-section { padding: 52px 18px; }.features-grid, .steps-grid { grid-template-columns: 1fr; }
+  .landing-benefits-grid, .landing-modules-layout { grid-template-columns: 1fr; }.landing-modules-layout { gap: 30px; }.landing-modules-list { grid-template-columns: 1fr; }
   .step-arrow { display: none; }.mockup-sidebar { width: 84px; }.mockup-content { padding: 10px; }
   .landing-cta-section { padding: 55px 18px; }
 }

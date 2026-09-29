@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Icono from "./icons.jsx";
 import OptifixLogo from "./OptifixLogo.jsx";
@@ -11,6 +11,7 @@ export default function TopNavbar({ onOpenNewOrderModal }) {
   const searchInputRef = useRef(null);
   const { user, logout } = useAuth();
   const { t, i18n } = useTranslation();
+  const [fontScale, setFontScale] = useState(() => Number(localStorage.getItem("optifix_font_scale")) || 1);
   const {
     searchQuery,
     setSearchQuery,
@@ -21,6 +22,7 @@ export default function TopNavbar({ onOpenNewOrderModal }) {
     theme,
     toggleTheme
   } = useWorkshop();
+  useEffect(() => { document.documentElement.style.setProperty("--font-scale", fontScale); localStorage.setItem("optifix_font_scale", String(fontScale)); }, [fontScale]);
 
   // Atajo de teclado: presionar '/' para enfocar el buscador global
   useEffect(() => {
@@ -153,6 +155,10 @@ export default function TopNavbar({ onOpenNewOrderModal }) {
 
       {/* Botones de acción derecha */}
       <div className="topbar-actions">
+        <div className="topbar-font-controls" aria-label="Tamaño de texto">
+          <button type="button" onClick={() => setFontScale((value) => Math.max(.9, Number((value - .1).toFixed(1))))} title="Reducir tamaño de texto">A−</button>
+          <button type="button" onClick={() => setFontScale((value) => Math.min(1.2, Number((value + .1).toFixed(1))))} title="Aumentar tamaño de texto">A+</button>
+        </div>
         <button
           className="topbar-language-btn"
           onClick={() => i18n.changeLanguage(i18n.language === "es" ? "en" : "es")}

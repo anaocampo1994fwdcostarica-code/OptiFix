@@ -3,8 +3,7 @@ import pdfFonts from "pdfmake/build/vfs_fonts";
 
 pdfMake.addVirtualFileSystem(pdfFonts);
 
-export default function ReporteOrdenPDF({ orden, cliente, equipo, archivos = [] }) {
-  const generarReportePDF = () => {
+export function descargarReportePDF({ orden, cliente, equipo, archivos = [] }) {
     const fotos = archivos.filter((archivo) => archivo.vistaPrevia).map((archivo) => ({ image: archivo.vistaPrevia, width: 180, margin: [0, 8, 8, 8] }));
     const definicionDocumento = {
       content: [
@@ -20,7 +19,53 @@ export default function ReporteOrdenPDF({ orden, cliente, equipo, archivos = [] 
       defaultStyle: { fontSize: 10 }
     };
     pdfMake.createPdf(definicionDocumento).download(`Orden_${orden.numero}_Reporte.pdf`);
-  };
+}
 
-  return <button type="button" className="btn-secondary" onClick={generarReportePDF} title="Descargar reporte PDF">Reporte PDF</button>;
+export function VistaPreviaReporteOrden({ orden, cliente, equipo, archivos = [], onClose, onPrint }) {
+  const fotos = archivos.filter((archivo) => archivo.vistaPrevia);
+  const modelo = [equipo.marca, equipo.modelo].filter(Boolean).join(" ") || "Sin especificar";
+
+  return (
+    <div className="report-preview-overlay" role="dialog" aria-modal="true" aria-labelledby="report-preview-title" onMouseDown={onClose}>
+      <section className="report-preview-modal" onMouseDown={(event) => event.stopPropagation()}>
+        <header className="report-preview-header">
+          <div>
+            <span className="report-preview-eyebrow">OPTIFIX</span>
+            <h2 id="report-preview-title">Vista previa · Orden N° {orden.numero}</h2>
+          </div>
+          <button type="button" className="report-preview-close" onClick={onClose} aria-label="Cerrar vista previa">×</button>
+        </header>
+
+        <div className="report-preview-paper">
+          <h3>Reporte de Orden de Servicio</h3>
+          <p className="report-preview-status">Estado: <strong>{orden.estado_actual || "Sin estado"}</strong></p>
+          <div className="report-preview-details">
+            <div><span>Cliente</span><strong>{cliente.nombre || "Sin cliente"}</strong><small>{cliente.telefono || cliente.email || "Sin contacto"}</small></div>
+            <div><span>Equipo</span><strong>{equipo.tipo || "Equipo"}</strong><small>{modelo} · Serie: {equipo.serie || "—"}</small></div>
+          </div>
+          <div className="report-preview-work">
+            <span>Trabajo solicitado</span>
+            <p>{orden.trabajo_solicitado || "Sin detalle registrado."}</p>
+          </div>
+          <div className="report-preview-files">
+            <span>Documentación y fotografías ({archivos.length})</span>
+            {fotos.length > 0 ? (
+              <div className="report-preview-images">
+                {fotos.slice(0, 4).map((archivo) => <img key={archivo.id || archivo.nombre} src={archivo.vistaPrevia} alt={archivo.nombre || "Archivo adjunto"} />)}
+              </div>
+            ) : <p>No hay fotografías adjuntas para esta orden.</p>}
+          </div>
+        </div>
+
+        <footer className="report-preview-actions">
+          <button type="button" className="btn-secondary" onClick={() => descargarReportePDF({ orden, cliente, equipo, archivos })}>Descargar PDF</button>
+          <button type="button" className="btn-primary" onClick={onPrint}>Imprimir orden</button>
+        </footer>
+      </section>
+    </div>
+  );
+}
+
+export default function ReporteOrdenPDF({ onOpenPreview }) {
+  return <button type="button" className="btn-secondary" onClick={onOpenPreview} title="Vista previa del reporte PDF">Reporte PDF</button>;
 }

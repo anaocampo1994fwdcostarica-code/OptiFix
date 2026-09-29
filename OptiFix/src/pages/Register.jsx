@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import Footer from "../components/Footer.jsx";
 import { OptifixBrand } from "../components/OptifixLogo.jsx";
 import { useWorkshop } from "../context/WorkshopContext.jsx";
+import { sendUserWebhook } from "../services/webhookService.js";
 import "./Login.css";
 
 export default function Register() {
@@ -17,7 +18,7 @@ export default function Register() {
   const [error, setError] = useState("");
   const [exito, setExito] = useState(false);
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     setError("");
 
@@ -39,6 +40,7 @@ export default function Register() {
       setError(resultado.error);
       return;
     }
+    await sendUserWebhook(resultado.usuario, "NEW_USER_CREATED");
     setExito(true);
     setTimeout(() => navigate(`/login/${rol}`), 1200);
   }
