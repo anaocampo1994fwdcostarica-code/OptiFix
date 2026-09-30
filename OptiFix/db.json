@@ -559,5 +559,23 @@
     "ordenes_recepcion": 13,
     "ordenes_entregadas_mes": 142,
     "recaudacion_mes_crc": 4850000
-  }
+  },
+  "usuarios": [
+    {
+      "id": "user-1",
+      "nombre": "Administrador OptiFix",
+      "usuario": "admin",
+      "password": "admin123",
+      "rol": "admin",
+      "roles": ["ver_ordenes", "crear_orden", "crear_cotizacion", "gestionar_usuarios"]
+    },
+    {
+      "id": "user-2",
+      "nombre": "Técnico Principal",
+      "usuario": "tecnico",
+      "password": "tec123",
+      "rol": "tecnico",
+      "roles": ["ver_ordenes", "crear_orden"]
+    }
+  ]
 }

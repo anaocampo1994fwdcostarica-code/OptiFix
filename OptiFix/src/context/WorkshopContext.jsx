@@ -1,6 +1,16 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import initialData from "../../db.json";
-import { crearOrden, actualizarOrden as actualizarOrdenEnServidor } from "../services/ordenesService.js";
+import {
+  listarOrdenes,
+  crearOrden,
+  actualizarOrden as actualizarOrdenEnServidor,
+  eliminarOrden as eliminarOrdenEnServidor,
+} from "../services/ordenesService.js";
+import {
+  listarUsuarios,
+  crearUsuario as crearUsuarioEnServidor,
+  reemplazarUsuario as reemplazarUsuarioEnServidor,
+} from "../services/usuariosService.js";
 
 const WorkshopContext = createContext(null);
 
@@ -69,6 +79,50 @@ export function WorkshopProvider({ children }) {
     }
   }, [data]);
 
+  // JSON Server es la fuente principal de órdenes. El estado inicial/localStorage
+  // solo se conserva para que el taller pueda abrir en modo offline si la API falla.
+  useEffect(() => {
+    let cancelled = false;
+
+    async function cargarOrdenesRemotas() {
+      // Jest/jsdom puede no implementar fetch; en ese caso el respaldo local
+      // es el comportamiento esperado y no debe producir una advertencia.
+      if (typeof fetch !== "function") return;
+      try {
+        const ordenesRemotas = await listarOrdenes();
+        if (!cancelled && Array.isArray(ordenesRemotas)) {
+          setData((prev) => ({ ...prev, ordenes: ordenesRemotas }));
+        }
+      } catch (error) {
+        console.warn("JSON Server no está disponible; se utilizará el respaldo local.", error);
+      }
+    }
+
+    cargarOrdenesRemotas();
+    return () => { cancelled = true; };
+  }, []);
+
+  // Los usuarios también se cargan desde JSON Server. El estado/localStorage
+  // permanece únicamente como respaldo para uso offline durante el desarrollo.
+  useEffect(() => {
+    let cancelled = false;
+
+    async function cargarUsuariosRemotos() {
+      if (typeof fetch !== "function") return;
+      try {
+        const usuariosRemotos = await listarUsuarios();
+        if (!cancelled && Array.isArray(usuariosRemotos)) {
+          setData((prev) => ({ ...prev, usuarios: usuariosRemotos }));
+        }
+      } catch (error) {
+        console.warn("JSON Server no está disponible; se utilizarán usuarios locales.", error);
+      }
+    }
+
+    cargarUsuariosRemotos();
+    return () => { cancelled = true; };
+  }, []);
+
   // ── MARCAS ───────────────────────────────────────────────────────────────────
   const addMarca = (nombre) => {
     const normalizado = nombre.trim();
@@ -98,15 +152,43 @@ export function WorkshopProvider({ children }) {
       rol: usuarioData.rol === "tecnico" ? "tecnico" : "admin",
       roles: usuarioData.roles || (usuarioData.rol === "tecnico" ? ["ver_ordenes", "crear_orden"] : ["ver_ordenes", "crear_orden", "crear_cotizacion", "gestionar_usuarios"]),
     };
-    setData((prev) => ({ ...prev, usuarios: [...(prev.usuarios || []), nuevo] }));
-    return { usuario: nuevo };
+    return crearUsuarioEnServidor(nuevo)
+      .then((creado) => {
+        setData((prev) => ({ ...prev, usuarios: [...(prev.usuarios || []), creado] }));
+        return { usuario: creado, source: "json-server" };
+      })
+      .catch((error) => {
+        // Fallos de red (incluido JSON Server apagado) conservan la continuidad offline.
+        if (typeof fetch !== "function" || error instanceof TypeError) {
+          setData((prev) => ({ ...prev, usuarios: [...(prev.usuarios || []), nuevo] }));
+          return { usuario: nuevo, source: "offline" };
+        }
+        throw error;
+      });
   };
 
-  const updateUsuario = (id, fields) => {
-    setData((prev) => ({
-      ...prev,
-      usuarios: (prev.usuarios || []).map((user) => user.id === id ? { ...user, ...fields } : user)
-    }));
+  const updateUsuario = async (id, fields) => {
+    const actual = (data.usuarios || []).find((user) => user.id === id);
+    if (!actual) return { error: "Usuario no encontrado." };
+
+    const actualizado = { ...actual, ...fields };
+    try {
+      const remoto = await reemplazarUsuarioEnServidor(id, actualizado);
+      setData((prev) => ({
+        ...prev,
+        usuarios: (prev.usuarios || []).map((user) => user.id === id ? remoto : user),
+      }));
+      return { usuario: remoto, source: "json-server" };
+    } catch (error) {
+      if (typeof fetch !== "function" || error instanceof TypeError) {
+        setData((prev) => ({
+          ...prev,
+          usuarios: (prev.usuarios || []).map((user) => user.id === id ? actualizado : user),
+        }));
+        return { usuario: actualizado, source: "offline" };
+      }
+      throw error;
+    }
   };
 
   // ── CLIENTES CRUD ─────────────────────────────────────────────────────────────
@@ -218,7 +300,7 @@ export function WorkshopProvider({ children }) {
     }));
   };
 
-  const addOrden = (ordenData) => {
+  const addOrden = async (ordenData) => {
     const nextNum = Math.max(...data.ordenes.map((o) => o.numero || 8000), 8825) + 1;
     const nowStr = new Date().toLocaleString("es-CR", {
       day: "2-digit", month: "2-digit", year: "numeric",
@@ -270,59 +352,59 @@ export function WorkshopProvider({ children }) {
       ]
     };
 
+    const creadaEnServidor = await crearOrden(nueva);
     setData((prev) => ({
       ...prev,
-      ordenes: [nueva, ...prev.ordenes]
+      ordenes: [creadaEnServidor, ...prev.ordenes.filter((orden) => orden.id !== creadaEnServidor.id)]
     }));
-    // JSON Server complementa al modo local; una falla de red no interrumpe el taller.
-    void crearOrden(nueva).catch(() => undefined);
-    return nueva;
+    return creadaEnServidor;
   };
 
-  const updateOrden = (id, fields) => {
+  const updateOrden = async (id, fields) => {
+    const ordenActual = (data.ordenes || []).find((orden) => orden.id === id || orden.numero === Number(id));
+    if (!ordenActual) throw new Error("No se encontró la orden que se desea actualizar.");
+
+    const actualizadaEnServidor = await actualizarOrdenEnServidor(ordenActual.id, fields);
     setData((prev) => ({
       ...prev,
-      ordenes: prev.ordenes.map((o) =>
-        o.id === id || o.numero === Number(id) ? { ...o, ...fields } : o
-      )
+      ordenes: prev.ordenes.map((orden) => orden.id === ordenActual.id ? actualizadaEnServidor : orden)
     }));
-    void actualizarOrdenEnServidor(id, fields).catch(() => undefined);
+    return actualizadaEnServidor;
   };
 
-  const changeOrdenStatus = (ordenId, nuevoEstado, nuevaEtapa, detalle) => {
+  const changeOrdenStatus = async (ordenId, nuevoEstado, nuevaEtapa, detalle) => {
     const nowStr = new Date().toLocaleString("es-CR", {
       day: "2-digit", month: "2-digit", year: "numeric",
       hour: "2-digit", minute: "2-digit"
     }) + " hs";
 
+    const ordenActual = (data.ordenes || []).find((orden) => orden.id === ordenId || orden.numero === Number(ordenId));
+    if (!ordenActual) throw new Error("No se encontró la orden que se desea actualizar.");
+
+    const isEntregado = nuevoEstado.toUpperCase().includes("ENTREGADO");
+    const cambios = {
+      estado_actual: nuevoEstado,
+      etapa_categoria: nuevaEtapa || ordenActual.etapa_categoria,
+      fecha_entrega: isEntregado ? nowStr : ordenActual.fecha_entrega,
+      linea_tiempo: [
+        ...(ordenActual.linea_tiempo || []),
+        { fecha: nowStr, estado: nuevoEstado, realizado_por: "OptiFix", detalle: detalle || `Cambio de estado a ${nuevoEstado}` }
+      ]
+    };
+    const actualizadaEnServidor = await actualizarOrdenEnServidor(ordenActual.id, cambios);
     setData((prev) => ({
       ...prev,
-      ordenes: prev.ordenes.map((o) => {
-        if (o.id === ordenId || o.numero === Number(ordenId)) {
-          const isEntregado = nuevoEstado.toUpperCase().includes("ENTREGADO");
-          return {
-            ...o,
-            estado_actual: nuevoEstado,
-            etapa_categoria: nuevaEtapa || o.etapa_categoria,
-            fecha_entrega: isEntregado ? nowStr : o.fecha_entrega,
-            linea_tiempo: [
-              ...o.linea_tiempo,
-              {
-                fecha: nowStr,
-                estado: nuevoEstado,
-                realizado_por: "OptiFix",
-                detalle: detalle || `Cambio de estado a ${nuevoEstado}`
-              }
-            ]
-          };
-        }
-        return o;
-      })
+      ordenes: prev.ordenes.map((orden) => orden.id === ordenActual.id ? actualizadaEnServidor : orden)
     }));
-    void actualizarOrdenEnServidor(ordenId, {
-      estado_actual: nuevoEstado,
-      etapa_categoria: nuevaEtapa,
-    }).catch(() => undefined);
+    return actualizadaEnServidor;
+  };
+
+  const deleteOrden = async (id) => {
+    const ordenActual = (data.ordenes || []).find((orden) => orden.id === id || orden.numero === Number(id));
+    if (!ordenActual) throw new Error("No se encontró la orden que se desea eliminar.");
+
+    await eliminarOrdenEnServidor(ordenActual.id);
+    setData((prev) => ({ ...prev, ordenes: prev.ordenes.filter((orden) => orden.id !== ordenActual.id) }));
   };
 
   const toggleGarantia = (ordenId) => {
@@ -522,6 +604,7 @@ export function WorkshopProvider({ children }) {
     addOrden,
     updateOrden,
     changeOrdenStatus,
+    deleteOrden,
     toggleGarantia,
     addProductService,
     removeProductService,

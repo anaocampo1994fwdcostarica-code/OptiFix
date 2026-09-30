@@ -62,6 +62,8 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
   // ── Form state — Tabs ────────────────────────────────────────
   const [diagnosticoTexto, setDiagnosticoTexto] = useState("");
   const [anotaciones, setAnotaciones] = useState("");
+  const [guardandoOrden, setGuardandoOrden] = useState(false);
+  const [errorOrden, setErrorOrden] = useState("");
 
   // ── Search state ─────────────────────────────────────────────
   const [clienteQuery, setClienteQuery] = useState("");
@@ -134,13 +136,16 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
     setNewEquipo({ tipo: "Laptop / Portátil", marca: "", modelo: "", serie: "" });
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!clienteId || !equipoId || !trabajo.trim()) {
       alert("Por favor complete Cliente, Equipo y Trabajo solicitado.");
       return;
     }
 
-    const nuevaOrden = addOrden({
+    setErrorOrden("");
+    setGuardandoOrden(true);
+    try {
+    const nuevaOrden = await addOrden({
       cliente_id: clienteId,
       equipo_id: equipoId,
       referencia_externa: referenciaExterna,
@@ -165,6 +170,11 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
     // identificador generado por el contexto y se evita obligar al usuario a
     // encontrar la orden de nuevo en el listado antes de ver su detalle.
     navigate(`/ordenes/${nuevaOrden.numero}`, { replace: true });
+    } catch (error) {
+      setErrorOrden(error.message || "No fue posible guardar la orden en el servidor local.");
+    } finally {
+      setGuardandoOrden(false);
+    }
   };
 
   // ── Helper: initials from name ───────────────────────────────
@@ -855,6 +865,7 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
           </div>
 
           {/* Action buttons */}
+          {errorOrden && <p className="w-full text-xs font-semibold text-red-600" role="alert">{errorOrden}</p>}
           <div className="flex items-center justify-end w-full sm:w-auto gap-2.5">
             <button
               type="button"
@@ -873,10 +884,11 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
             <button
               type="button"
               onClick={handleSubmit}
+              disabled={guardandoOrden}
               className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-2.5 text-xs sm:text-sm font-extrabold text-white bg-gradient-to-r from-sky-600 to-sky-700 hover:from-sky-700 hover:to-sky-800 active:scale-[0.98] rounded-xl shadow-md shadow-sky-600/20 transition-all"
             >
               <i className="ph ph-printer text-base"></i>
-              <span>Crear Orden & Imprimir Boleta</span>
+              <span>{guardandoOrden ? "Guardando en JSON Server..." : "Crear Orden & Imprimir Boleta"}</span>
             </button>
           </div>
         </div>

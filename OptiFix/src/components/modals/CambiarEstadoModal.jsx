@@ -30,7 +30,7 @@ export default function CambiarEstadoModal({ isOpen, onClose, orden, cliente = {
       setLoading(true);
       const remote = await actualizarEstadoOrden({ ordenId: orden.id, estado: selectedEstado, comentarioTecnico, cliente, equipo, seguimientoUrl: `${window.location.origin}/seguimiento/${orden.token_seguimiento}` });
       if (!remote.ok && !remote.demo) throw new Error(remote.error || "No fue posible actualizar la orden en n8n.");
-      onConfirmChange(orden.id, selectedEstado, etapa, comentarioTecnico);
+      await onConfirmChange(orden.id, selectedEstado, etapa, comentarioTecnico);
       onClose();
     } catch (requestError) {
       setError(requestError.message || "No se pudo actualizar el estado. Inténtalo nuevamente.");

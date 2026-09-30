@@ -10,7 +10,50 @@ export default function UsuariosView() {
   const { usuarios, addUsuario, updateUsuario } = useWorkshop();
   const [form, setForm] = useState(EMPTY_USER);
   const [message, setMessage] = useState("");
-  const togglePermission = (permission) => setForm((current) => ({ ...current, roles: current.roles.includes(permission) ? current.roles.filter((item) => item !== permission) : [...current.roles, permission] }));
-  const saveUser = async (event) => { event.preventDefault(); if (!form.nombre.trim() || !form.usuario.trim() || !form.password) return; try { const remote = await registrarUsuario(form); if (!remote.ok && !remote.demo) throw new Error(remote.error || "n8n no pudo registrar el usuario."); const result = addUsuario(form); if (result?.error) { setMessage(result.error); return; } setForm(EMPTY_USER); setMessage("Usuario agregado correctamente."); } catch (error) { setMessage(error.message || "No se pudo registrar el usuario."); } };
-  return <div className="page-container users-page"><div className="breadcrumb-nav"><span>Principal</span><span>/</span><span className="breadcrumb-current">Usuarios y permisos</span></div><header className="users-header"><div><h1>Usuarios y permisos</h1><p>Administra el acceso operativo del equipo de OptiFix.</p></div></header><section className="users-layout"><form className="user-form" onSubmit={saveUser}><h2>Agregar usuario</h2><label>Nombre completo<input value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} required /></label><label>Usuario<input value={form.usuario} onChange={(e) => setForm({ ...form, usuario: e.target.value })} required /></label><label>Contraseña<input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required /></label><label>Tipo de usuario<select value={form.rol} onChange={(e) => setForm({ ...form, rol: e.target.value })}><option value="tecnico">Técnico</option><option value="admin">Administrador</option></select></label><fieldset><legend>Permisos</legend>{AVAILABLE_PERMISSIONS.map((permission) => <label className="permission-check" key={permission}><input type="checkbox" checked={form.roles.includes(permission)} onChange={() => togglePermission(permission)} /> {permission.replace(/_/g, " ")}</label>)}</fieldset>{message && <p className="user-message">{message}</p>}<button className="btn-primary" type="submit">Guardar usuario</button></form><section className="user-list"><h2>Usuarios registrados</h2>{usuarios.map((user) => <article key={user.id}><div><strong>{user.nombre}</strong><small>@{user.usuario} · {user.rol}</small><p>{(user.roles || []).join(" · ") || "Sin permisos asignados"}</p></div><label className="user-role">Rol<select value={user.rol} onChange={(e) => updateUsuario(user.id, { rol: e.target.value })}><option value="tecnico">Técnico</option><option value="admin">Administrador</option></select></label></article>)}</section></section></div>;
+
+  function togglePermission(permission) {
+    setForm((current) => ({ ...current, roles: current.roles.includes(permission) ? current.roles.filter((item) => item !== permission) : [...current.roles, permission] }));
+  }
+
+  async function saveUser(event) {
+    event.preventDefault();
+    if (!form.nombre.trim() || !form.usuario.trim() || !form.password) return;
+    try {
+      const remote = await registrarUsuario(form);
+      if (!remote.ok && !remote.demo) throw new Error(remote.error || "n8n no pudo registrar el usuario.");
+      const result = await addUsuario(form);
+      if (result?.error) { setMessage(result.error); return; }
+      setForm(EMPTY_USER);
+      setMessage("Usuario agregado correctamente.");
+    } catch (error) {
+      setMessage(error.message || "No se pudo registrar el usuario.");
+    }
+  }
+
+  async function changeUserRole(id, rol) {
+    try {
+      const result = await updateUsuario(id, { rol });
+      setMessage(result?.error || "Rol actualizado correctamente.");
+    } catch (error) {
+      setMessage(error.message || "No se pudo actualizar el rol.");
+    }
+  }
+
+  return <div className="page-container users-page">
+    <div className="breadcrumb-nav"><span>Principal</span><span>/</span><span className="breadcrumb-current">Usuarios y permisos</span></div>
+    <header className="users-header"><div><h1>Usuarios y permisos</h1><p>Administra el acceso operativo del equipo de OptiFix.</p></div></header>
+    <section className="users-layout">
+      <form className="user-form" onSubmit={saveUser}>
+        <h2>Agregar usuario</h2>
+        <label>Nombre completo<input value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} required /></label>
+        <label>Usuario<input value={form.usuario} onChange={(e) => setForm({ ...form, usuario: e.target.value })} required /></label>
+        <label>Contraseña<input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required /></label>
+        <label>Tipo de usuario<select value={form.rol} onChange={(e) => setForm({ ...form, rol: e.target.value })}><option value="tecnico">Técnico</option><option value="admin">Administrador</option></select></label>
+        <fieldset><legend>Permisos</legend>{AVAILABLE_PERMISSIONS.map((permission) => <label className="permission-check" key={permission}><input type="checkbox" checked={form.roles.includes(permission)} onChange={() => togglePermission(permission)} /> {permission.replace(/_/g, " ")}</label>)}</fieldset>
+        {message && <p className="user-message" role="status">{message}</p>}
+        <button className="btn-primary" type="submit">Guardar usuario</button>
+      </form>
+      <section className="user-list"><h2>Usuarios registrados</h2>{usuarios.map((user) => <article key={user.id}><div><strong>{user.nombre}</strong><small>@{user.usuario} · {user.rol}</small><p>{(user.roles || []).join(" · ") || "Sin permisos asignados"}</p></div><label className="user-role">Rol<select value={user.rol} onChange={(e) => changeUserRole(user.id, e.target.value)}><option value="tecnico">Técnico</option><option value="admin">Administrador</option></select></label></article>)}</section>
+    </section>
+  </div>;
 }

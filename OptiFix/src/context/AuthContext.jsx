@@ -1,8 +1,25 @@
 import { createContext, useEffect, useState } from "react";
+import { autenticarUsuario } from "../services/usuariosService.js";
 
 export const AuthContext = createContext(null);
 
 const SESSION_KEY = "optifix_session";
+
+// Simulación académica: localStorage solo guarda identidad y permisos mínimos.
+// En producción esto debe reemplazarse por una sesión emitida por un backend.
+function crearSesionSegura(usuario = {}) {
+  const rol = usuario.rol === "admin" ? "admin" : "tecnico";
+  return {
+    id: usuario.id || null,
+    nombre: usuario.nombre || "",
+    usuario: usuario.usuario || "",
+    email: usuario.email || "",
+    rol,
+    roles: usuario.roles || (rol === "admin"
+      ? ["ver_ordenes", "crear_orden", "crear_cotizacion", "gestionar_usuarios"]
+      : ["ver_ordenes", "crear_orden"]),
+  };
+}
 
 // AuthProvider centraliza toda la sesión del taller:
 // - el usuario autenticado (nombre, usuario, rol: "admin" | "tecnico")
@@ -16,7 +33,10 @@ export function AuthProvider({ children }) {
     try {
       const stored = localStorage.getItem(SESSION_KEY);
       if (stored) {
-        setUser(JSON.parse(stored));
+        const sesion = crearSesionSegura(JSON.parse(stored));
+        // Elimina campos heredados o manipulados, como password, de la sesión local.
+        localStorage.setItem(SESSION_KEY, JSON.stringify(sesion));
+        setUser(sesion);
         setStatus("autenticado");
       } else {
         setStatus("no-autenticado");
@@ -27,16 +47,28 @@ export function AuthProvider({ children }) {
   }, []);
 
   function login(usuario) {
-    const sesion = {
-      nombre: usuario.nombre,
-      usuario: usuario.usuario,
-      rol: usuario.rol,
-      roles: usuario.roles || (usuario.rol === "admin" ? ["ver_ordenes", "crear_orden", "crear_cotizacion", "gestionar_usuarios"] : ["ver_ordenes", "crear_orden"])
-    };
+    // Nunca persistir password u otros datos sensibles del objeto de usuario.
+    const sesion = crearSesionSegura(usuario);
     localStorage.setItem(SESSION_KEY, JSON.stringify(sesion));
     setUser(sesion);
     setStatus("autenticado");
     return sesion;
+  }
+
+  async function loginConCredenciales({ usuario, password, rol, fallbackUsers = [] }) {
+    let usuarioAutenticado;
+    try {
+      usuarioAutenticado = await autenticarUsuario({ usuario, password, rol });
+    } catch (error) {
+      // Respaldo académico offline: solo si JSON Server no está disponible.
+      const usuarioNormalizado = usuario.trim().toLowerCase();
+      usuarioAutenticado = fallbackUsers.find((candidate) => (
+        candidate.usuario?.toLowerCase() === usuarioNormalizado
+        && candidate.password === password
+        && candidate.rol === rol
+      )) || null;
+    }
+    return usuarioAutenticado ? login(usuarioAutenticado) : null;
   }
 
   function logout() {
@@ -46,7 +78,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, status, login, logout }}>
+    <AuthContext.Provider value={{ user, status, login, loginConCredenciales, logout }}>
       {children}
     </AuthContext.Provider>
   );
