@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import Footer from "../components/Footer.jsx";
 import { OptifixBrand } from "../components/OptifixLogo.jsx";
 import { useWorkshop } from "../context/WorkshopContext.jsx";
-import { sendUserWebhook } from "../services/webhookService.js";
+import { registrarUsuario } from "../services/n8nBackendService.js";
 import "./Login.css";
 
 export default function Register() {
@@ -35,12 +35,18 @@ export default function Register() {
       return;
     }
 
+    try {
+      const remote = await registrarUsuario({ nombre, usuario, password, rol });
+      if (!remote.ok && !remote.demo) throw new Error(remote.error || "n8n no pudo registrar el usuario.");
+    } catch (requestError) {
+      setError(requestError.message || "No fue posible registrar el usuario.");
+      return;
+    }
     const resultado = addUsuario({ nombre, usuario, password, rol });
     if (resultado.error) {
       setError(resultado.error);
       return;
     }
-    await sendUserWebhook(resultado.usuario, "NEW_USER_CREATED");
     setExito(true);
     setTimeout(() => navigate(`/login/${rol}`), 1200);
   }

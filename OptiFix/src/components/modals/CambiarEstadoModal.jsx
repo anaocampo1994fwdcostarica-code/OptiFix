@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Icono from "../icons.jsx";
-import { notificarN8n } from "../../services/n8nService.js";
+import { actualizarEstadoOrden } from "../../services/n8nBackendService.js";
 
 const ESTADOS_DISPONIBLES = [
   { estado: "RECEPCIÓN", etapa: "ENTRADA", desc: "Equipo recién ingresado a recepción" },
@@ -12,19 +12,29 @@ const ESTADOS_DISPONIBLES = [
   { estado: "ENTREGADO", etapa: "SALIDA", desc: "Equipo entregado en mano al cliente" }
 ];
 
-export default function CambiarEstadoModal({ isOpen, onClose, orden, onConfirmChange }) {
+export default function CambiarEstadoModal({ isOpen, onClose, orden, cliente = {}, equipo = {}, onConfirmChange }) {
   const [selectedEstado, setSelectedEstado] = useState(orden?.estado_actual || "RECEPCIÓN");
   const [detalle, setDetalle] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   if (!isOpen || !orden) return null;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
     const targetObj = ESTADOS_DISPONIBLES.find((e) => e.estado === selectedEstado);
     const etapa = targetObj ? targetObj.etapa : "TALLER";
-    onConfirmChange(orden.id, selectedEstado, etapa, detalle || `Cambio de estado a ${selectedEstado}`);
-    if (selectedEstado === "ENTREGADO") notificarN8n("order-delivered", { numero: orden.numero, orden, estado: selectedEstado });
-    onClose();
+    const comentarioTecnico = detalle || `Cambio de estado a ${selectedEstado}`;
+    try {
+      setLoading(true);
+      const remote = await actualizarEstadoOrden({ ordenId: orden.id, estado: selectedEstado, comentarioTecnico, cliente, equipo, seguimientoUrl: `${window.location.origin}/seguimiento/${orden.token_seguimiento}` });
+      if (!remote.ok && !remote.demo) throw new Error(remote.error || "No fue posible actualizar la orden en n8n.");
+      onConfirmChange(orden.id, selectedEstado, etapa, comentarioTecnico);
+      onClose();
+    } catch (requestError) {
+      setError(requestError.message || "No se pudo actualizar el estado. Inténtalo nuevamente.");
+    } finally { setLoading(false); }
   };
 
   return (
@@ -70,14 +80,15 @@ export default function CambiarEstadoModal({ isOpen, onClose, orden, onConfirmCh
                 onChange={(e) => setDetalle(e.target.value)}
               />
             </div>
+            {error && <p className="login-error" role="alert">{error}</p>}
           </div>
 
           <div className="modal-footer">
-            <button type="button" className="btn-secondary" onClick={onClose}>
+            <button type="button" className="btn-secondary" onClick={onClose} disabled={loading}>
               Cancelar
             </button>
-            <button type="submit" className="btn-primary">
-              Actualizar Estado y Registrar en Bitácora
+            <button type="submit" className="btn-primary" disabled={loading}>
+              {loading ? "Actualizando y enviando correo…" : "Actualizar Estado y Registrar en Bitácora"}
             </button>
           </div>
         </form>

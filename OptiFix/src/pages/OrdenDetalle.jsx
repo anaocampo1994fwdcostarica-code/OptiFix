@@ -726,6 +726,8 @@ export default function OrdenDetalle() {
         isOpen={isStatusModalOpen}
         onClose={() => setIsStatusModalOpen(false)}
         orden={orden}
+        cliente={cliente}
+        equipo={equipo}
         onConfirmChange={changeOrdenStatus}
       />
     </div>

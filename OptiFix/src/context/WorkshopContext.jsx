@@ -227,7 +227,7 @@ export function WorkshopProvider({ children }) {
     const nueva = {
       id: `ord-${nextNum}`,
       numero: nextNum,
-      token_seguimiento: `ORD-${nextNum}`,
+      token_seguimiento: typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `tok-${Date.now()}-${Math.random().toString(36).slice(2, 12)}`,
       cliente_id: ordenData.cliente_id,
       equipo_id: ordenData.equipo_id,
       referencia_externa: ordenData.referencia_externa || "",

@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { OptifixBrand } from "../components/OptifixLogo.jsx";
+import { preguntarChatPublico } from "../services/n8nBackendService.js";
 
 // Lee datos del localStorage (misma key que el contexto)
 function getDataFromStorage() {
@@ -28,6 +29,8 @@ function getEstadoConfig(estado) {
 
 export default function SeguimientoPublico() {
   const { token } = useParams();
+  const [mensaje, setMensaje] = useState("");
+  const [chat, setChat] = useState([{ remitente: "ia", texto: "Hola, soy el asistente virtual de OptiFix. Puedo ayudarte con el estado de tu reparación." }]);
   const storageData = getDataFromStorage();
 
   if (!storageData) {
@@ -54,6 +57,15 @@ export default function SeguimientoPublico() {
   const cliente = storageData.clientes?.find((c) => c.id === orden.cliente_id);
   const equipo = storageData.equipos?.find((e) => e.id === orden.equipo_id);
   const estadoConf = getEstadoConfig(orden.estado_actual);
+  const enviarMensajeAlChatbot = async (event) => {
+    event.preventDefault();
+    if (!mensaje.trim()) return;
+    const pregunta = mensaje.trim();
+    const conversacion = [...chat, { remitente: "cliente", texto: pregunta }];
+    setChat(conversacion); setMensaje("");
+    try { const data = await preguntarChatPublico({ ordenId: orden.id, token, pregunta }); setChat([...conversacion, { remitente: "ia", texto: data.data?.respuesta || data.respuesta || `Tu orden está en estado ${orden.estado_actual}. Para detalles técnicos, comunicate con el taller.` }]); }
+    catch { setChat([...conversacion, { remitente: "ia", texto: "Lo siento, hubo un error procesando tu consulta." }]); }
+  };
 
   return (
     <div className="seguimiento-root">
@@ -153,6 +165,13 @@ export default function SeguimientoPublico() {
           )}
         </div>
 
+        <div className="seguimiento-info-card">
+          <h3>Boleta digital</h3>
+          <div className="seguimiento-info-row"><span>Adelanto</span><strong>₡{Number(orden.adelanto || 0).toLocaleString("es-CR")}</strong></div>
+          <div className="seguimiento-info-row"><span>Servicios y repuestos</span><strong>{(orden.productos_servicios || []).length} concepto(s)</strong></div>
+          <p style={{ color: "#94a3b8", fontSize: "12px" }}>La boleta y actualizaciones serán enviadas al correo registrado del cliente.</p>
+        </div>
+
         {/* Línea de tiempo */}
         {orden.linea_tiempo && orden.linea_tiempo.length > 0 && (
           <div className="seguimiento-timeline-card">
@@ -180,6 +199,12 @@ export default function SeguimientoPublico() {
             </div>
           </div>
         )}
+
+        <div className="seguimiento-timeline-card seguimiento-chat">
+          <h3>Asistente Virtual OptiFix</h3>
+          <div className="seguimiento-chat-messages">{chat.map((item, index) => <div key={index} className={`seguimiento-chat-message ${item.remitente}`}><span>{item.texto}</span></div>)}</div>
+          <form onSubmit={enviarMensajeAlChatbot} className="seguimiento-chat-form"><input value={mensaje} onChange={(event) => setMensaje(event.target.value)} placeholder="Pregúntale algo sobre tu reparación..." /><button type="submit">Enviar</button></form>
+        </div>
 
         {/* Nota al pie */}
         <div className="seguimiento-footer-note">

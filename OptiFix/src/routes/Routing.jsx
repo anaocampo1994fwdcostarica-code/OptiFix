@@ -4,7 +4,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import LandingPage from "../pages/LandingPage.jsx";
 import Login from "../pages/Login.jsx";
 import Register from "../pages/Register.jsx";
-import SeguimientoPublico from "../pages/SeguimientoPublico.jsx";
+import SeguimientoOrdenView from "../pages/SeguimientoOrdenView.jsx";
 import OrdenesList from "../pages/OrdenesList.jsx";
 import OrdenDetalle from "../pages/OrdenDetalle.jsx";
 import ClientesView from "../pages/ClientesView.jsx";
@@ -30,7 +30,7 @@ export default function Routing({ onOpenNewOrderModal }) {
       <Route path="/login/admin" element={<Login />} />
       <Route path="/login/tecnico" element={<Login />} />
       <Route path="/register" element={<Register />} />
-      <Route path="/seguimiento/:id" element={<SeguimientoPublico />} />
+      <Route path="/seguimiento/:token" element={<SeguimientoOrdenView />} />
 
       {/* Rutas privadas — cualquier sesión (admin o técnico) */}
       <Route

@@ -1,0 +1,72 @@
+{
+  "name": "OptiFix - Correo de orden y chat IA",
+  "nodes": [
+    {
+      "parameters": { "path": "optifix-order-delivered", "httpMethod": "POST", "responseMode": "responseNode" },
+      "name": "Webhook · Cambio de estado",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [180, 180]
+    },
+    {
+      "parameters": { "jsCode": "const d = $json;\nreturn [{ json: { to: d.cliente?.email, subject: `OptiFix: actualización de orden #${d.numero}`, html: `<div style='font-family:Arial;color:#172033'><h2>Hola ${d.cliente?.nombre || 'cliente'}</h2><p>Tu <b>${d.equipo?.tipo || 'equipo'} ${d.equipo?.marca || ''} ${d.equipo?.modelo || ''}</b> está en estado: <b>${d.estado}</b>.</p><p>${d.comentarioTecnico || 'Tu orden fue actualizada.'}</p><p><a href='${d.seguimientoUrl}' style='display:inline-block;padding:12px 18px;background:#0284c7;color:#fff;text-decoration:none;border-radius:6px'>Ver estado y chatear con el asistente</a></p></div>` } }];" },
+      "name": "Preparar correo HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [430, 180]
+    },
+    {
+      "parameters": { "fromEmail": "={{ $env.OPTIFIX_FROM_EMAIL }}", "toEmail": "={{ $json.to }}", "subject": "={{ $json.subject }}", "html": "={{ $json.html }}" },
+      "name": "SMTP · Enviar boleta",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [680, 180],
+      "credentials": { "smtp": { "id": "CONFIGURAR_SMTP", "name": "Configurar SMTP" } }
+    },
+    {
+      "parameters": { "respondWith": "json", "responseBody": "={{ { ok: true, message: 'Correo de actualización enviado' } }}" },
+      "name": "Responder cambio de estado",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [920, 180]
+    },
+    {
+      "parameters": { "path": "optifix-chat", "httpMethod": "POST", "responseMode": "responseNode" },
+      "name": "Webhook · Chat público",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [180, 500]
+    },
+    {
+      "parameters": { "jsCode": "const d = $json;\n// En producción sustituye este mock por HTTP Request a tu API segura.\nconst db = $getWorkflowStaticData('global').optifixMock || {};\nconst orden = (db.ordenes || []).find(o => String(o.id) === String(d.ordenId) || String(o.numero) === String(d.ordenId)) || {};\nreturn [{ json: { pregunta: d.pregunta, ordenId: d.ordenId, contexto: { estado: orden.estado_actual || 'No disponible', comentario: orden.diagnostico || orden.trabajo_solicitado || 'Sin comentario técnico', equipo: orden.equipo || 'Equipo registrado' } }];" },
+      "name": "Consultar contexto de orden",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [430, 500]
+    },
+    {
+      "parameters": { "jsCode": "const d = $json;\n// Reemplazar por OpenAI/Anthropic Chat Model + AI Agent con credenciales.\nreturn [{ json: { respuesta: `La orden está en estado ${d.contexto.estado}. ${d.contexto.comentario}. Para una fecha exacta, confirma directamente con el taller.` } }];" },
+      "name": "Agente IA · Fallback seguro",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 500]
+    },
+    {
+      "parameters": { "respondWith": "json", "responseBody": "={{ { respuesta: $json.respuesta } }}" },
+      "name": "Responder chat",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [920, 500]
+    }
+  ],
+  "connections": {
+    "Webhook · Cambio de estado": { "main": [[{ "node": "Preparar correo HTML", "type": "main", "index": 0 }]] },
+    "Preparar correo HTML": { "main": [[{ "node": "SMTP · Enviar boleta", "type": "main", "index": 0 }]] },
+    "SMTP · Enviar boleta": { "main": [[{ "node": "Responder cambio de estado", "type": "main", "index": 0 }]] },
+    "Webhook · Chat público": { "main": [[{ "node": "Consultar contexto de orden", "type": "main", "index": 0 }]] },
+    "Consultar contexto de orden": { "main": [[{ "node": "Agente IA · Fallback seguro", "type": "main", "index": 0 }]] },
+    "Agente IA · Fallback seguro": { "main": [[{ "node": "Responder chat", "type": "main", "index": 0 }]] }
+  },
+  "active": false,
+  "settings": {}
+}
