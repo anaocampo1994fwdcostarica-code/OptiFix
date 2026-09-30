@@ -31,7 +31,8 @@
 .landing-nav-links { display: flex; align-items: center; gap: 28px; font-size: 12px; }
 .landing-nav-links a { color: #536173; text-decoration: none; font-weight: 600; }
 .landing-nav-links a:hover { color: var(--landing-blue-bright); }
-.theme-toggle-btn { display: none; }
+.landing-accessibility-controls { margin-left: 4px; color: #075e96; }
+.landing-accessibility-controls button { border-color: #b7c9d9; background: #fff; }
 .landing-nav-cta {
   padding: 10px 17px;
   color: #fff !important;
@@ -207,3 +208,12 @@
 .landing-root .step-icon,
 .landing-root .step-arrow,
 .landing-root .theme-toggle-btn { display: none!important; }
+
+html:not(.light-mode) .landing-root { --landing-ink:#e2e8f0; --landing-muted:#a9bdd0; --landing-border:#1a3c5b; background:#061426!important; }
+html:not(.light-mode) .landing-root,html:not(.light-mode) .landing-root .landing-section,html:not(.light-mode) .landing-root .landing-section-alt,html:not(.light-mode) .landing-root .landing-footer{background:#061426!important;color:#e2e8f0!important}
+html:not(.light-mode) .landing-root .landing-nav{background:#081d32!important;border-color:#1a3c5b!important}
+html:not(.light-mode) .landing-root .landing-hero,html:not(.light-mode) .landing-root .landing-modules-section{background:#0b2239!important}
+html:not(.light-mode) .landing-root .landing-hero-title,html:not(.light-mode) .landing-root .landing-section-title,html:not(.light-mode) .landing-root .feature-card h3,html:not(.light-mode) .landing-root .step-card h3{color:#f8fafc!important}
+html:not(.light-mode) .landing-root .landing-hero-sub,html:not(.light-mode) .landing-root .landing-section-sub,html:not(.light-mode) .landing-root .feature-card p,html:not(.light-mode) .landing-root .step-card p{color:#a9bdd0!important}
+html:not(.light-mode) .landing-root .feature-card,html:not(.light-mode) .landing-root .step-card,html:not(.light-mode) .landing-root .mockup-window{background:#0b2239!important;border-color:#1a3c5b!important}
+html:not(.light-mode) .landing-root .landing-accessibility-controls{color:#dbeafe}

@@ -4,6 +4,7 @@ import Footer from "../components/Footer.jsx";
 import { OptifixBrand } from "../components/OptifixLogo.jsx";
 import { useAuth } from "../hooks/useAuth.js";
 import { useWorkshop } from "../context/WorkshopContext.jsx";
+import AccessibilityPreferences from "../components/AccessibilityPreferences.jsx";
 import "./Login.css";
 
 const ETIQUETAS_ROL = { admin: "Administrador", tecnico: "Técnico" };
@@ -158,6 +159,7 @@ export default function Login() {
           Volver al Inicio
         </Link>
       </div>
+      <AccessibilityPreferences className="login-accessibility-controls" />
 
       <div
         style={{

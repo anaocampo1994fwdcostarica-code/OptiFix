@@ -13,7 +13,6 @@ import EstadisticasView from "../pages/EstadisticasView.jsx";
 import ProductosView from "../pages/ProductosView.jsx";
 import ServiciosView from "../pages/ServiciosView.jsx";
 import CotizacionesView from "../pages/CotizacionesView.jsx";
-import GenericModuleView from "../pages/GenericModuleView.jsx";
 import AgendaView from "../pages/AgendaView.jsx";
 import DashboardView from "../pages/DashboardView.jsx";
 import UsuariosView from "../pages/UsuariosView.jsx";

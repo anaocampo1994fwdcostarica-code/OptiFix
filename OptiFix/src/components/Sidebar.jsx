@@ -5,7 +5,7 @@ import OptifixLogo from "./OptifixLogo.jsx";
 import { useAuth } from "../hooks/useAuth.js";
 import { useTranslation } from "react-i18next";
 
-export default function Sidebar({ collapsed, onToggle }) {
+export default function Sidebar({ collapsed, mobileOpen = false, onToggle }) {
   const location = useLocation();
   const [isServiceCenterOpen, setIsServiceCenterOpen] = useState(true);
   const { user } = useAuth();
@@ -15,7 +15,7 @@ export default function Sidebar({ collapsed, onToggle }) {
   const isActive = (path) => location.pathname === path;
 
   return (
-    <aside className={`gestioo-sidebar ${collapsed ? "collapsed" : ""}`}>
+    <aside id="main-sidebar" className={`gestioo-sidebar ${collapsed ? "collapsed" : ""} ${mobileOpen ? "mobile-open" : ""}`} aria-label="Navegación principal">
       <div className="sidebar-header">
         <Link to="/dashboard" className="brand-logo">
           <span className="brand-key-badge">
@@ -55,6 +55,8 @@ export default function Sidebar({ collapsed, onToggle }) {
             type="button"
             className="nav-group-header"
             onClick={() => setIsServiceCenterOpen(!isServiceCenterOpen)}
+            aria-expanded={isServiceCenterOpen}
+            aria-controls="service-center-submenu"
           >
             <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
               <Icono nombre="wrench" size={18} />
@@ -69,7 +71,7 @@ export default function Sidebar({ collapsed, onToggle }) {
           </button>
 
           {isServiceCenterOpen && !collapsed && (
-            <div className="nav-submenu">
+            <div id="service-center-submenu" className="nav-submenu">
               <Link
                 to="/ordenes"
                 className={`nav-subitem ${

@@ -2,6 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { OptifixBrand } from "../components/OptifixLogo.jsx";
 import Footer from "../components/Footer.jsx";
+import AccessibilityPreferences from "../components/AccessibilityPreferences.jsx";
 import "./LandingPage.css";
 
 const FEATURES = [
@@ -71,6 +72,7 @@ export default function LandingPage() {
           <Link to="/login/admin" className="landing-nav-cta">
             Ingresar al Panel
           </Link>
+          <AccessibilityPreferences className="landing-accessibility-controls" />
         </div>
       </nav>
 

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import initialData from "../../db.json";
+import { crearOrden, actualizarOrden as actualizarOrdenEnServidor } from "../services/ordenesService.js";
 
 const WorkshopContext = createContext(null);
 
@@ -273,6 +274,8 @@ export function WorkshopProvider({ children }) {
       ...prev,
       ordenes: [nueva, ...prev.ordenes]
     }));
+    // JSON Server complementa al modo local; una falla de red no interrumpe el taller.
+    void crearOrden(nueva).catch(() => undefined);
     return nueva;
   };
 
@@ -283,6 +286,7 @@ export function WorkshopProvider({ children }) {
         o.id === id || o.numero === Number(id) ? { ...o, ...fields } : o
       )
     }));
+    void actualizarOrdenEnServidor(id, fields).catch(() => undefined);
   };
 
   const changeOrdenStatus = (ordenId, nuevoEstado, nuevaEtapa, detalle) => {
@@ -315,6 +319,10 @@ export function WorkshopProvider({ children }) {
         return o;
       })
     }));
+    void actualizarOrdenEnServidor(ordenId, {
+      estado_actual: nuevoEstado,
+      etapa_categoria: nuevaEtapa,
+    }).catch(() => undefined);
   };
 
   const toggleGarantia = (ordenId) => {

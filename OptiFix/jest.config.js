@@ -14,7 +14,7 @@ export default {
       "jest-html-reporter",
       {
         pageTitle: "Reporte de Pruebas - OptiFix",
-        outputPath: "./src/test-utils/test-report.html",
+        outputPath: "./reports/test-report.html",
         includeFailureMsg: true,
         includeConsoleLog: true,
       },

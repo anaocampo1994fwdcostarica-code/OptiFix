@@ -5,15 +5,7 @@ import { WorkshopProvider } from "../context/WorkshopContext.jsx";
 import { LoginCard } from "../pages/Login.jsx";
 
 function renderLogin() {
-  return render(
-    <MemoryRouter>
-      <AuthProvider>
-        <WorkshopProvider>
-          <LoginCard />
-        </WorkshopProvider>
-      </AuthProvider>
-    </MemoryRouter>
-  );
+  return render(<MemoryRouter><AuthProvider><WorkshopProvider><LoginCard /></WorkshopProvider></AuthProvider></MemoryRouter>);
 }
 
 beforeEach(() => localStorage.clear());
@@ -24,19 +16,15 @@ describe("Login", () => {
     fireEvent.change(screen.getByPlaceholderText("Usuario"), { target: { value: "admin" } });
     fireEvent.change(screen.getByPlaceholderText("••••••••"), { target: { value: "clave-mala" } });
     fireEvent.click(screen.getByRole("button", { name: /ingresar/i }));
-
     expect(await screen.findByRole("alert")).toHaveTextContent(/incorrectos/i);
     expect(localStorage.getItem("optifix_session")).toBeNull();
   });
 
-  it("guarda la sesión con las credenciales correctas del administrador semilla", async () => {
+  it("guarda la sesión con las credenciales correctas", async () => {
     renderLogin();
     fireEvent.change(screen.getByPlaceholderText("Usuario"), { target: { value: "admin" } });
     fireEvent.change(screen.getByPlaceholderText("••••••••"), { target: { value: "admin123" } });
     fireEvent.click(screen.getByRole("button", { name: /ingresar/i }));
-
-    await waitFor(() => {
-      expect(localStorage.getItem("optifix_session")).toContain("admin");
-    });
+    await waitFor(() => expect(localStorage.getItem("optifix_session")).toContain("admin"));
   });
 });

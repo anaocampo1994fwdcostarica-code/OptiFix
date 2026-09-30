@@ -18,6 +18,9 @@
   border-radius: 4px;
 }
 
+.login-accessibility-controls { position:absolute; top:24px; right:24px; z-index:10; color:#fff; }
+.login-accessibility-controls button { border-color:rgba(255,255,255,.55); background:rgba(255,255,255,.12); }
+
 .form_main::before {
   position: absolute;
   content: "";

@@ -6,7 +6,7 @@ import { useWorkshop } from "../context/WorkshopContext.jsx";
 import { useAuth } from "../hooks/useAuth.js";
 import { useTranslation } from "react-i18next";
 
-export default function TopNavbar({ onOpenNewOrderModal }) {
+export default function TopNavbar({ onOpenNewOrderModal, onToggleMobileMenu, mobileMenuOpen = false }) {
   const navigate = useNavigate();
   const searchInputRef = useRef(null);
   const { user, logout } = useAuth();
@@ -52,6 +52,7 @@ export default function TopNavbar({ onOpenNewOrderModal }) {
 
   return (
     <header className="gestioo-topbar">
+      <button type="button" className="mobile-menu-btn" onClick={onToggleMobileMenu} aria-label={mobileMenuOpen ? "Cerrar menú lateral" : "Abrir menú lateral"} aria-expanded={mobileMenuOpen} aria-controls="main-sidebar">☰</button>
       <div className="topbar-brand" aria-label="OptiFix brand">
         <OptifixLogo size={22} className="topbar-brand-mark" />
         <span className="topbar-brand-wordmark">OPTIFIX</span>
@@ -66,6 +67,7 @@ export default function TopNavbar({ onOpenNewOrderModal }) {
           ref={searchInputRef}
           type="text"
           className="topbar-search-input"
+          aria-label="Buscar órdenes, clientes o equipos"
           placeholder={t("search.placeholder")}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
@@ -167,7 +169,7 @@ export default function TopNavbar({ onOpenNewOrderModal }) {
         >
           {i18n.language === "es" ? "EN" : "ES"}
         </button>
-        <button className="topbar-icon-btn" onClick={toggleTheme} title="Cambiar Tema">
+        <button className="topbar-icon-btn" onClick={toggleTheme} title="Cambiar Tema" aria-label={theme === "light" ? "Activar modo oscuro" : "Activar modo claro"} aria-pressed={theme === "dark"}>
           <Icono nombre={theme === "light" ? "moon" : "sun"} size={18} />
         </button>
 

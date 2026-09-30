@@ -8,6 +8,7 @@ import { useAuth } from "./hooks/useAuth.js";
 
 export default function App() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { status } = useAuth();
@@ -37,12 +38,14 @@ export default function App() {
       {/* Barra Lateral Izquierda (Gestioo) */}
       <Sidebar
         collapsed={sidebarCollapsed}
+        mobileOpen={mobileMenuOpen}
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
       />
+      {mobileMenuOpen && <button type="button" className="mobile-sidebar-backdrop" aria-label="Cerrar menú" onClick={() => setMobileMenuOpen(false)} />}
 
       {/* Área Principal */}
       <div className="gestioo-main-area">
-        <TopNavbar onOpenNewOrderModal={() => navigate('/nueva-orden')} />
+        <TopNavbar onOpenNewOrderModal={() => navigate('/nueva-orden')} onToggleMobileMenu={() => setMobileMenuOpen((open) => !open)} mobileMenuOpen={mobileMenuOpen} />
 
         <main style={{ flex: 1 }}>
           <Routing onOpenNewOrderModal={() => navigate('/nueva-orden')} />
