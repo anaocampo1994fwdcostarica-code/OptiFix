@@ -20,7 +20,7 @@ En Nueva Orden, use **Sugerir diagnóstico con IA**. Por defecto opera en modo d
 
 ## Flujos n8n
 
-Importe `n8n/optifix-automatizaciones.json` con **Import from File**. Es un único lienzo con dos webhooks: `POST /webhook/optifix-order-delivered` (correo HTML por cambio de estado) y `POST /webhook/optifix-chat` (chat público). Configure la credencial SMTP y, para producción, sustituya el fallback del chat por una consulta HTTP segura y un nodo AI Agent. El `db.json` principal de OptiFix es la fuente mock de datos.
+Importe `n8n/optifix-automatizaciones.json` con **Import from File**. Es un único lienzo con tres webhooks: `POST /webhook/optifix-order-delivered` (correo HTML por cambio de estado), `POST /webhook/optifix-users` (evento de registro de usuario) y `POST /webhook/optifix-chat` (chat público). Configure la credencial SMTP y, para producción, sustituya el fallback del chat por una consulta HTTP segura a JSON Server y un nodo AI Agent. El `db.json` principal de OptiFix es la fuente mock de datos.
 
 ## Backend simulado con n8n
 
@@ -36,7 +36,7 @@ o ante una falla:
 { "ok": false, "error": "Descripción segura del error" }
 ```
 
-Endpoints propuestos: `optifix-users`, `optifix-orders`, `optifix-public-order` y `optifix-chat`. En n8n, cada Webhook recibe `{ action, ...payload }`, usa un nodo Code o HTTP para leer/escribir el `db.json` montado en el servidor, y termina con **Respond to Webhook**. Nunca exponga un webhook de escritura sin autenticación o una firma compartida; el navegador no debe tener acceso directo al archivo del servidor.
+Endpoints del workflow: `optifix-users`, `optifix-order-delivered` y `optifix-chat`. En n8n, cada Webhook recibe `{ action, ...payload }`, usa un nodo Code o HTTP para leer/escribir el `db.json` montado en el servidor, y termina con **Respond to Webhook**. Nunca exponga un webhook de escritura sin autenticación o una firma compartida; el navegador no debe tener acceso directo al archivo del servidor.
 
 ## Pruebas
 

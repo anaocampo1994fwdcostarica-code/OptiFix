@@ -1,0 +1,361 @@
+
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Code coverage report for src/pages/DashboardView.jsx</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../../prettify.css" />
+    <link rel="stylesheet" href="../../base.css" />
+    <link rel="shortcut icon" type="image/x-icon" href="../../favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+    
+<body>
+<div class='wrapper'>
+    <div class='pad1'>
+        <h1><a href="../../index.html">All files</a> / <a href="index.html">src/pages</a> DashboardView.jsx</h1>
+        <div class='clearfix'>
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">2.22% </span>
+                <span class="quiet">Statements</span>
+                <span class='fraction'>1/45</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Branches</span>
+                <span class='fraction'>0/34</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Functions</span>
+                <span class='fraction'>0/24</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">3.57% </span>
+                <span class="quiet">Lines</span>
+                <span class='fraction'>1/28</span>
+            </div>
+        
+            
+        </div>
+        <p class="quiet">
+            Press <em>n</em> or <em>j</em> to go to the next uncovered block, <em>b</em>, <em>p</em> or <em>k</em> for the previous block.
+        </p>
+        <template id="filterTemplate">
+            <div class="quiet">
+                Filter:
+                <input type="search" id="fileSearch">
+            </div>
+        </template>
+    </div>
+    <div class='status-line low'></div>
+    <pre><table class="coverage">
+<tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
+<a name='L2'></a><a href='#L2'>2</a>
+<a name='L3'></a><a href='#L3'>3</a>
+<a name='L4'></a><a href='#L4'>4</a>
+<a name='L5'></a><a href='#L5'>5</a>
+<a name='L6'></a><a href='#L6'>6</a>
+<a name='L7'></a><a href='#L7'>7</a>
+<a name='L8'></a><a href='#L8'>8</a>
+<a name='L9'></a><a href='#L9'>9</a>
+<a name='L10'></a><a href='#L10'>10</a>
+<a name='L11'></a><a href='#L11'>11</a>
+<a name='L12'></a><a href='#L12'>12</a>
+<a name='L13'></a><a href='#L13'>13</a>
+<a name='L14'></a><a href='#L14'>14</a>
+<a name='L15'></a><a href='#L15'>15</a>
+<a name='L16'></a><a href='#L16'>16</a>
+<a name='L17'></a><a href='#L17'>17</a>
+<a name='L18'></a><a href='#L18'>18</a>
+<a name='L19'></a><a href='#L19'>19</a>
+<a name='L20'></a><a href='#L20'>20</a>
+<a name='L21'></a><a href='#L21'>21</a>
+<a name='L22'></a><a href='#L22'>22</a>
+<a name='L23'></a><a href='#L23'>23</a>
+<a name='L24'></a><a href='#L24'>24</a>
+<a name='L25'></a><a href='#L25'>25</a>
+<a name='L26'></a><a href='#L26'>26</a>
+<a name='L27'></a><a href='#L27'>27</a>
+<a name='L28'></a><a href='#L28'>28</a>
+<a name='L29'></a><a href='#L29'>29</a>
+<a name='L30'></a><a href='#L30'>30</a>
+<a name='L31'></a><a href='#L31'>31</a>
+<a name='L32'></a><a href='#L32'>32</a>
+<a name='L33'></a><a href='#L33'>33</a>
+<a name='L34'></a><a href='#L34'>34</a>
+<a name='L35'></a><a href='#L35'>35</a>
+<a name='L36'></a><a href='#L36'>36</a>
+<a name='L37'></a><a href='#L37'>37</a>
+<a name='L38'></a><a href='#L38'>38</a>
+<a name='L39'></a><a href='#L39'>39</a>
+<a name='L40'></a><a href='#L40'>40</a>
+<a name='L41'></a><a href='#L41'>41</a>
+<a name='L42'></a><a href='#L42'>42</a>
+<a name='L43'></a><a href='#L43'>43</a>
+<a name='L44'></a><a href='#L44'>44</a>
+<a name='L45'></a><a href='#L45'>45</a>
+<a name='L46'></a><a href='#L46'>46</a>
+<a name='L47'></a><a href='#L47'>47</a>
+<a name='L48'></a><a href='#L48'>48</a>
+<a name='L49'></a><a href='#L49'>49</a>
+<a name='L50'></a><a href='#L50'>50</a>
+<a name='L51'></a><a href='#L51'>51</a>
+<a name='L52'></a><a href='#L52'>52</a>
+<a name='L53'></a><a href='#L53'>53</a>
+<a name='L54'></a><a href='#L54'>54</a>
+<a name='L55'></a><a href='#L55'>55</a>
+<a name='L56'></a><a href='#L56'>56</a>
+<a name='L57'></a><a href='#L57'>57</a>
+<a name='L58'></a><a href='#L58'>58</a>
+<a name='L59'></a><a href='#L59'>59</a>
+<a name='L60'></a><a href='#L60'>60</a>
+<a name='L61'></a><a href='#L61'>61</a>
+<a name='L62'></a><a href='#L62'>62</a>
+<a name='L63'></a><a href='#L63'>63</a>
+<a name='L64'></a><a href='#L64'>64</a>
+<a name='L65'></a><a href='#L65'>65</a>
+<a name='L66'></a><a href='#L66'>66</a>
+<a name='L67'></a><a href='#L67'>67</a>
+<a name='L68'></a><a href='#L68'>68</a>
+<a name='L69'></a><a href='#L69'>69</a>
+<a name='L70'></a><a href='#L70'>70</a>
+<a name='L71'></a><a href='#L71'>71</a>
+<a name='L72'></a><a href='#L72'>72</a>
+<a name='L73'></a><a href='#L73'>73</a>
+<a name='L74'></a><a href='#L74'>74</a>
+<a name='L75'></a><a href='#L75'>75</a>
+<a name='L76'></a><a href='#L76'>76</a>
+<a name='L77'></a><a href='#L77'>77</a>
+<a name='L78'></a><a href='#L78'>78</a>
+<a name='L79'></a><a href='#L79'>79</a>
+<a name='L80'></a><a href='#L80'>80</a>
+<a name='L81'></a><a href='#L81'>81</a>
+<a name='L82'></a><a href='#L82'>82</a>
+<a name='L83'></a><a href='#L83'>83</a>
+<a name='L84'></a><a href='#L84'>84</a>
+<a name='L85'></a><a href='#L85'>85</a>
+<a name='L86'></a><a href='#L86'>86</a>
+<a name='L87'></a><a href='#L87'>87</a>
+<a name='L88'></a><a href='#L88'>88</a>
+<a name='L89'></a><a href='#L89'>89</a>
+<a name='L90'></a><a href='#L90'>90</a>
+<a name='L91'></a><a href='#L91'>91</a>
+<a name='L92'></a><a href='#L92'>92</a>
+<a name='L93'></a><a href='#L93'>93</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import React, { useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useWorkshop } from "../context/WorkshopContext.jsx";
+import Icono from "../components/icons.jsx";
+import { getEstadoBadge } from "../utils/estadoColors.js";
+import { useTranslation } from "react-i18next";
+import { useExchangeRate } from "../hooks/useExchangeRate.js";
+import "./DashboardView.css";
+&nbsp;
+const money = new Intl.NumberFormat("es-CR", { style: "currency", currency: "CRC", maximumFractionDigits: 0 });
+&nbsp;
+function <span class="fstat-no" title="function not covered" >formatDate(</span>) {
+<span class="cstat-no" title="statement not covered" >  return new Intl.DateTimeFormat("es-CR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })</span>
+    .format(new Date()).replace(/^./, <span class="fstat-no" title="function not covered" >(l</span>etter) =&gt; <span class="cstat-no" title="statement not covered" >letter.toUpperCase())</span>;
+}
+&nbsp;
+export default function <span class="fstat-no" title="function not covered" >DashboardView(</span>{ onOpenNewOrderModal }) {
+  const navigate = <span class="cstat-no" title="statement not covered" >useNavigate();</span>
+  const { t, i18n } = <span class="cstat-no" title="statement not covered" >useTranslation();</span>
+  const { ordenes, clientes, equipos, cotizaciones } = <span class="cstat-no" title="statement not covered" >useWorkshop();</span>
+  const [filter, setFilter] = <span class="cstat-no" title="statement not covered" >useState("Todas");</span>
+  const exchangeRate = <span class="cstat-no" title="statement not covered" >useExchangeRate();</span>
+&nbsp;
+  const stats = <span class="cstat-no" title="statement not covered" >useMemo(<span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
+    const active = <span class="cstat-no" title="statement not covered" >ordenes.filter(<span class="fstat-no" title="function not covered" >(o</span>) =&gt; <span class="cstat-no" title="statement not covered" >o.estado_actual !== "ENTREGADO")</span>;</span>
+    const recepcion = <span class="cstat-no" title="statement not covered" >active.filter(<span class="fstat-no" title="function not covered" >(o</span>) =&gt; <span class="cstat-no" title="statement not covered" >getEstadoBadge(o).label === "Recepción")</span>;</span>
+    const banco = <span class="cstat-no" title="statement not covered" >active.filter(<span class="fstat-no" title="function not covered" >(o</span>) =&gt; <span class="cstat-no" title="statement not covered" >getEstadoBadge(o).label === "En trámite")</span>;</span>
+    const listo = <span class="cstat-no" title="statement not covered" >ordenes.filter(<span class="fstat-no" title="function not covered" >(o</span>) =&gt; <span class="cstat-no" title="statement not covered" >getEstadoBadge(o).label === "Entregado")</span>;</span>
+    const total = <span class="cstat-no" title="statement not covered" >active.reduce(<span class="fstat-no" title="function not covered" >(s</span>um, o) =&gt; <span class="cstat-no" title="statement not covered" >sum + (o.productos_servicios || []).reduce(<span class="fstat-no" title="function not covered" >(s</span>, item) =&gt; <span class="cstat-no" title="statement not covered" >s + (Number(item.cantidad) || 1) * (Number(item.importe) || 0),</span> 0),</span> 0);</span>
+<span class="cstat-no" title="statement not covered" >    return { active, recepcion, banco, listo, total };</span>
+  }, [ordenes]);
+&nbsp;
+  const visibleOrders = <span class="cstat-no" title="statement not covered" >stats.active.filter(<span class="fstat-no" title="function not covered" >(o</span>) =&gt; <span class="cstat-no" title="statement not covered" >filter === "Todas" || (filter === "Recepción" ? getEstadoBadge(o).label === "Recepción" : filter === "En banco" ? getEstadoBadge(o).label === "En trámite" : getEstadoBadge(o).label === "Entregado"))</span>.slice(0, 5);</span>
+  const pendingQuotes = <span class="cstat-no" title="statement not covered" >cotizaciones.filter(<span class="fstat-no" title="function not covered" >(q</span>uote) =&gt; <span class="cstat-no" title="statement not covered" >quote.estado === "PENDIENTE")</span>.length;</span>
+  const agenda = <span class="cstat-no" title="statement not covered" >stats.active.slice(0, 4);</span>
+&nbsp;
+  const moneyForLanguage = <span class="cstat-no" title="statement not covered" >new Intl.NumberFormat(i18n.language === "en" ? "en-US" : "es-CR", { style: "currency", currency: "CRC", maximumFractionDigits: 0 });</span>
+  const today = <span class="cstat-no" title="statement not covered" >new Intl.DateTimeFormat(i18n.language === "en" ? "en-US" : "es-CR", { weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(new Date());</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >  return &lt;div className="dashboard page-container"&gt;</span>
+    &lt;section className="dashboard-hero"&gt;
+      &lt;div&gt;
+        &lt;div className="dashboard-status"&gt;&lt;span /&gt; {t("dashboard.operational")} &lt;time&gt;{today}&lt;/time&gt;&lt;/div&gt;
+        &lt;h1&gt;{t("page.dashboard")}&lt;/h1&gt;
+        &lt;p&gt;{t("dashboard.monitoring")}&lt;/p&gt;
+      &lt;/div&gt;
+      &lt;div className="dashboard-actions"&gt;
+        &lt;button className="dashboard-secondary" onClick={<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >window.print()}</span>&gt;&lt;Icono nombre="printer" size={16} /&gt; {t("dashboard.quickReceipt")}&lt;/button&gt;
+        &lt;button className="dashboard-primary" onClick={onOpenNewOrderModal}&gt;&lt;Icono nombre="plus" size={16} /&gt; {t("dashboard.newServiceOrder")}&lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/section&gt;
+&nbsp;
+    &lt;div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between dashboard-exchange-rate" role="status"&gt;
+      &lt;div&gt;&lt;p className="text-xs text-slate-400 font-medium uppercase"&gt;Tipo de cambio referencial&lt;/p&gt;&lt;p className="text-lg font-bold text-slate-800"&gt;{exchangeRate.loading ? "Cargando…" : `1 USD ≈ ₡${Number(exchangeRate.rate).toFixed(2)}`}&lt;/p&gt;&lt;small&gt;{exchangeRate.source}&lt;/small&gt;&lt;/div&gt;
+      &lt;span className="p-2 bg-blue-50 text-blue-600 rounded-lg"&gt;💱&lt;/span&gt;
+    &lt;/div&gt;
+&nbsp;
+    &lt;section className="dashboard-kpis"&gt;
+      &lt;Kpi icon="wrench" tone="blue" label={t("dashboard.ordersInWorkshop")} value={stats.active.length} detail={`${stats.recepcion.length} ${t("dashboard.inReception")} · ${stats.banco.length} ${t("dashboard.inBench")}`} /&gt;
+      &lt;Kpi icon="barchart" tone="green" label={t("dashboard.estimatedBilling")} value={moneyForLanguage.format(stats.total)} detail={t("dashboard.openOrderProducts")} /&gt;
+      &lt;Kpi icon="calendar-check" tone="purple" label={t("dashboard.technicalAgenda")} value={agenda.length} detail={t("dashboard.pendingFollowups")} /&gt;
+      &lt;Kpi icon="box" tone="orange" label={t("dashboard.pendingQuotes")} value={pendingQuotes} detail={t("dashboard.customerConfirmation")} /&gt;
+    &lt;/section&gt;
+&nbsp;
+    &lt;section className="automation-banner"&gt;&lt;Icono nombre="whatsapp" size={21} /&gt;&lt;span&gt;&lt;strong&gt;Canal automatizado WhatsApp &amp;amp; SMS activo.&lt;/strong&gt; Mantén informados a tus clientes sobre cada cambio de estado.&lt;/span&gt;&lt;button&gt;Ver historial →&lt;/button&gt;&lt;/section&gt;
+&nbsp;
+    &lt;section className="dashboard-grid"&gt;
+      &lt;article className="dashboard-card orders-card"&gt;
+        &lt;div className="card-heading"&gt;&lt;div&gt;&lt;h2&gt;Órdenes de trabajo activas&lt;/h2&gt;&lt;p&gt;Seguimiento en tiempo real por puesto de reparación&lt;/p&gt;&lt;/div&gt;&lt;div className="dashboard-tabs"&gt;{[["Todas", stats.active.length], ["Recepción", stats.recepcion.length], ["En banco", stats.banco.length], ["Listas", stats.listo.length]].map(<span class="fstat-no" title="function not covered" >([</span>name, count]) =&gt; <span class="cstat-no" title="statement not covered" >&lt;button key={name} className={filter === name ? "active" : ""} onClick={<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >setFilter(name)}</span>&gt;{name} ({count})&lt;/button&gt;)</span>}&lt;/div&gt;&lt;/div&gt;
+        &lt;div className="dashboard-table-wrap"&gt;&lt;table className="dashboard-table"&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;OT / Fecha&lt;/th&gt;&lt;th&gt;Equipo y falla&lt;/th&gt;&lt;th&gt;Cliente&lt;/th&gt;&lt;th&gt;Estado&lt;/th&gt;&lt;th /&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;{visibleOrders.map(<span class="fstat-no" title="function not covered" >(o</span>rder) =&gt; {
+          const equipment = <span class="cstat-no" title="statement not covered" >equipos.find(<span class="fstat-no" title="function not covered" >(i</span>tem) =&gt; <span class="cstat-no" title="statement not covered" >item.id === order.equipo_id)</span>;</span> const client = <span class="cstat-no" title="statement not covered" >clientes.find(<span class="fstat-no" title="function not covered" >(i</span>tem) =&gt; <span class="cstat-no" title="statement not covered" >item.id === order.cliente_id)</span>;</span> const badge = <span class="cstat-no" title="statement not covered" >getEstadoBadge(order);</span>
+<span class="cstat-no" title="statement not covered" >          return &lt;tr key={order.id} onClick={<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >navigate(`/ordenes/${order.numero}`)}</span>&gt;&lt;td&gt;&lt;strong&gt;#{order.numero}&lt;/strong&gt;&lt;small&gt;{order.fecha_ingreso}&lt;/small&gt;&lt;/td&gt;&lt;td&gt;&lt;b&gt;{equipment ? `${equipment.marca} ${equipment.modelo}` : "Equipo sin registro"}&lt;/b&gt;&lt;small&gt;{order.trabajo_solicitado}&lt;/small&gt;&lt;/td&gt;&lt;td&gt;&lt;b&gt;{client?.nombre || "Cliente sin registro"}&lt;/b&gt;&lt;small&gt;{client?.telefono || "Sin teléfono"}&lt;/small&gt;&lt;/td&gt;&lt;td&gt;&lt;span className="order-status" style={{ backgroundColor: badge.bg }}&gt;{badge.label}&lt;/span&gt;&lt;/td&gt;&lt;td&gt;&lt;Icono nombre="arrow-right" size={16} /&gt;&lt;/td&gt;&lt;/tr&gt;;</span>
+        })}&lt;/tbody&gt;&lt;/table&gt;&lt;/div&gt;
+        &lt;Link className="dashboard-link" to="/ordenes"&gt;Ver todas las órdenes de trabajo en cola →&lt;/Link&gt;
+      &lt;/article&gt;
+&nbsp;
+      &lt;aside className="dashboard-side"&gt;
+        &lt;article className="dashboard-card agenda-card"&gt;&lt;div className="card-heading"&gt;&lt;div&gt;&lt;h2&gt;&lt;Icono nombre="calendar" size={17} /&gt; Agenda técnica&lt;/h2&gt;&lt;p&gt;Prioridades actuales del taller&lt;/p&gt;&lt;/div&gt;&lt;span className="count-pill"&gt;{agenda.length}&lt;/span&gt;&lt;/div&gt;&lt;div className="agenda-list"&gt;{agenda.map(<span class="fstat-no" title="function not covered" >(o</span>rder, index) =&gt; { const client = <span class="cstat-no" title="statement not covered" >clientes.find(<span class="fstat-no" title="function not covered" >(i</span>tem) =&gt; <span class="cstat-no" title="statement not covered" >item.id === order.cliente_id)</span>;</span> <span class="cstat-no" title="statement not covered" >return &lt;button key={order.id} onClick={<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >navigate(`/ordenes/${order.numero}`)}</span>&gt;&lt;time&gt;{String(9 + index * 2).padStart(2, "0")}:30&lt;/time&gt;&lt;span&gt;&lt;b&gt;{client?.nombre || "Cliente"}&lt;/b&gt;&lt;small&gt;OT #{order.numero} · {order.trabajo_solicitado}&lt;/small&gt;&lt;/span&gt;&lt;i /&gt;&lt;/button&gt;; </span>})}&lt;/div&gt;&lt;Link to="/agenda" className="agenda-action"&gt;Abrir agenda completa&lt;/Link&gt;&lt;/article&gt;
+        &lt;article className="bench-card"&gt;&lt;span&gt;&lt;i /&gt; BANCO DE REPARACIÓN&lt;/span&gt;&lt;strong&gt;{stats.banco[0]?.trabajo_solicitado || "Sin equipos asignados"}&lt;/strong&gt;&lt;p&gt;{stats.banco[0] ? `OT #${stats.banco[0].numero} en seguimiento técnico.` : "Asigna una orden para iniciar un diagnóstico."}&lt;/p&gt;&lt;footer&gt;&lt;span&gt;Estado actual&lt;/span&gt;&lt;b&gt;{stats.banco[0] ? "En banco" : "Disponible"}&lt;/b&gt;&lt;/footer&gt;&lt;/article&gt;
+      &lt;/aside&gt;
+    &lt;/section&gt;
+&nbsp;
+    &lt;section className="quick-links"&gt;
+      &lt;QuickLink to="/clientes" icon="users" title="Clientes y fichas" text={`${clientes.length} registros con historial de servicio`} /&gt;
+      &lt;QuickLink to="/equipos" icon="laptop" title="Equipos registrados" text={`${equipos.length} equipos trazables por serie`} /&gt;
+      &lt;QuickLink to="/cotizaciones" icon="clipboard" title="Cotizaciones" text={`${pendingQuotes} presupuestos en espera de aprobación`} /&gt;
+    &lt;/section&gt;
+  &lt;/div&gt;;
+}
+&nbsp;
+function <span class="fstat-no" title="function not covered" >Kpi(</span>{ icon, tone, label, value, detail }) { <span class="cstat-no" title="statement not covered" >return &lt;article className="kpi-new"&gt;&lt;div&gt;&lt;p&gt;{label}&lt;/p&gt;&lt;strong&gt;{value}&lt;/strong&gt;&lt;/div&gt;&lt;span className={`kpi-symbol ${tone}`}&gt;&lt;Icono nombre={icon} size={21} /&gt;&lt;/span&gt;&lt;small&gt;{detail}&lt;/small&gt;&lt;/article&gt;; </span>}
+function <span class="fstat-no" title="function not covered" >QuickLink(</span>{ to, icon, title, text }) { <span class="cstat-no" title="statement not covered" >return &lt;Link to={to} className="quick-link"&gt;&lt;span&gt;&lt;Icono nombre={icon} size={21} /&gt;&lt;/span&gt;&lt;div&gt;&lt;b&gt;{title}&lt;/b&gt;&lt;small&gt;{text}&lt;/small&gt;&lt;/div&gt;&lt;Icono nombre="arrow-right" size={16} /&gt;&lt;/Link&gt;; </span>}
+&nbsp;</pre></td></tr></table></pre>
+
+                <div class='push'></div><!-- for sticky footer -->
+            </div><!-- /wrapper -->
+            <div class='footer quiet pad2 space-top1 center small'>
+                Code coverage generated by
+                <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
+                at 2026-09-30T16:45:27.405Z
+            </div>
+        <script src="../../prettify.js"></script>
+        <script>
+            window.onload = function () {
+                prettyPrint();
+            };
+        </script>
+        <script src="../../sorter.js"></script>
+        <script src="../../block-navigation.js"></script>
+    </body>
+</html>
+    

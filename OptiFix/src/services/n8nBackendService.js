@@ -24,7 +24,7 @@ export function registrarUsuario(usuario) {
 }
 
 export function actualizarEstadoOrden({ ordenId, estado, comentarioTecnico, cliente, equipo, seguimientoUrl }) {
-  return request("optifix-orders", { action: "ORDER_STATUS_UPDATE", ordenId, estado, comentarioTecnico, cliente, equipo, seguimientoUrl });
+  return request("optifix-order-delivered", { action: "ORDER_STATUS_UPDATE", ordenId, estado, comentarioTecnico, cliente, equipo, seguimientoUrl });
 }
 
 export function consultarOrdenPublica(token) {

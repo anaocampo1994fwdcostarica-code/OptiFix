@@ -7,13 +7,16 @@ const demo = (falla, equipo) => ({
 
 export async function sugerirDiagnostico(fallaReportada, equipo = {}) {
   if (!fallaReportada?.trim()) throw new Error("Describe la falla reportada antes de solicitar una sugerencia.");
+  // Vite inyecta las variables VITE_* en import.meta.env durante la compilación.
+  // El objeto global conserva soporte para despliegues con configuración en runtime.
+  const viteConfig = typeof import.meta !== "undefined" ? import.meta.env || {} : {};
   const runtimeConfig = typeof window !== "undefined" ? window.__OPTIFIX_RUNTIME_CONFIG__ || {} : {};
-  const apiKey = runtimeConfig.VITE_ANTHROPIC_API_KEY;
+  const apiKey = viteConfig.VITE_ANTHROPIC_API_KEY || runtimeConfig.VITE_ANTHROPIC_API_KEY;
   if (!apiKey) return demo(fallaReportada, equipo);
   const response = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: { "content-type": "application/json", "x-api-key": apiKey, "anthropic-version": "2023-06-01" },
-    body: JSON.stringify({ model: runtimeConfig.VITE_ANTHROPIC_MODEL || "claude-3-5-haiku-latest", max_tokens: 500, messages: [{ role: "user", content: `Taller electrónico. Equipo: ${equipo.marca || ""} ${equipo.modelo || ""} ${equipo.tipo || ""}. Falla: ${fallaReportada}. Devuelve JSON con posiblesCausas (array), serviciosRecomendados (array) y presupuesto {minimo,maximo,moneda:"CRC"}.` }] })
+    body: JSON.stringify({ model: viteConfig.VITE_ANTHROPIC_MODEL || runtimeConfig.VITE_ANTHROPIC_MODEL || "claude-3-5-haiku-latest", max_tokens: 500, messages: [{ role: "user", content: `Taller electrónico. Equipo: ${equipo.marca || ""} ${equipo.modelo || ""} ${equipo.tipo || ""}. Falla: ${fallaReportada}. Devuelve JSON con posiblesCausas (array), serviciosRecomendados (array) y presupuesto {minimo,maximo,moneda:"CRC"}.` }] })
   });
   if (!response.ok) throw new Error("El servicio de IA no respondió.");
   const data = await response.json();
