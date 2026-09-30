@@ -20,7 +20,7 @@ function colorAvatar(nombre = "") {
 }
 
 export default function ClientesView() {
-  const { clientes, ordenes, equipos, addCliente, updateCliente } = useWorkshop();
+  const { clientes, ordenes, equipos, addCliente, updateCliente, deleteCliente } = useWorkshop();
   const [searchTerm, setSearchTerm] = useState("");
   const [tab, setTab] = useState("TODOS");
   const [page, setPage] = useState(1);
@@ -62,12 +62,17 @@ export default function ClientesView() {
     setIsModalOpen(true);
   };
 
-  const handleSaveCliente = (formData) => {
+  const handleSaveCliente = async (formData) => {
     if (clienteToEdit) {
       updateCliente(clienteToEdit.id, formData);
     } else {
       addCliente(formData);
     }
+  };
+
+  const handleDeleteCliente = async (cliente) => {
+    if (!window.confirm(`¿Eliminar a ${cliente.nombre}? Esta acción no se puede deshacer.`)) return;
+    try { await deleteCliente(cliente.id); } catch (error) { window.alert(error.message || "No se pudo eliminar el cliente."); }
   };
 
   return (
@@ -235,6 +240,9 @@ export default function ClientesView() {
                             title="Editar cliente"
                           >
                             <Icono nombre="pencil" size={18} />
+                          </button>
+                          <button className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" onClick={() => handleDeleteCliente(c)} title="Eliminar cliente" aria-label={`Eliminar cliente ${c.nombre}`}>
+                            <Icono nombre="trash" size={18} />
                           </button>
                         </div>
                       </td>

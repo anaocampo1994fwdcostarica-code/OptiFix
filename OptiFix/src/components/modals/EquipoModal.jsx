@@ -41,10 +41,10 @@ export default function EquipoModal({ isOpen, onClose, onSave, equipoToEdit, cli
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.marca.trim()) return;
-    onSave(formData);
+    await onSave(formData);
     onClose();
   };
 

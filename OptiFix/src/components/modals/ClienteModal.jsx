@@ -35,10 +35,10 @@ export default function ClienteModal({ isOpen, onClose, onSave, clienteToEdit })
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.nombre.trim()) return;
-    onSave(formData);
+    await onSave(formData);
     onClose();
   };
 

@@ -10,7 +10,13 @@ import {
   listarUsuarios,
   crearUsuario as crearUsuarioEnServidor,
   reemplazarUsuario as reemplazarUsuarioEnServidor,
+  eliminarUsuario as eliminarUsuarioEnServidor,
 } from "../services/usuariosService.js";
+import { listarClientes, crearCliente as crearClienteEnServidor, actualizarCliente as actualizarClienteEnServidor, eliminarCliente as eliminarClienteEnServidor } from "../services/clientesService.js";
+import { listarEquipos, crearEquipo as crearEquipoEnServidor, actualizarEquipo as actualizarEquipoEnServidor, eliminarEquipo as eliminarEquipoEnServidor } from "../services/equiposService.js";
+import { listarProductos, crearProducto as crearProductoEnServidor, actualizarProducto as actualizarProductoEnServidor, eliminarProducto as eliminarProductoEnServidor } from "../services/productosService.js";
+import { listarServicios, crearServicio as crearServicioEnServidor, actualizarServicio as actualizarServicioEnServidor, eliminarServicio as eliminarServicioEnServidor } from "../services/serviciosService.js";
+import { listarCotizaciones, crearCotizacion as crearCotizacionEnServidor, actualizarCotizacion as actualizarCotizacionEnServidor, eliminarCotizacion as eliminarCotizacionEnServidor } from "../services/cotizacionesService.js";
 
 const WorkshopContext = createContext(null);
 
@@ -99,6 +105,29 @@ export function WorkshopProvider({ children }) {
     }
 
     cargarOrdenesRemotas();
+    return () => { cancelled = true; };
+  }, []);
+
+  // Catálogos operativos: JSON Server es la fuente de verdad; localStorage es respaldo offline.
+  useEffect(() => {
+    let cancelled = false;
+    async function cargarCatalogosRemotos() {
+      if (typeof fetch !== "function") return;
+      const recursos = [
+        ["clientes", listarClientes], ["equipos", listarEquipos], ["productos", listarProductos],
+        ["servicios", listarServicios], ["cotizaciones", listarCotizaciones],
+      ];
+      const resultados = await Promise.allSettled(recursos.map(([, listar]) => listar()));
+      if (cancelled) return;
+      setData((prev) => {
+        const siguiente = { ...prev };
+        resultados.forEach((resultado, indice) => {
+          if (resultado.status === "fulfilled" && Array.isArray(resultado.value)) siguiente[recursos[indice][0]] = resultado.value;
+        });
+        return siguiente;
+      });
+    }
+    cargarCatalogosRemotos();
     return () => { cancelled = true; };
   }, []);
 
@@ -191,6 +220,11 @@ export function WorkshopProvider({ children }) {
     }
   };
 
+  const deleteUsuario = async (id) => {
+    await eliminarUsuarioEnServidor(id);
+    setData((prev) => ({ ...prev, usuarios: (prev.usuarios || []).filter((user) => user.id !== id) }));
+  };
+
   // ── CLIENTES CRUD ─────────────────────────────────────────────────────────────
   const addCliente = (clienteData) => {
     const newId = `cli-${Date.now()}`;
@@ -207,25 +241,25 @@ export function WorkshopProvider({ children }) {
       direccion: clienteData.direccion || "",
       notas: clienteData.notas || ""
     };
-    setData((prev) => ({
-      ...prev,
-      clientes: [nuevo, ...prev.clientes]
-    }));
-    return nuevo;
+    if (typeof fetch !== "function") {
+      setData((prev) => ({ ...prev, clientes: [nuevo, ...prev.clientes] }));
+      return nuevo;
+    }
+    return crearClienteEnServidor(nuevo).then((creado) => {
+      setData((prev) => ({ ...prev, clientes: [creado, ...prev.clientes.filter((cliente) => cliente.id !== creado.id)] }));
+      return creado;
+    });
   };
 
-  const updateCliente = (id, updatedFields) => {
-    setData((prev) => ({
-      ...prev,
-      clientes: prev.clientes.map((c) => (c.id === id ? { ...c, ...updatedFields } : c))
-    }));
+  const updateCliente = async (id, updatedFields) => {
+    const actualizado = await actualizarClienteEnServidor(id, updatedFields);
+    setData((prev) => ({ ...prev, clientes: prev.clientes.map((cliente) => cliente.id === id ? actualizado : cliente) }));
+    return actualizado;
   };
 
-  const deleteCliente = (id) => {
-    setData((prev) => ({
-      ...prev,
-      clientes: prev.clientes.filter((c) => c.id !== id)
-    }));
+  const deleteCliente = async (id) => {
+    await eliminarClienteEnServidor(id);
+    setData((prev) => ({ ...prev, clientes: prev.clientes.filter((cliente) => cliente.id !== id) }));
   };
 
   // ── EQUIPOS CRUD ──────────────────────────────────────────────────────────────
@@ -243,29 +277,29 @@ export function WorkshopProvider({ children }) {
       falla_reportada: equipoData.falla_reportada || "",
       notas: equipoData.notas || ""
     };
-    setData((prev) => ({
-      ...prev,
-      equipos: [nuevo, ...prev.equipos]
-    }));
-    return nuevo;
+    if (typeof fetch !== "function") {
+      setData((prev) => ({ ...prev, equipos: [nuevo, ...prev.equipos] }));
+      return nuevo;
+    }
+    return crearEquipoEnServidor(nuevo).then((creado) => {
+      setData((prev) => ({ ...prev, equipos: [creado, ...prev.equipos.filter((equipo) => equipo.id !== creado.id)] }));
+      return creado;
+    });
   };
 
-  const updateEquipo = (id, updatedFields) => {
-    setData((prev) => ({
-      ...prev,
-      equipos: prev.equipos.map((e) => (e.id === id ? { ...e, ...updatedFields } : e))
-    }));
+  const updateEquipo = async (id, updatedFields) => {
+    const actualizado = await actualizarEquipoEnServidor(id, updatedFields);
+    setData((prev) => ({ ...prev, equipos: prev.equipos.map((equipo) => equipo.id === id ? actualizado : equipo) }));
+    return actualizado;
   };
 
-  const deleteEquipo = (id) => {
-    setData((prev) => ({
-      ...prev,
-      equipos: prev.equipos.filter((e) => e.id !== id)
-    }));
+  const deleteEquipo = async (id) => {
+    await eliminarEquipoEnServidor(id);
+    setData((prev) => ({ ...prev, equipos: prev.equipos.filter((equipo) => equipo.id !== id) }));
   };
 
   // ── COTIZACIONES CRUD ─────────────────────────────────────────────────────────
-  const addCotizacion = (cotizacionData) => {
+  const addCotizacion = async (cotizacionData) => {
     const nextNum = Math.max(...(data.cotizaciones || []).map((c) => c.numero || 0), 0) + 1;
     const nowStr = new Date().toLocaleDateString("es-CR");
     const nueva = {
@@ -284,20 +318,52 @@ export function WorkshopProvider({ children }) {
         precio: Number(item.precio) || 0
       }))
     };
-    setData((prev) => ({
-      ...prev,
-      cotizaciones: [nueva, ...(prev.cotizaciones || [])]
-    }));
-    return nueva;
+    const creada = await crearCotizacionEnServidor(nueva);
+    setData((prev) => ({ ...prev, cotizaciones: [creada, ...(prev.cotizaciones || []).filter((cotizacion) => cotizacion.id !== creada.id)] }));
+    return creada;
   };
 
-  const aprobarCotizacion = (id) => {
-    setData((prev) => ({
-      ...prev,
-      cotizaciones: (prev.cotizaciones || []).map((c) =>
-        c.id === id ? { ...c, estado: "APROBADA" } : c
-      )
-    }));
+  const updateCotizacion = async (id, fields) => {
+    const actualizada = await actualizarCotizacionEnServidor(id, fields);
+    setData((prev) => ({ ...prev, cotizaciones: (prev.cotizaciones || []).map((cotizacion) => cotizacion.id === id ? actualizada : cotizacion) }));
+    return actualizada;
+  };
+
+  const aprobarCotizacion = (id) => updateCotizacion(id, { estado: "APROBADA" });
+
+  const deleteCotizacion = async (id) => {
+    await eliminarCotizacionEnServidor(id);
+    setData((prev) => ({ ...prev, cotizaciones: (prev.cotizaciones || []).filter((cotizacion) => cotizacion.id !== id) }));
+  };
+
+  const addProducto = async (producto) => {
+    const creado = await crearProductoEnServidor({ ...producto, id: producto.id || `prod-${Date.now()}`, precio: Number(producto.precio) || 0, stock: Number(producto.stock) || 0 });
+    setData((prev) => ({ ...prev, productos: [creado, ...(prev.productos || []).filter((item) => item.id !== creado.id)] }));
+    return creado;
+  };
+  const updateProducto = async (id, cambios) => {
+    const actualizado = await actualizarProductoEnServidor(id, cambios);
+    setData((prev) => ({ ...prev, productos: (prev.productos || []).map((item) => item.id === id ? actualizado : item) }));
+    return actualizado;
+  };
+  const deleteProducto = async (id) => {
+    await eliminarProductoEnServidor(id);
+    setData((prev) => ({ ...prev, productos: (prev.productos || []).filter((item) => item.id !== id) }));
+  };
+
+  const addServicio = async (servicio) => {
+    const creado = await crearServicioEnServidor({ ...servicio, id: servicio.id || `srv-${Date.now()}`, precio: Number(servicio.precio) || 0 });
+    setData((prev) => ({ ...prev, servicios: [creado, ...(prev.servicios || []).filter((item) => item.id !== creado.id)] }));
+    return creado;
+  };
+  const updateServicio = async (id, cambios) => {
+    const actualizado = await actualizarServicioEnServidor(id, cambios);
+    setData((prev) => ({ ...prev, servicios: (prev.servicios || []).map((item) => item.id === id ? actualizado : item) }));
+    return actualizado;
+  };
+  const deleteServicio = async (id) => {
+    await eliminarServicioEnServidor(id);
+    setData((prev) => ({ ...prev, servicios: (prev.servicios || []).filter((item) => item.id !== id) }));
   };
 
   const addOrden = async (ordenData) => {
@@ -583,6 +649,7 @@ export function WorkshopProvider({ children }) {
     usuarios: data.usuarios || USUARIOS_SEED,
     addUsuario,
     updateUsuario,
+    deleteUsuario,
     notificaciones: data.notificaciones || [],
     estadisticas: data.estadisticas || {},
     activeStageFilter,
@@ -600,7 +667,17 @@ export function WorkshopProvider({ children }) {
     updateEquipo,
     deleteEquipo,
     addCotizacion,
+    updateCotizacion,
     aprobarCotizacion,
+    deleteCotizacion,
+    productos: data.productos || [],
+    addProducto,
+    updateProducto,
+    deleteProducto,
+    servicios: data.servicios || [],
+    addServicio,
+    updateServicio,
+    deleteServicio,
     addOrden,
     updateOrden,
     changeOrdenStatus,

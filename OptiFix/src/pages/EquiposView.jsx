@@ -31,7 +31,7 @@ function condicionEstilo(estado = "") {
 
 export default function EquiposView({ onOpenNewOrderModal }) {
   const navigate = useNavigate();
-  const { equipos, clientes, ordenes, addEquipo, updateEquipo } = useWorkshop();
+  const { equipos, clientes, ordenes, addEquipo, updateEquipo, deleteEquipo } = useWorkshop();
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("TODOS");
   const [page, setPage] = useState(1);
@@ -84,12 +84,17 @@ export default function EquiposView({ onOpenNewOrderModal }) {
     setIsModalOpen(true);
   };
 
-  const handleSaveEquipo = (formData) => {
+  const handleSaveEquipo = async (formData) => {
     if (equipoToEdit) {
       updateEquipo(equipoToEdit.id, formData);
     } else {
       addEquipo(formData);
     }
+  };
+
+  const handleDeleteEquipo = async (equipo) => {
+    if (!window.confirm(`¿Eliminar el equipo ${equipo.marca} ${equipo.modelo}?`)) return;
+    try { await deleteEquipo(equipo.id); } catch (error) { window.alert(error.message || "No se pudo eliminar el equipo."); }
   };
 
   return (
@@ -223,6 +228,9 @@ export default function EquiposView({ onOpenNewOrderModal }) {
                             title="Editar equipo"
                           >
                             <Icono nombre="pencil" size={18} />
+                          </button>
+                          <button className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100" onClick={() => handleDeleteEquipo(e)} title="Eliminar equipo" aria-label={`Eliminar equipo ${e.marca} ${e.modelo}`}>
+                            <Icono nombre="trash" size={18} />
                           </button>
                           {lastOrder ? (
                             <button

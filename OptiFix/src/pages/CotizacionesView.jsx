@@ -32,10 +32,10 @@ export default function CotizacionesView() {
     setIsFormOpen(true);
   }
 
-  function saveQuotation(event) {
+  async function saveQuotation(event) {
     event.preventDefault();
     if (!clienteId || items.some((item) => !item.descripcion.trim())) return;
-    const quotation = addCotizacion({ cliente_id: clienteId, vigencia, notas, items });
+    const quotation = await addCotizacion({ cliente_id: clienteId, vigencia, notas, items });
     setSelected(quotation);
     setIsFormOpen(false);
   }

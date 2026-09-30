@@ -577,5 +577,12 @@
       "rol": "tecnico",
       "roles": ["ver_ordenes", "crear_orden"]
     }
-  ]
+  ],
+  "productos": [
+    { "id": "prod-1", "categoria": "Consumibles", "nombre": "Pasta térmica disipadora", "sku": "CONS-PASTA-TER", "precio": 4500, "stock": 25 }
+  ],
+  "servicios": [
+    { "id": "srv-1", "categoria": "Diagnóstico", "nombre": "Diagnóstico preliminar", "codigo": "SRV-DIAG", "precio": 15000, "duracion": "30 min", "tipo": "MO" }
+  ],
+  "cotizaciones": []
 }

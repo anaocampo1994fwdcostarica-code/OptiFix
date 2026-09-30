@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import Icono from "../components/icons.jsx";
+import { useWorkshop } from "../context/WorkshopContext.jsx";
 import "./ServiciosView.css";
 
 const SEED_SERVICIOS = [
@@ -28,7 +29,7 @@ function estiloCategoria(categoria) {
 }
 
 export default function ServiciosView() {
-  const [servicios, setServicios] = useState(SEED_SERVICIOS);
+  const { servicios, addServicio, updateServicio, deleteServicio } = useWorkshop();
   const [busqueda, setBusqueda] = useState("");
   const [categoriaActiva, setCategoriaActiva] = useState("Todos");
   const [page, setPage] = useState(1);
@@ -51,18 +52,18 @@ export default function ServiciosView() {
     setFormAbierto(true);
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm("¿Seguro que deseas eliminar este servicio?")) {
-      setServicios(servicios.filter(s => s.id !== id));
+      await deleteServicio(id);
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!formData.nombre || !formData.codigo) return;
     if (formData.id) {
-      setServicios(servicios.map(s => s.id === formData.id ? formData : s));
+      await updateServicio(formData.id, formData);
     } else {
-      setServicios([...servicios, { ...formData, id: Date.now() }]);
+      await addServicio(formData);
     }
     setFormAbierto(false);
     setFormData(vacio());

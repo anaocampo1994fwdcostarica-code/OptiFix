@@ -114,23 +114,23 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
     setShowEquipoDropdown(false);
   };
 
-  const handleSaveQuickClient = () => {
+  const handleSaveQuickClient = async () => {
     if (!newClient.nombre || !newClient.identificacion || !newClient.telefono) {
       alert("Por favor complete nombre, cédula y teléfono.");
       return;
     }
-    const cli = addCliente(newClient);
+    const cli = await addCliente(newClient);
     handleSelectCliente(cli);
     setShowClientForm(false);
     setNewClient({ tipo_cliente: "Persona", nombre: "", identificacion: "", telefono: "", email: "" });
   };
 
-  const handleSaveQuickEquipment = () => {
+  const handleSaveQuickEquipment = async () => {
     if (!newEquipo.marca || !newEquipo.modelo || !newEquipo.serie) {
       alert("Por favor complete marca, modelo y número de serie.");
       return;
     }
-    const eq = addEquipo({ ...newEquipo, cliente_id: clienteId });
+    const eq = await addEquipo({ ...newEquipo, cliente_id: clienteId });
     handleSelectEquipo(eq);
     setShowEquipmentForm(false);
     setNewEquipo({ tipo: "Laptop / Portátil", marca: "", modelo: "", serie: "" });

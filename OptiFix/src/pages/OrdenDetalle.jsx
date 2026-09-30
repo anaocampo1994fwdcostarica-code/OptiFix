@@ -23,7 +23,8 @@ export default function OrdenDetalle() {
     addNota,
     addArchivo,
     deleteArchivo,
-    changeOrdenStatus
+    changeOrdenStatus,
+    deleteOrden
   } = useWorkshop();
 
   const [activeTab, setActiveTab] = useState("productos");
@@ -77,6 +78,11 @@ export default function OrdenDetalle() {
   const handlePrint = () => {
     // Permite que React termine de pintar la orden antes de invocar el diálogo.
     reactToPrint();
+  };
+
+  const handleDeleteOrden = async () => {
+    if (!window.confirm(`¿Eliminar permanentemente la orden N° ${orden.numero}?`)) return;
+    try { await deleteOrden(orden.id); navigate("/ordenes"); } catch (error) { window.alert(error.message || "No se pudo eliminar la orden."); }
   };
 
   const handleWhatsApp = () => {
@@ -199,6 +205,9 @@ export default function OrdenDetalle() {
             title="Historial"
           >
             <Icono nombre="history" size={16} />
+          </button>
+          <button className="btn-outline-icon" onClick={handleDeleteOrden} title="Eliminar orden" aria-label={`Eliminar orden ${orden.numero}`}>
+            <Icono nombre="trash" size={16} />
           </button>
           <button
             className="btn-green-delivery"
