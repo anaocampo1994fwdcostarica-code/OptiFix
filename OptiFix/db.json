@@ -133,7 +133,7 @@
       "numero": 8785,
       "cliente_id": "cli-1",
       "equipo_id": "eq-1",
-      "responsable": "T2K SERVICIOS ELECTRÓNICOS",
+      "responsable": "OptiFix",
       "fecha_ingreso": "16/09/2026 13:56 hs",
       "fecha_entrega": null,
       "estado_actual": "COMUNICANDO PRESUPUESTO",
@@ -183,7 +183,7 @@
       "notas": [
         {
           "id": "n-1",
-          "autor": "T2K SERVICIOS ELECTRÓNICOS",
+          "autor": "OptiFix",
           "fecha": "16/09/2026 14:15 hs",
           "texto": "Ingreso por recepción. Equipo presenta marcas de sulfato en puerto HDMI 1."
         },
@@ -220,19 +220,19 @@
         {
           "fecha": "16/09/2026 13:56 hs",
           "estado": "RECEPCIÓN",
-          "realizado_por": "T2K SERVICIOS ELECTRÓNICOS",
+          "realizado_por": "OptiFix",
           "detalle": "Ingreso formal de orden y entrega de comprobante"
         },
         {
           "fecha": "16/09/2026 15:40 hs",
           "estado": "BODEGA",
-          "realizado_por": "Logística T2K",
+          "realizado_por": "Logística OptiFix",
           "detalle": "Asignado a estante de espera de repuestos E-12"
         },
         {
           "fecha": "17/09/2026 09:15 hs",
           "estado": "COMUNICANDO PRESUPUESTO",
-          "realizado_por": "T2K SERVICIOS ELECTRÓNICOS",
+          "realizado_por": "OptiFix",
           "detalle": "Presupuesto generado por ₡144,810.00"
         }
       ]
@@ -242,7 +242,7 @@
       "numero": 8487,
       "cliente_id": "cli-2",
       "equipo_id": "eq-2",
-      "responsable": "T2K SERVICIOS ELECTRÓNICOS",
+      "responsable": "OptiFix",
       "fecha_ingreso": "07/08/2026 13:59 hs",
       "fecha_entrega": "18/09/2026 14:03 hs",
       "estado_actual": "ENTREGADO",
@@ -292,7 +292,7 @@
       "notas": [
         {
           "id": "n-10",
-          "autor": "T2K SERVICIOS ELECTRÓNICOS",
+          "autor": "OptiFix",
           "fecha": "07/08/2026 14:05 hs",
           "texto": "Se recibe con adelanto de ₡5,000 para evaluación."
         },
@@ -304,9 +304,9 @@
         },
         {
           "id": "n-12",
-          "autor": "T2K SERVICIOS ELECTRÓNICOS",
+          "autor": "OptiFix",
           "fecha": "18/09/2026 14:02 hs",
-          "texto": "Último cambio de estado: 18/09/2026 14:02 hs. Realizado por: T2K SERVICIOS ELECTRÓNICOS. Entrega satisfactoria a cliente."
+          "texto": "Último cambio de estado: 18/09/2026 14:02 hs. Realizado por: OptiFix. Entrega satisfactoria a cliente."
         }
       ],
       "archivos": [
@@ -322,7 +322,7 @@
         {
           "fecha": "07/08/2026 13:59 hs",
           "estado": "RECEPCIÓN",
-          "realizado_por": "T2K SERVICIOS ELECTRÓNICOS",
+          "realizado_por": "OptiFix",
           "detalle": "Ingreso con adelanto ₡5,000.00"
         },
         {
@@ -334,13 +334,13 @@
         {
           "fecha": "18/09/2026 14:02 hs",
           "estado": "SALIDA",
-          "realizado_por": "T2K SERVICIOS ELECTRÓNICOS",
+          "realizado_por": "OptiFix",
           "detalle": "Cambio a estado de salida"
         },
         {
           "fecha": "18/09/2026 14:03 hs",
           "estado": "ENTREGADO",
-          "realizado_por": "T2K SERVICIOS ELECTRÓNICOS",
+          "realizado_por": "OptiFix",
           "detalle": "Equipo entregado en mano al cliente"
         }
       ]
@@ -350,7 +350,7 @@
       "numero": 8825,
       "cliente_id": "cli-3",
       "equipo_id": "eq-3",
-      "responsable": "T2K SERVICIOS ELECTRÓNICOS",
+      "responsable": "OptiFix",
       "fecha_ingreso": "18/09/2026 16:45 hs",
       "fecha_entrega": null,
       "estado_actual": "RECEPCIÓN",
@@ -375,7 +375,7 @@
         {
           "fecha": "18/09/2026 16:45 hs",
           "estado": "RECEPCIÓN",
-          "realizado_por": "T2K SERVICIOS ELECTRÓNICOS",
+          "realizado_por": "OptiFix",
           "detalle": "Ingreso a recepción"
         }
       ]
@@ -385,7 +385,7 @@
       "numero": 8824,
       "cliente_id": "cli-4",
       "equipo_id": "eq-4",
-      "responsable": "T2K SERVICIOS ELECTRÓNICOS",
+      "responsable": "OptiFix",
       "fecha_ingreso": "18/09/2026 15:20 hs",
       "fecha_entrega": null,
       "estado_actual": "RECEPCIÓN",
@@ -404,7 +404,7 @@
         {
           "fecha": "18/09/2026 15:20 hs",
           "estado": "RECEPCIÓN",
-          "realizado_por": "T2K SERVICIOS ELECTRÓNICOS",
+          "realizado_por": "OptiFix",
           "detalle": "Ingreso a recepción"
         }
       ]
@@ -414,7 +414,7 @@
       "numero": 8823,
       "cliente_id": "cli-1",
       "equipo_id": "eq-5",
-      "responsable": "T2K SERVICIOS ELECTRÓNICOS",
+      "responsable": "OptiFix",
       "fecha_ingreso": "18/09/2026 11:30 hs",
       "fecha_entrega": null,
       "estado_actual": "RECEPCIÓN",
@@ -433,7 +433,7 @@
         {
           "fecha": "18/09/2026 11:30 hs",
           "estado": "RECEPCIÓN",
-          "realizado_por": "T2K SERVICIOS ELECTRÓNICOS",
+          "realizado_por": "OptiFix",
           "detalle": "Ingreso a recepción"
         }
       ]
@@ -443,7 +443,7 @@
       "numero": 8822,
       "cliente_id": "cli-2",
       "equipo_id": "eq-6",
-      "responsable": "T2K SERVICIOS ELECTRÓNICOS",
+      "responsable": "OptiFix",
       "fecha_ingreso": "17/09/2026 17:10 hs",
       "fecha_entrega": null,
       "estado_actual": "RECEPCIÓN",
@@ -462,7 +462,7 @@
         {
           "fecha": "17/09/2026 17:10 hs",
           "estado": "RECEPCIÓN",
-          "realizado_por": "T2K SERVICIOS ELECTRÓNICOS",
+          "realizado_por": "OptiFix",
           "detalle": "Ingreso a recepción"
         }
       ]
@@ -472,7 +472,7 @@
       "numero": 8821,
       "cliente_id": "cli-3",
       "equipo_id": "eq-7",
-      "responsable": "T2K SERVICIOS ELECTRÓNICOS",
+      "responsable": "OptiFix",
       "fecha_ingreso": "17/09/2026 14:00 hs",
       "fecha_entrega": null,
       "estado_actual": "RECEPCIÓN",
@@ -491,7 +491,7 @@
         {
           "fecha": "17/09/2026 14:00 hs",
           "estado": "RECEPCIÓN",
-          "realizado_por": "T2K SERVICIOS ELECTRÓNICOS",
+          "realizado_por": "OptiFix",
           "detalle": "Ingreso a recepción"
         }
       ]
@@ -501,7 +501,7 @@
       "numero": 8820,
       "cliente_id": "cli-4",
       "equipo_id": "eq-8",
-      "responsable": "T2K SERVICIOS ELECTRÓNICOS",
+      "responsable": "OptiFix",
       "fecha_ingreso": "17/09/2026 10:15 hs",
       "fecha_entrega": null,
       "estado_actual": "RECEPCIÓN",
@@ -520,7 +520,7 @@
         {
           "fecha": "17/09/2026 10:15 hs",
           "estado": "RECEPCIÓN",
-          "realizado_por": "T2K SERVICIOS ELECTRÓNICOS",
+          "realizado_por": "OptiFix",
           "detalle": "Ingreso a recepción"
         }
       ]

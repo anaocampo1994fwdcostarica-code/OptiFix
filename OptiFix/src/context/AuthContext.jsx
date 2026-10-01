@@ -65,7 +65,7 @@ export function AuthProvider({ children }) {
       usuarioAutenticado = fallbackUsers.find((candidate) => (
         candidate.usuario?.toLowerCase() === usuarioNormalizado
         && candidate.password === password
-        && candidate.rol === rol
+        && (!rol || candidate.rol === rol)
       )) || null;
     }
     return usuarioAutenticado ? login(usuarioAutenticado) : null;

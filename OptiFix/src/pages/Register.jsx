@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import Footer from "../components/Footer.jsx";
 import { OptifixBrand } from "../components/OptifixLogo.jsx";
 import { useWorkshop } from "../context/WorkshopContext.jsx";
 import { registrarUsuario } from "../services/n8nBackendService.js";
@@ -43,7 +42,7 @@ export default function Register() {
       const resultado = await addUsuario(nuevoTecnico);
       if (resultado.error) throw new Error(resultado.error);
       setExito(true);
-      setTimeout(() => navigate("/login/tecnico"), 1200);
+      setTimeout(() => navigate("/login"), 1200);
     } catch (requestError) {
       setError(requestError.message || "No fue posible registrar el usuario.");
     }
@@ -55,7 +54,7 @@ export default function Register() {
         <div className="form_main login-panel">
           <div className="form-title-wrap"><div className="brand-center"><OptifixBrand size={48} textSize={26} taglineSize={9} /></div><h1 className="heading">Crear cuenta</h1><p className="login-sub">Registro de personal técnico del taller</p></div>
           {exito ? (
-            <div className="login-credentials" role="status" style={{ textAlign: "center" }}><p className="cred-title">¡Cuenta creada!</p><p>Redirigiendo al acceso técnico…</p></div>
+            <div className="login-credentials" role="status" style={{ textAlign: "center" }}><p className="cred-title">¡Cuenta creada!</p><p>Redirigiendo al inicio de sesión…</p></div>
           ) : (
             <form onSubmit={handleSubmit} className="login-form">
               <div className="inputContainer"><label className="sr-only" htmlFor="register-name">Nombre completo</label><input id="register-name" type="text" placeholder="Nombre completo" value={nombre} onChange={(event) => setNombre(event.target.value)} required className="inputField" /></div>
@@ -70,7 +69,6 @@ export default function Register() {
           <div className="register-link"><p>¿Ya tienes cuenta? <Link to="/login">Inicia sesión</Link></p></div>
         </div>
       </div>
-      <Footer />
     </div>
   );
 }

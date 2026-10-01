@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>5/5</span>
+                <span class='fraction'>6/6</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>5/5</span>
+                <span class='fraction'>6/6</span>
             </div>
         
             
@@ -183,13 +183,6 @@
 <a name='L118'></a><a href='#L118'>118</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -207,7 +200,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -220,6 +212,14 @@
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -299,6 +299,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import React from "react";
 import { Link } from "react-router-dom";
+import { useLanguage } from "../context/LanguageContext.jsx";
 &nbsp;
 const footerStyle = {
   background: "#06101a",
@@ -334,6 +335,7 @@ const linkStyle = {
 };
 &nbsp;
 export default function Footer() {
+  const { t } = useLanguage();
   return (
     &lt;footer style={footerStyle}&gt;
       &lt;div style={containerStyle}&gt;
@@ -358,36 +360,33 @@ export default function Footer() {
             &lt;strong style={{ color: "#ffffff", fontSize: "18px" }}&gt;OptiFix&lt;/strong&gt;
           &lt;/div&gt;
           &lt;p style={{ marginTop: "12px", fontSize: "13px", lineHeight: 1.7, maxWidth: "280px" }}&gt;
-            Sistema web para el control total de tu taller de reparación de equipos
-            electrónicos: órdenes de trabajo, clientes, inventario y seguimiento en
-            tiempo real.
+            {t("landing.footer.description")}
           &lt;/p&gt;
         &lt;/div&gt;
 &nbsp;
         &lt;div&gt;
-          &lt;h4 style={titleStyle}&gt;Plataforma&lt;/h4&gt;
+          &lt;h4 style={titleStyle}&gt;{t("landing.footer.platform")}&lt;/h4&gt;
           &lt;div style={{ display: "flex", flexDirection: "column" }}&gt;
-            &lt;Link to="/ordenes" style={linkStyle}&gt;Órdenes de trabajo&lt;/Link&gt;
-            &lt;Link to="/productos" style={linkStyle}&gt;Catálogo de repuestos&lt;/Link&gt;
-            &lt;Link to="/servicios" style={linkStyle}&gt;Catálogo de servicios&lt;/Link&gt;
-            &lt;Link to="/estadisticas" style={linkStyle}&gt;Estadísticas del taller&lt;/Link&gt;
+            &lt;Link to="/ordenes" style={linkStyle}&gt;{t("landing.footer.orders")}&lt;/Link&gt;
+            &lt;Link to="/productos" style={linkStyle}&gt;{t("landing.footer.products")}&lt;/Link&gt;
+            &lt;Link to="/servicios" style={linkStyle}&gt;{t("landing.footer.services")}&lt;/Link&gt;
+            &lt;Link to="/estadisticas" style={linkStyle}&gt;{t("landing.footer.statistics")}&lt;/Link&gt;
           &lt;/div&gt;
         &lt;/div&gt;
 &nbsp;
         &lt;div&gt;
-          &lt;h4 style={titleStyle}&gt;Acceso&lt;/h4&gt;
+          &lt;h4 style={titleStyle}&gt;{t("landing.footer.access")}&lt;/h4&gt;
           &lt;div style={{ display: "flex", flexDirection: "column" }}&gt;
-            &lt;Link to="/login/admin" style={linkStyle}&gt;Iniciar sesión (Administrador)&lt;/Link&gt;
-            &lt;Link to="/login/tecnico" style={linkStyle}&gt;Iniciar sesión (Técnico)&lt;/Link&gt;
-            &lt;Link to="/login" style={linkStyle}&gt;Entrar en modo demo&lt;/Link&gt;
-            &lt;Link to="/" style={linkStyle}&gt;Volver al inicio&lt;/Link&gt;
+            &lt;Link to="/login/admin" style={linkStyle}&gt;{t("landing.footer.admin")}&lt;/Link&gt;
+            &lt;Link to="/login/tecnico" style={linkStyle}&gt;{t("landing.footer.technician")}&lt;/Link&gt;
+            &lt;Link to="/" style={linkStyle}&gt;{t("landing.footer.home")}&lt;/Link&gt;
           &lt;/div&gt;
         &lt;/div&gt;
 &nbsp;
         &lt;div&gt;
-          &lt;h4 style={titleStyle}&gt;Contacto&lt;/h4&gt;
+          &lt;h4 style={titleStyle}&gt;{t("landing.footer.contact")}&lt;/h4&gt;
           &lt;div style={{ fontSize: "13px", display: "flex", flexDirection: "column", gap: "8px" }}&gt;
-            &lt;span&gt;📍 Centro de Servicios Electrónicos&lt;/span&gt;
+            &lt;span&gt;📍 {t("landing.footer.center")}&lt;/span&gt;
             &lt;span&gt;📞 Tel: (500) 555-1234&lt;/span&gt;
             &lt;span&gt;💬 WhatsApp: (500) 555-1234&lt;/span&gt;
             &lt;span&gt;✉️ soporte@optifix.com&lt;/span&gt;
@@ -410,18 +409,19 @@ export default function Footer() {
         }}
       &gt;
         &lt;span&gt;© 2026 OptiFix · Centro de Servicios Electrónicos · v2.0&lt;/span&gt;
-        &lt;span&gt;Boleta digital · Seguimiento por WhatsApp · Enlace de estado en tiempo real&lt;/span&gt;
+        &lt;span&gt;{t("landing.footer.footerLine")}&lt;/span&gt;
       &lt;/div&gt;
     &lt;/footer&gt;
   );
-}</pre></td></tr></table></pre>
+}
+&nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
             </div><!-- /wrapper -->
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-09-30T16:45:27.405Z
+                at 2026-10-01T06:31:11.475Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

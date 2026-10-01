@@ -4,6 +4,8 @@ import Sidebar from "./components/Sidebar.jsx";
 import TopNavbar from "./components/TopNavbar.jsx";
 import NotificationDrawer from "./components/NotificationDrawer.jsx";
 import OptiBotFloating from "./components/ai/OptiBotFloating.jsx";
+import Footer from "./components/Footer.jsx";
+import CookieBanner from "./components/CookieBanner.jsx";
 import Routing from "./routes/Routing.jsx";
 import { useAuth } from "./hooks/useAuth.js";
 
@@ -28,8 +30,10 @@ export default function App() {
 
   if (!mostrarShellPrivado) {
     return (
-      <div className="gestioo-public-layout" style={{ minHeight: "100vh", backgroundColor: "var(--bg-app)" }}>
+      <div className="gestioo-public-layout" style={{ minHeight: "100vh", backgroundColor: "var(--bg-app)", display: "flex", flexDirection: "column" }}>
         <Routing onOpenNewOrderModal={() => navigate('/nueva-orden')} />
+        <Footer />
+        <CookieBanner />
       </div>
     );
   }
@@ -51,11 +55,13 @@ export default function App() {
         <main style={{ flex: 1 }}>
           <Routing onOpenNewOrderModal={() => navigate('/nueva-orden')} />
         </main>
+        <Footer />
       </div>
 
       {/* Cajón Lateral de Notificaciones (Captura 3) */}
       <NotificationDrawer />
       {location.pathname !== "/asistente" && <OptiBotFloating />}
+      <CookieBanner />
     </div>
   );
 }

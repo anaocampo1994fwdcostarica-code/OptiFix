@@ -5,6 +5,7 @@ jest.mock("../services/optibotService.js", () => ({ consultarOptiBot: jest.fn() 
 import App from "../App.jsx";
 import { AuthProvider } from "../context/AuthContext.jsx";
 import { WorkshopProvider } from "../context/WorkshopContext.jsx";
+import { LanguageProvider } from "../context/LanguageContext.jsx";
 
 beforeEach(() => {
   localStorage.clear();
@@ -14,19 +15,18 @@ beforeEach(() => {
 describe("App smoke", () => {
   it("monta la app completa y muestra la home", async () => {
     render(
-      <MemoryRouter>
+      <LanguageProvider><MemoryRouter>
         <AuthProvider>
           <WorkshopProvider>
             <App />
           </WorkshopProvider>
         </AuthProvider>
-      </MemoryRouter>
+      </MemoryRouter></LanguageProvider>
     );
 
     expect(
-      await screen.findByRole("heading", { name: /el .*control total.*de tu taller/i })
+      await screen.findByRole("heading", { name: /consultá el .*estado de tu orden/i })
     ).toBeInTheDocument();
     expect(screen.getAllByRole("img", { name: /logo optifix/i }).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/taller & erp/i).length).toBeGreaterThan(0);
   });
 });

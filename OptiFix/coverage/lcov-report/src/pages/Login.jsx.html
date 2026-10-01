@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">70% </span>
+                <span class="strong">70.96% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>21/30</span>
+                <span class='fraction'>22/31</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">53.84% </span>
+                <span class="strong">53.33% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>7/13</span>
+                <span class='fraction'>8/15</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">76.92% </span>
+                <span class="strong">77.77% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>20/26</span>
+                <span class='fraction'>21/27</span>
             </div>
         
             
@@ -130,7 +130,10 @@
 <a name='L65'></a><a href='#L65'>65</a>
 <a name='L66'></a><a href='#L66'>66</a>
 <a name='L67'></a><a href='#L67'>67</a>
-<a name='L68'></a><a href='#L68'>68</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L68'></a><a href='#L68'>68</a>
+<a name='L69'></a><a href='#L69'>69</a>
+<a name='L70'></a><a href='#L70'>70</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -142,6 +145,7 @@
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">12x</span>
 <span class="cline-any cline-yes">12x</span>
 <span class="cline-any cline-yes">12x</span>
 <span class="cline-any cline-yes">12x</span>
@@ -205,6 +209,7 @@ import { useAuth } from "../hooks/useAuth.js";
 import { useWorkshop } from "../context/WorkshopContext.jsx";
 import AccessibilityPreferences from "../components/AccessibilityPreferences.jsx";
 import "./Login.css";
+import { useLanguage } from "../context/LanguageContext.jsx";
 &nbsp;
 const ETIQUETAS_ROL = { admin: "Administrador", tecnico: "Técnico" };
 &nbsp;
@@ -216,6 +221,7 @@ export function LoginCard({ initialRole = "admin" }) {
   const [cargando, setCargando] = useState(false);
   const navigate = useNavigate();
   const { login, loginConCredenciales } = useAuth();
+  const { t } = useLanguage();
   const { usuarios } = useWorkshop();
 &nbsp;
   function <span class="fstat-no" title="function not covered" >entrarComo(</span>user) { <span class="cstat-no" title="statement not covered" >login(user); <span class="cstat-no" title="statement not covered" ></span>navigate("/ordenes"); </span>}
@@ -227,7 +233,7 @@ export function LoginCard({ initialRole = "admin" }) {
     try {
       const sesion = await loginConCredenciales({ usuario, password, rol: tab, fallbackUsers: usuarios });
       if (sesion) navigate("/ordenes");
-      else setError(`Usuario o contraseña incorrectos para el acceso de ${ETIQUETAS_ROL[tab]}.`);
+      else setError(t("login.invalid", { role: t(tab === "admin" ? "login.admin" : <span class="branch-1 cbranch-no" title="branch not covered" >"login.technician")</span> }));
     } finally {
       setCargando(false);
     }
@@ -239,13 +245,13 @@ export function LoginCard({ initialRole = "admin" }) {
   }
 &nbsp;
   return &lt;div className="form_main login-panel"&gt;
-    &lt;div className="form-title-wrap"&gt;&lt;div className="brand-center"&gt;&lt;OptifixBrand size={48} textSize={26} taglineSize={9} /&gt;&lt;/div&gt;&lt;h1 className="heading"&gt;Acceso&lt;/h1&gt;&lt;p className="login-sub"&gt;Ingrese sus credenciales para continuar&lt;/p&gt;&lt;/div&gt;
+    &lt;div className="form-title-wrap"&gt;&lt;div className="brand-center"&gt;&lt;OptifixBrand size={48} textSize={26} taglineSize={9} /&gt;&lt;/div&gt;&lt;h1 className="heading"&gt;{t("login.title")}&lt;/h1&gt;&lt;p className="login-sub"&gt;{t("login.subtitle")}&lt;/p&gt;&lt;/div&gt;
     &lt;form onSubmit={handleSubmit} className="login-form"&gt;
-      &lt;div className="inputContainer"&gt;&lt;input name="usuario" type="text" placeholder="Usuario" value={usuario} onChange={(event) =&gt; setUsuario(event.target.value)} required autoComplete="username" className="inputField" /&gt;&lt;/div&gt;
-      &lt;div className="inputContainer"&gt;&lt;input name="password" type="password" placeholder="••••••••" value={password} onChange={(event) =&gt; setPassword(event.target.value)} required autoComplete="current-password" className="inputField" /&gt;&lt;/div&gt;
+      &lt;div className="inputContainer"&gt;&lt;input name="usuario" type="text" placeholder={t("login.username")} value={usuario} onChange={(event) =&gt; setUsuario(event.target.value)} required autoComplete="username" className="inputField" /&gt;&lt;/div&gt;
+      &lt;div className="inputContainer"&gt;&lt;input name="password" type="password" placeholder={t("login.password")} value={password} onChange={(event) =&gt; setPassword(event.target.value)} required autoComplete="current-password" className="inputField" /&gt;&lt;/div&gt;
       {error &amp;&amp; &lt;div className="login-error" role="alert"&gt;{error}&lt;/div&gt;}
-      &lt;button type="submit" disabled={cargando} className="btn-submit"&gt;{cargando ? "Verificando..." : "Ingresar"}&lt;/button&gt;
-      &lt;a className="forgotLink" href="/login"&gt;¿Olvidaste tu contraseña?&lt;/a&gt;
+      &lt;button type="submit" disabled={cargando} className="btn-submit"&gt;{cargando ? t("common.loading") : t("login.submit")}&lt;/button&gt;
+      &lt;a className="forgotLink" href="/login"&gt;{t("login.forgot")}&lt;/a&gt;
     &lt;/form&gt;
     &lt;div className="login-divider"&gt;&lt;div className="line" /&gt;&lt;span&gt;o&lt;/span&gt;&lt;div className="line" /&gt;&lt;/div&gt;
     &lt;button type="button" onClick={handleDemo} className="login-demo-btn"&gt;Entrar en modo demo&lt;/button&gt;
@@ -271,7 +277,7 @@ export default function <span class="fstat-no" title="function not covered" >Log
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-09-30T16:45:27.405Z
+                at 2026-10-01T06:31:11.475Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

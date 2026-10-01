@@ -416,3 +416,27 @@ html:not(.light-mode) .navan-landing .landing-track-form{background:#10253a;bord
     padding-top: 16px;
   }
 }
+
+/* Prioridad de la Landing: autoservicio del cliente antes que el acceso interno. */
+.navan-landing .landing-nav-cta{
+  padding:8px 13px;
+  font-size:11px;
+  font-weight:700;
+  background:transparent!important;
+  color:var(--navan-vivid)!important;
+  border:1px solid currentColor;
+}
+.navan-landing .landing-track-form{
+  max-width:620px;
+  margin-top:22px;
+  padding:18px;
+  border:1px solid #a8d3ee;
+  border-radius:16px;
+  box-shadow:0 12px 26px rgba(2,132,199,.10);
+}
+.navan-landing .landing-track-heading strong{font-size:16px}
+.navan-landing .landing-track-heading span{font-size:12px}
+.navan-landing .landing-track-fields input{min-height:46px;font-size:13px}
+.navan-landing .landing-track-fields button{min-height:46px;padding:12px 18px;font-size:13px}
+html:not(.light-mode) .navan-landing .landing-nav-cta{color:#7dd3fc!important}
+@media(max-width:640px){.navan-landing .landing-track-heading{align-items:flex-start;gap:4px;flex-direction:column}.navan-landing .landing-nav-cta{padding:7px 10px;font-size:10px}}

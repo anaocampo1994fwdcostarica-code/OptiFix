@@ -1,10 +1,10 @@
-import { listarOrdenes, crearOrden, eliminarOrden } from "../services/ordenesService.js";
-import { listarUsuarios, crearUsuario, autenticarUsuario } from "../services/usuariosService.js";
-import { listarClientes, actualizarCliente } from "../services/clientesService.js";
-import { listarEquipos, eliminarEquipo } from "../services/equiposService.js";
-import { listarProductos, crearProducto } from "../services/productosService.js";
-import { listarServicios, actualizarServicio } from "../services/serviciosService.js";
-import { listarCotizaciones, eliminarCotizacion } from "../services/cotizacionesService.js";
+import { listarOrdenes, obtenerOrden, crearOrden, reemplazarOrden, actualizarOrden, eliminarOrden } from "../services/ordenesService.js";
+import { listarUsuarios, obtenerUsuario, crearUsuario, reemplazarUsuario, eliminarUsuario, autenticarUsuario } from "../services/usuariosService.js";
+import { listarClientes, crearCliente, actualizarCliente, eliminarCliente } from "../services/clientesService.js";
+import { listarEquipos, crearEquipo, actualizarEquipo, eliminarEquipo } from "../services/equiposService.js";
+import { listarProductos, crearProducto, actualizarProducto, eliminarProducto } from "../services/productosService.js";
+import { listarServicios, crearServicio, actualizarServicio, eliminarServicio } from "../services/serviciosService.js";
+import { listarCotizaciones, crearCotizacion, actualizarCotizacion, eliminarCotizacion } from "../services/cotizacionesService.js";
 
 const ok = (data, status = 200) => ({ ok: true, status, json: jest.fn().mockResolvedValue(data) });
 const noContent = () => ({ ok: true, status: 204, json: jest.fn() });
@@ -67,5 +67,39 @@ describe("Servicios HTTP de OptiFix", () => {
   it("propaga los fallos de red de fetch", async () => {
     global.fetch.mockRejectedValue(new TypeError("Failed to fetch"));
     await expect(listarProductos()).rejects.toThrow("Failed to fetch");
+  });
+
+  it.each([
+    ["orden", obtenerOrden, reemplazarOrden, actualizarOrden, "ord 1"],
+    ["usuario", obtenerUsuario, reemplazarUsuario, null, "usr 1"],
+  ])("cubre lectura individual y mutaciones completas de %s", async (_name, obtener, reemplazar, actualizar, id) => {
+    global.fetch.mockResolvedValue(ok({ id }));
+    await expect(obtener(id)).resolves.toEqual({ id });
+    await expect(reemplazar(id, { nombre: "Completo" })).resolves.toEqual({ id });
+    if (actualizar) await expect(actualizar(id, { nombre: "Parcial" })).resolves.toEqual({ id });
+    expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining(encodeURIComponent(id)), expect.any(Object));
+    expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining(encodeURIComponent(id)), expect.objectContaining({ method: "PUT" }));
+    if (actualizar) expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining(encodeURIComponent(id)), expect.objectContaining({ method: "PATCH" }));
+  });
+
+  it.each([
+    ["cliente", crearCliente, actualizarCliente, eliminarCliente, "cli 1"],
+    ["equipo", crearEquipo, actualizarEquipo, eliminarEquipo, "eq 1"],
+    ["producto", crearProducto, actualizarProducto, eliminarProducto, "prod 1"],
+    ["servicio", crearServicio, actualizarServicio, eliminarServicio, "srv 1"],
+    ["cotización", crearCotizacion, actualizarCotizacion, eliminarCotizacion, "cot 1"],
+  ])("ejecuta POST, PATCH y DELETE para %s", async (_name, crear, actualizar, eliminar, id) => {
+    global.fetch.mockResolvedValue(ok({ id }));
+    await expect(crear({ nombre: "Nuevo" })).resolves.toEqual({ id });
+    await expect(actualizar(id, { nombre: "Editado" })).resolves.toEqual({ id });
+    global.fetch.mockResolvedValueOnce(noContent());
+    await expect(eliminar(id)).resolves.toBeNull();
+    expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining(encodeURIComponent(id)), expect.objectContaining({ method: "PATCH" }));
+    expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining(encodeURIComponent(id)), expect.objectContaining({ method: "DELETE" }));
+  });
+
+  it("devuelve null si las credenciales no coinciden", async () => {
+    global.fetch.mockResolvedValue(ok([{ usuario: "ana", password: "otra", rol: "tecnico" }]));
+    await expect(autenticarUsuario({ usuario: "ana", password: "clave", rol: "tecnico" })).resolves.toBeNull();
   });
 });

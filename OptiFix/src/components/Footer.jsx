@@ -1,6 +1,6 @@
 import React from "react";
-import { Link } from "react-router-dom";
 import { useLanguage } from "../context/LanguageContext.jsx";
+import LegalModal from "./LegalModal.jsx";
 
 const footerStyle = {
   background: "#06101a",
@@ -27,18 +27,11 @@ const titleStyle = {
   marginBottom: "12px",
 };
 
-const linkStyle = {
-  color: "#94a3b8",
-  textDecoration: "none",
-  fontSize: "13px",
-  lineHeight: "2.1rem",
-  display: "block",
-};
-
 export default function Footer() {
   const { t } = useLanguage();
+  const [legalType, setLegalType] = React.useState(null);
   return (
-    <footer style={footerStyle}>
+    <footer style={footerStyle} id="contacto">
       <div style={containerStyle}>
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
@@ -63,25 +56,6 @@ export default function Footer() {
           <p style={{ marginTop: "12px", fontSize: "13px", lineHeight: 1.7, maxWidth: "280px" }}>
             {t("landing.footer.description")}
           </p>
-        </div>
-
-        <div>
-          <h4 style={titleStyle}>{t("landing.footer.platform")}</h4>
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            <Link to="/ordenes" style={linkStyle}>{t("landing.footer.orders")}</Link>
-            <Link to="/productos" style={linkStyle}>{t("landing.footer.products")}</Link>
-            <Link to="/servicios" style={linkStyle}>{t("landing.footer.services")}</Link>
-            <Link to="/estadisticas" style={linkStyle}>{t("landing.footer.statistics")}</Link>
-          </div>
-        </div>
-
-        <div>
-          <h4 style={titleStyle}>{t("landing.footer.access")}</h4>
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            <Link to="/login/admin" style={linkStyle}>{t("landing.footer.admin")}</Link>
-            <Link to="/login/tecnico" style={linkStyle}>{t("landing.footer.technician")}</Link>
-            <Link to="/" style={linkStyle}>{t("landing.footer.home")}</Link>
-          </div>
         </div>
 
         <div>
@@ -110,8 +84,13 @@ export default function Footer() {
         }}
       >
         <span>© 2026 OptiFix · Centro de Servicios Electrónicos · v2.0</span>
-        <span>{t("landing.footer.footerLine")}</span>
+        <span style={{ display: "inline-flex", flexWrap: "wrap", alignItems: "center", gap: "12px" }}>
+          <button type="button" className="footer-legal-link" onClick={() => setLegalType("terms")}>Términos y Condiciones</button>
+          <button type="button" id="legal-privacy" className="footer-legal-link" onClick={() => setLegalType("privacy")}>Política de Privacidad</button>
+          <span>{t("landing.footer.footerLine")}</span>
+        </span>
       </div>
+      {legalType && <LegalModal type={legalType} onClose={() => setLegalType(null)} />}
     </footer>
   );
 }

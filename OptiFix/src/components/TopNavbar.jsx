@@ -53,9 +53,9 @@ export default function TopNavbar({ onOpenNewOrderModal, onToggleMobileMenu, mob
   return (
     <header className="gestioo-topbar">
       <button type="button" className="mobile-menu-btn" onClick={onToggleMobileMenu} aria-label={mobileMenuOpen ? "Cerrar menú lateral" : "Abrir menú lateral"} aria-expanded={mobileMenuOpen} aria-controls="main-sidebar">☰</button>
-      <div className="topbar-brand" aria-label="OptiFix brand">
+      <div className="topbar-brand md:hidden" aria-label="OptiFix brand">
         <OptifixLogo size={22} className="topbar-brand-mark" />
-        <span className="topbar-brand-wordmark">OPTIFIX</span>
+        <span className="topbar-brand-wordmark dark:text-white">Opti<span className="text-sky-600">Fix</span></span>
       </div>
 
       {/* Buscador Global */}

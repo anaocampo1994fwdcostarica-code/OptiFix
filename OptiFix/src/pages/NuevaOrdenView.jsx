@@ -34,11 +34,10 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
   const navigate = useNavigate();
 
   // ── Tab / Stepper state ──────────────────────────────────────
-  const [activeTab, setActiveTab] = useState("General");
 
   // ── Inline quick-create forms ────────────────────────────────
-  const [showClientForm, setShowClientForm] = useState(false);
-  const [showEquipmentForm, setShowEquipmentForm] = useState(false);
+  const [showClientForm, setShowClientForm] = useState(true);
+  const [showEquipmentForm, setShowEquipmentForm] = useState(true);
 
   const [newClient, setNewClient] = useState({ tipo_cliente: "Persona", nombre: "", identificacion: "", telefono: "", email: "" });
   const [newEquipo, setNewEquipo] = useState({ tipo: "Laptop / Portátil", marca: "", modelo: "", serie: "" });
@@ -54,9 +53,7 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
   const [trabajo, setTrabajo] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [diagnosticoSeleccion, setDiagnosticoSeleccion] = useState("No");
-  const [garantia, setGarantia] = useState("90");
-  const [fechaPrometida, setFechaPrometida] = useState("");
-  const [presupuesto, setPresupuesto] = useState("");
+  const [tieneGarantia, setTieneGarantia] = useState(false);
   const [adelanto, setAdelanto] = useState("");
 
   // ── Form state — Tabs ────────────────────────────────────────
@@ -79,9 +76,7 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
   const [clienteIdentificacion, setClienteIdentificacion] = useState("");
 
   // ── Computed ──────────────────────────────────────────────────
-  const presupuestoNum = Number(String(presupuesto).replace(/[^0-9.]/g, "")) || 0;
   const adelantoNum = Number(String(adelanto).replace(/[^0-9.]/g, "")) || 0;
-  const saldoRestante = presupuestoNum - adelantoNum;
 
   const clientesFiltrados = clientes.filter(c =>
     (c.nombre + " " + (c.apellido || "")).toLowerCase().includes(clienteQuery.toLowerCase()) ||
@@ -157,9 +152,7 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
       trabajo_solicitado: trabajo,
       descripcion_estado: descripcion,
       diagnostico: diagnosticoSeleccion === "Sí" ? diagnosticoTexto : "",
-      garantia: garantia !== "sin",
-      fecha_prometida: fechaPrometida,
-      presupuesto: presupuestoNum,
+      garantia: tieneGarantia,
       adelanto: adelantoNum,
       anotaciones
     });
@@ -189,12 +182,12 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
      ================================================================ */
   return (
     <div
-      className="min-h-screen flex flex-col pb-28 md:pb-24"
+      className="nueva-orden-view min-h-screen flex flex-col pb-28 md:pb-24"
       style={{ backgroundColor: "#f0f4f9", fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", color: "#1e293b" }}
       onClick={() => { setShowClienteDropdown(false); setShowEquipoDropdown(false); }}
     >
       {/* ═══════════════ HEADER / TOPBAR ═══════════════ */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-sm transition-all">
+      <header className="hidden sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-sm transition-all">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-18 flex items-center justify-between gap-4">
           {/* LOGO & BRAND */}
           <div className="flex items-center gap-3 sm:gap-4 shrink-0">
@@ -207,7 +200,7 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
                   Opti<span className="text-sky-600">Fix</span>
                 </span>
                 <span className="hidden sm:inline-block text-[10px] font-semibold text-slate-400 tracking-wider uppercase font-mono mt-0.5">
-                  Precision Repair ERP
+                  OptiFix
                 </span>
               </div>
             </a>
@@ -276,10 +269,10 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
         </div>
 
         {/* ═══ GRID: CLIENTE (Left) & DISPOSITIVO (Right) ═══ */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-6">
 
           {/* ─── CARD 1: CLIENTE SOLICITANTE ─── */}
-          <section className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-xs flex flex-col justify-between relative overflow-hidden">
+          <section className="bg-white dark:bg-gray-900 rounded-2xl border border-slate-200/80 dark:border-gray-700 p-5 sm:p-6 shadow-xs dark:shadow-xl flex flex-col justify-between relative overflow-hidden">
             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-sky-500 to-sky-600"></div>
             <div>
               <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
@@ -287,7 +280,7 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
                   <span className="w-7 h-7 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center font-bold text-sm">
                     <i className="ph ph-user"></i>
                   </span>
-                  <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">Cliente Solicitante</h2>
+                  <h2 className="text-lg font-semibold text-slate-900 dark:text-white border-b dark:border-gray-700 pb-2 mb-4">1. Datos del Cliente</h2>
                   <span className="text-rose-500 font-bold">*</span>
                 </div>
                 <button
@@ -436,7 +429,7 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
           </section>
 
           {/* ─── CARD 2: DISPOSITIVO / EQUIPO ─── */}
-          <section className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-xs flex flex-col justify-between relative overflow-hidden">
+          <section className="bg-white dark:bg-gray-900 rounded-2xl border border-slate-200/80 dark:border-gray-700 p-5 sm:p-6 shadow-xs dark:shadow-xl flex flex-col justify-between relative overflow-hidden">
             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-sky-600 to-indigo-600"></div>
             <div>
               <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
@@ -444,7 +437,7 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
                   <span className="w-7 h-7 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center font-bold text-sm">
                     <i className="ph ph-laptop"></i>
                   </span>
-                  <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">Dispositivo / Equipo</h2>
+                  <h2 className="text-lg font-semibold text-slate-900 dark:text-white border-b dark:border-gray-700 pb-2 mb-4">2. Datos del Dispositivo</h2>
                   <span className="text-rose-500 font-bold">*</span>
                 </div>
                 <button
@@ -583,6 +576,19 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
               )}
             </div>
 
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 rounded-xl border border-slate-200 bg-slate-50/70 p-3">
+              <label className="flex min-h-11 items-center gap-3 text-xs font-bold text-slate-700 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={tieneGarantia}
+                  onChange={(event) => setTieneGarantia(event.target.checked)}
+                  className="h-4 w-4 text-teal-600 focus:ring-teal-500 rounded border-gray-300 dark:bg-gray-800 dark:border-gray-600 dark:checked:bg-teal-500 dark:focus:ring-teal-500"
+                />
+                <span>El artículo tiene garantía activa</span>
+              </label>
+              <p className="self-center text-[11px] text-slate-500 sm:text-right">Se registrará en los datos de la orden.</p>
+            </div>
+
             {/* History link */}
             <div className="mt-4 flex items-center justify-between text-xs text-slate-500 pt-1">
               <div className="flex items-center gap-2">
@@ -597,50 +603,9 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
         </div>
 
         {/* ═══ CENTRAL SECTION: TABS + FORM ═══ */}
-        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 sm:p-7 space-y-6">
-          {/* Sub-tabs */}
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-3">
-            <div className="flex items-center gap-2 sm:gap-4 overflow-x-auto text-xs sm:text-sm font-bold">
-              <button
-                type="button"
-                onClick={() => setActiveTab("General")}
-                className={`px-3 py-1.5 rounded-lg flex items-center gap-2 transition-colors ${activeTab === "General" ? "bg-sky-50 text-sky-700 border border-sky-200/80" : "text-slate-500 hover:text-slate-800 hover:bg-slate-50"}`}
-              >
-                <i className="ph ph-clipboard-text text-base"></i>
-                <span>Datos Generales & Operación</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab("Diagnóstico")}
-                className={`px-3 py-1.5 rounded-lg flex items-center gap-2 transition-colors ${activeTab === "Diagnóstico" ? "bg-sky-50 text-sky-700 border border-sky-200/80" : "text-slate-500 hover:text-slate-800 hover:bg-slate-50"}`}
-              >
-                <i className="ph ph-stethoscope text-base"></i>
-                <span>Diagnóstico Inicial de Entrada</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab("Anotaciones")}
-                className={`px-3 py-1.5 rounded-lg flex items-center gap-2 transition-colors ${activeTab === "Anotaciones" ? "bg-sky-50 text-sky-700 border border-sky-200/80" : "text-slate-500 hover:text-slate-800 hover:bg-slate-50"}`}
-              >
-                <i className="ph ph-check-square-offset text-base"></i>
-                <span>Anotaciones Internas & Checklist</span>
-                {anotaciones && <span className="w-2 h-2 rounded-full bg-sky-500"></span>}
-              </button>
-            </div>
-            <div className="flex items-center gap-2 text-xs font-mono text-slate-500">
-              <span>Ref. Externa / Ticket:</span>
-              <input
-                type="text"
-                placeholder="OP-882"
-                value={referenciaExterna}
-                onChange={e => setReferenciaExterna(e.target.value)}
-                className="w-24 px-2 py-1 text-xs border border-slate-200 rounded-lg text-slate-800 font-bold bg-slate-50"
-              />
-            </div>
-          </div>
-
-          {/* ─── TAB: General ─── */}
-          {activeTab === "General" && (
+        <section className="bg-white dark:bg-gray-900 rounded-2xl border border-slate-200/80 dark:border-gray-700 shadow-xs dark:shadow-xl p-5 sm:p-7 space-y-6">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-white border-b border-slate-200 dark:border-gray-700 pb-2 mb-4">3. Estado Inicial y Recepción</h2>
+          <div className="space-y-6">
             <div className="space-y-6">
               {/* Row 1: Priority, Area, Status, Technician */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -742,8 +707,8 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
                 </div>
               </div>
 
-              {/* Row 3: Conditions, dates, finances */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 pt-2 border-t border-slate-100">
+              {/* Row 3: diagnóstico y adelanto inicial */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2 border-t border-slate-100">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1.5">Diagnóstico Previo</label>
                   <div className="relative">
@@ -756,50 +721,16 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Garantía de Reparación</label>
-                  <div className="relative">
-                    <select value={garantia} onChange={e => setGarantia(e.target.value)} className="w-full appearance-none bg-slate-50/80 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all">
-                      <option value="30">30 días estándar</option>
-                      <option value="90">90 días (OptiFix Pro)</option>
-                      <option value="sin">Sin garantía (Golpe/Líquido)</option>
-                    </select>
-                    <i className="ph ph-caret-down absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Fecha Prometida de Entrega</label>
-                  <input
-                    type="date"
-                    value={fechaPrometida}
-                    onChange={e => setFechaPrometida(e.target.value)}
-                    className="w-full bg-slate-50/80 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 font-mono focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
-                  />
-                </div>
-                <div>
                   <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-xs font-bold text-slate-700">Presupuesto Estimado</label>
-                    <span className="text-[10px] text-slate-400 font-mono">CRC (₡)</span>
+                    <label className="text-xs font-bold text-slate-700">Adelanto / Revisión</label>
+                    <span className="text-[10px] text-emerald-600 font-semibold font-mono">CRC (₡)</span>
                   </div>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-xs">₡</span>
                     <input
-                      type="text"
-                      value={presupuesto}
-                      onChange={e => setPresupuesto(e.target.value)}
-                      placeholder="0,00"
-                      className="w-full pl-7 pr-3 py-2 bg-slate-50/80 border border-slate-200 rounded-xl text-xs sm:text-sm font-bold text-slate-900 font-mono focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-xs font-bold text-slate-700">Adelanto / Seña</label>
-                    <span className="text-[10px] text-emerald-600 font-semibold font-mono">SINPE / Cash</span>
-                  </div>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-xs">₡</span>
-                    <input
-                      type="text"
+                      type="number"
+                      min="0"
+                      step="0.01"
                       value={adelanto}
                       onChange={e => setAdelanto(e.target.value)}
                       placeholder="0,00"
@@ -808,38 +739,20 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
                   </div>
                 </div>
               </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-2">Diagnóstico inicial</label>
+                  <textarea value={diagnosticoTexto} onChange={e => setDiagnosticoTexto(e.target.value)} className="w-full min-h-32 rounded-lg border border-slate-200 bg-slate-50/80 p-3 text-sm text-slate-800 placeholder:text-slate-400" placeholder="Detalles del diagnóstico técnico de entrada..." />
+                  <AsistenteDiagnostico fallaReportada={trabajo || diagnosticoTexto} equipo={selectedEquipo} onAplicar={(resultado) => setDiagnosticoTexto(`${diagnosticoTexto}${diagnosticoTexto ? "\n\n" : ""}Sugerencia IA:\n${resultado.posiblesCausas?.join("\n") || ""}`)} />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-2">Notas de recepción</label>
+                  <textarea value={anotaciones} onChange={e => setAnotaciones(e.target.value)} className="w-full min-h-32 rounded-lg border border-slate-200 bg-slate-50/80 p-3 text-sm text-slate-800 placeholder:text-slate-400" placeholder="Anotaciones internas y checklist de recepción..." />
+                </div>
+              </div>
             </div>
-          )}
-
-          {/* ─── TAB: Diagnóstico ─── */}
-          {activeTab === "Diagnóstico" && (
-            <div className="flex flex-col" style={{ minHeight: 256 }}>
-              <label className="block text-xs font-bold text-slate-700 mb-2">Diagnóstico Inicial de Entrada</label>
-              <textarea
-                value={diagnosticoTexto}
-                onChange={e => setDiagnosticoTexto(e.target.value)}
-                className="flex-1 w-full text-xs font-normal rounded-xl border border-slate-200 bg-slate-50/80 focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 p-3 placeholder-slate-400 resize-none transition-all"
-                placeholder="Escriba aquí los detalles del diagnóstico técnico de entrada..."
-                rows={8}
-              ></textarea>
-              <AsistenteDiagnostico fallaReportada={trabajo || diagnosticoTexto} equipo={selectedEquipo} onAplicar={(resultado) => setDiagnosticoTexto(`${diagnosticoTexto}${diagnosticoTexto ? "\n\n" : ""}Sugerencia IA:\n${resultado.posiblesCausas?.join("\n") || ""}`)} />
-            </div>
-          )}
-
-          {/* ─── TAB: Anotaciones ─── */}
-          {activeTab === "Anotaciones" && (
-            <div className="flex flex-col" style={{ minHeight: 256 }}>
-              <label className="block text-xs font-bold text-slate-700 mb-2">Anotaciones Internas & Checklist Privado</label>
-              <textarea
-                value={anotaciones}
-                onChange={e => setAnotaciones(e.target.value)}
-                className="flex-1 w-full text-xs font-normal rounded-xl border border-slate-200 bg-slate-50/80 focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 p-3 placeholder-slate-400 resize-none transition-all"
-                placeholder="Anotaciones internas (no visibles para el cliente)..."
-                rows={8}
-              ></textarea>
-            </div>
-          )}
-        </div>
+          </div>
+        </section>
       </main>
 
       {/* ═══════════════ STICKY FOOTER ═══════════════ */}
@@ -854,12 +767,6 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
               <span className="text-slate-300">•</span>
               <span className="font-semibold text-slate-600 hidden md:inline">
                 {selectedEquipo ? `${selectedEquipo.marca} ${selectedEquipo.modelo}` : "—"}
-              </span>
-            </div>
-            <div className="flex items-center gap-2 bg-slate-100/80 px-2.5 py-1 rounded-lg border border-slate-200/80 font-mono">
-              <span className="text-slate-500 text-[11px]">Saldo Restante:</span>
-              <span className="text-sky-700 font-bold text-xs sm:text-sm">
-                ₡{saldoRestante.toLocaleString("es-CR", { minimumFractionDigits: 2 })}
               </span>
             </div>
           </div>

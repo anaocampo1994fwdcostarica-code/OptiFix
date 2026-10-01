@@ -23,23 +23,23 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">70% </span>
+                <span class="strong">80% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>14/20</span>
+                <span class='fraction'>16/20</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">54.54% </span>
+                <span class="strong">63.63% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>6/11</span>
+                <span class='fraction'>7/11</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">55.55% </span>
+                <span class="strong">77.77% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>5/9</span>
+                <span class='fraction'>7/9</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line medium'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -96,28 +96,28 @@
 <span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { API_URL } from "../config.js";
 &nbsp;
@@ -137,15 +137,15 @@ async function request(url, options = {}) {
 &nbsp;
 /** CRUD de usuarios contra el backend simulado con JSON Server. */
 export const listarUsuarios = () =&gt; request(USERS_ENDPOINT);
-export const obtenerUsuario = <span class="fstat-no" title="function not covered" >(i</span>d) =&gt; <span class="cstat-no" title="statement not covered" >request(`${USERS_ENDPOINT}/${encodeURIComponent(id)}`);</span>
+export const obtenerUsuario = (id) =&gt; request(`${USERS_ENDPOINT}/${encodeURIComponent(id)}`);
 export const crearUsuario = (usuario) =&gt; request(USERS_ENDPOINT, { method: "POST", body: JSON.stringify(usuario) });
-export const reemplazarUsuario = <span class="fstat-no" title="function not covered" >(i</span>d, usuario) =&gt; <span class="cstat-no" title="statement not covered" >request(`${USERS_ENDPOINT}/${encodeURIComponent(id)}`, { method: "PUT", body: JSON.stringify(usuario) });</span>
+export const reemplazarUsuario = (id, usuario) =&gt; request(`${USERS_ENDPOINT}/${encodeURIComponent(id)}`, { method: "PUT", body: JSON.stringify(usuario) });
 export const eliminarUsuario = <span class="fstat-no" title="function not covered" >(i</span>d) =&gt; <span class="cstat-no" title="statement not covered" >request(`${USERS_ENDPOINT}/${encodeURIComponent(id)}`, { method: "DELETE" });</span>
 &nbsp;
 /** Consulta credenciales en JSON Server; AuthContext resuelve el respaldo offline. */
 export async function autenticarUsuario({ usuario, password, rol }) {
   const coincidencias = await request(`${USERS_ENDPOINT}?usuario=${encodeURIComponent(usuario.trim())}`);
-  return coincidencias.find((candidate) =&gt; candidate.password === password &amp;&amp; candidate.rol === rol) || <span class="branch-1 cbranch-no" title="branch not covered" >null;</span>
+  return coincidencias.find((candidate) =&gt; candidate.password === password &amp;&amp; candidate.rol === rol) || null;
 }
 &nbsp;</pre></td></tr></table></pre>
 
@@ -154,7 +154,7 @@ export async function autenticarUsuario({ usuario, password, rol }) {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-09-30T16:45:27.405Z
+                at 2026-10-01T06:31:11.475Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

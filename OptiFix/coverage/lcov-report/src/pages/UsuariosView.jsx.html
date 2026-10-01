@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">4.76% </span>
+                <span class="strong">4.54% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>2/42</span>
+                <span class='fraction'>2/44</span>
             </div>
         
             
@@ -39,14 +39,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/16</span>
+                <span class='fraction'>0/18</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">6.89% </span>
+                <span class="strong">6.45% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>2/29</span>
+                <span class='fraction'>2/31</span>
             </div>
         
             
@@ -127,7 +127,9 @@
 <a name='L62'></a><a href='#L62'>62</a>
 <a name='L63'></a><a href='#L63'>63</a>
 <a name='L64'></a><a href='#L64'>64</a>
-<a name='L65'></a><a href='#L65'>65</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L65'></a><a href='#L65'>65</a>
+<a name='L66'></a><a href='#L66'>66</a>
+<a name='L67'></a><a href='#L67'>67</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -179,6 +181,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -197,7 +201,7 @@ import { registrarUsuario } from "../services/n8nBackendService.js";
 import "./UsuariosView.css";
 &nbsp;
 const AVAILABLE_PERMISSIONS = ["ver_ordenes", "crear_orden", "crear_cotizacion", "gestionar_usuarios"];
-const EMPTY_USER = { nombre: "", usuario: "", password: "", rol: "tecnico", roles: ["ver_ordenes", "crear_orden"] };
+const EMPTY_USER = { nombre: "", usuario: "", email: "", telefono: "", password: "", rol: "tecnico", roles: ["ver_ordenes", "crear_orden"] };
 &nbsp;
 export default function <span class="fstat-no" title="function not covered" >UsuariosView(</span>) {
   const { usuarios, addUsuario, updateUsuario, deleteUsuario } = <span class="cstat-no" title="statement not covered" >useWorkshop();</span>
@@ -245,6 +249,8 @@ export default function <span class="fstat-no" title="function not covered" >Usu
         &lt;h2&gt;Agregar usuario&lt;/h2&gt;
         &lt;label&gt;Nombre completo&lt;input value={form.nombre} onChange={<span class="fstat-no" title="function not covered" >(e</span>) =&gt; <span class="cstat-no" title="statement not covered" >setForm({ ...form, nombre: e.target.value })}</span> required /&gt;&lt;/label&gt;
         &lt;label&gt;Usuario&lt;input value={form.usuario} onChange={<span class="fstat-no" title="function not covered" >(e</span>) =&gt; <span class="cstat-no" title="statement not covered" >setForm({ ...form, usuario: e.target.value })}</span> required /&gt;&lt;/label&gt;
+        &lt;label&gt;Correo electrónico&lt;input type="email" value={form.email} onChange={<span class="fstat-no" title="function not covered" >(e</span>) =&gt; <span class="cstat-no" title="statement not covered" >setForm({ ...form, email: e.target.value })}</span> required /&gt;&lt;/label&gt;
+        &lt;label&gt;Teléfono&lt;input type="tel" value={form.telefono} onChange={<span class="fstat-no" title="function not covered" >(e</span>) =&gt; <span class="cstat-no" title="statement not covered" >setForm({ ...form, telefono: e.target.value })}</span> required /&gt;&lt;/label&gt;
         &lt;label&gt;Contraseña&lt;input type="password" value={form.password} onChange={<span class="fstat-no" title="function not covered" >(e</span>) =&gt; <span class="cstat-no" title="statement not covered" >setForm({ ...form, password: e.target.value })}</span> required /&gt;&lt;/label&gt;
         &lt;label&gt;Tipo de usuario&lt;select value={form.rol} onChange={<span class="fstat-no" title="function not covered" >(e</span>) =&gt; <span class="cstat-no" title="statement not covered" >setForm({ ...form, rol: e.target.value })}</span>&gt;&lt;option value="tecnico"&gt;Técnico&lt;/option&gt;&lt;option value="admin"&gt;Administrador&lt;/option&gt;&lt;/select&gt;&lt;/label&gt;
         &lt;fieldset&gt;&lt;legend&gt;Permisos&lt;/legend&gt;{AVAILABLE_PERMISSIONS.map(<span class="fstat-no" title="function not covered" >(p</span>ermission) =&gt; <span class="cstat-no" title="statement not covered" >&lt;label className="permission-check" key={permission}&gt;&lt;input type="checkbox" checked={form.roles.includes(permission)} onChange={<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >togglePermission(permission)}</span> /&gt; {permission.replace(/_/g, " ")}&lt;/label&gt;)</span>}&lt;/fieldset&gt;
@@ -262,7 +268,7 @@ export default function <span class="fstat-no" title="function not covered" >Usu
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-09-30T16:45:27.405Z
+                at 2026-10-01T06:31:11.475Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

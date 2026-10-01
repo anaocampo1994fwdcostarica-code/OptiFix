@@ -315,3 +315,58 @@
 .login-panel .register-link p a:hover {
   text-decoration: underline;
 }
+
+/* Tarjeta de acceso OptiFix: composiciÃ³n limpia inspirada en el formulario de referencia. */
+.login-panel.form_main {
+  width: min(100%, 380px);
+  min-height: 0;
+  align-items: stretch;
+  padding: 34px 32px 30px;
+  overflow: visible;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 18px 45px rgba(2, 18, 38, .18);
+}
+.login-panel.form_main::before { display: none; }
+.login-panel .form-title-wrap { margin-bottom: 25px; }
+.login-panel .brand-center { margin-bottom: 10px; }
+.login-panel .brand-center svg { width: 154px; height: 38px; }
+.login-panel .heading { margin: 0; color: #111827; font-size: 18px; font-weight: 700; }
+.login-panel .login-sub { max-width: 280px; margin: 6px 0 0; color: #8b8e98; font-size: 12px; line-height: 1.5; }
+.login-panel .login-form { gap: 0; align-items: stretch; }
+.login-panel .login-field { display: flex; flex-direction: column; width: 100%; gap: 7px; margin-bottom: 17px; }
+.login-panel .login-field label { color: #9ca3af; font-size: 12px; font-weight: 700; }
+.login-panel .inputField { height: 42px; margin: 0; padding: 0 12px; color: #1f2937; background: #fff; border: 1px solid #d1d5db; border-radius: 9px; font-size: 14px; }
+.login-panel .inputField:focus { border: 1px solid #0284c7; box-shadow: 0 0 0 3px rgba(2,132,199,.13); }
+.login-panel .btn-submit { height: 43px; margin: 2px 0 8px; border-radius: 9px; background: #0284c7; box-shadow: 0 7px 15px rgba(2,132,199,.24); font-size: 15px; letter-spacing: 0; }
+.login-panel .btn-submit:hover { background: #0369a1; box-shadow: 0 9px 20px rgba(3,105,161,.28); }
+.login-panel .forgotLink { padding: 6px 0 0; color: #64748b; font-size: 12px; }
+html:not(.light-mode) .login-panel.form_main { background: #111827; border-color: #374151; }
+html:not(.light-mode) .login-panel .heading { color: #f9fafb; }
+html:not(.light-mode) .login-panel .login-sub, html:not(.light-mode) .login-panel .login-field label { color: #9ca3af; }
+html:not(.light-mode) .login-panel .inputField { color: #f9fafb; background: #111827; border-color: #6b7280; }
+
+/* Identidad, roles y ayudas del acceso interno. */
+.login-panel .brand-center { margin-bottom: 4px; }
+.login-panel .brand-center svg { width: 76px; height: 76px; }
+.login-panel .login-brand-name { margin: 0; color: #0b1728; font-size: 28px; font-weight: 800; letter-spacing: -.04em; line-height: 1; }
+.login-panel .login-brand-name span { color: #0284c7; }
+.login-panel .heading { margin-top: 15px; font-size: 18px; }
+.login-panel .login-tabs { margin: 3px 0 20px; padding: 4px; background: #f1f5f9; border-color: #d7e2ec; }
+.login-panel .login-tab-btn { padding: 9px 6px; font-size: 12px; }
+.login-panel .login-tab-btn.active { background: #0284c7; box-shadow: 0 3px 9px rgba(2,132,199,.25); }
+.login-panel .forgotLink { width: fit-content; align-self: flex-start; background: transparent; border: 0; cursor: pointer; }
+.login-panel .login-credentials { display: grid; gap: 8px; margin-top: 20px; padding: 13px 14px; background: #f8fafc; border-color: #dbe7f0; }
+.login-panel .login-credentials .cred-title { margin-bottom: 2px; }
+.login-panel .login-credentials div { display: flex; align-items: center; justify-content: space-between; gap: 10px; color: #64748b; font-size: 12px; }
+.login-panel .login-credentials code { font-size: 11px; white-space: nowrap; }
+.login-recovery { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-top: 14px; padding: 11px 12px; color: #075985; background: #e0f2fe; border: 1px solid #bae6fd; border-radius: 9px; font-size: 12px; line-height: 1.45; }
+.login-recovery button { flex: 0 0 auto; color: #075985; background: transparent; border: 0; font-size: 20px; line-height: .8; cursor: pointer; }
+html:not(.light-mode) .login-panel .login-brand-name,html:not(.light-mode) .login-panel .heading { color: #f8fafc; }
+html:not(.light-mode) .login-panel .login-tabs { background: #1f2937; border-color: #374151; }
+html:not(.light-mode) .login-panel .login-tab-btn { color: #cbd5e1; }
+html:not(.light-mode) .login-panel .login-credentials { background: #1f2937; border-color: #374151; }
+html:not(.light-mode) .login-panel .login-credentials div { color: #cbd5e1; }
+html:not(.light-mode) .login-panel .login-credentials code { background: #0b1728; color: #7dd3fc; }
+html:not(.light-mode) .login-recovery { color: #bae6fd; background: #0c2b40; border-color: #1d6089; }
+html:not(.light-mode) .login-recovery button { color: #bae6fd; }

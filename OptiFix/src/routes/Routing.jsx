@@ -27,8 +27,6 @@ export default function Routing({ onOpenNewOrderModal }) {
       {/* Rutas públicas */}
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<Login />} />
-      <Route path="/login/admin" element={<Login />} />
-      <Route path="/login/tecnico" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/seguimiento/:token" element={<SeguimientoOrdenView />} />
 

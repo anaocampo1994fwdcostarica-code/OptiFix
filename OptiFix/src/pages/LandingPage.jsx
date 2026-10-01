@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { OptifixBrand } from "../components/OptifixLogo.jsx";
-import Footer from "../components/Footer.jsx";
 import AccessibilityPreferences from "../components/AccessibilityPreferences.jsx";
 import workshopHeroImage from "../assets/optifix-workshop-hero.png";
 import { useWorkshop } from "../context/WorkshopContext.jsx";
@@ -137,9 +136,6 @@ export default function LandingPage() {
           <a href="#how">{t("landing.nav.how")}</a>
           <a href="#modulos">{t("landing.nav.modules")}</a>
           <a href="#contacto">{t("landing.nav.contact")}</a>
-          <Link to="/login/admin" className="landing-nav-cta">
-            {t("landing.nav.enter")}
-          </Link>
           <AccessibilityPreferences className="landing-accessibility-controls" />
         </div>
       </nav>
@@ -152,19 +148,9 @@ export default function LandingPage() {
           <h1 className="landing-hero-title">
             {t("landing.hero.titleBefore")}<span className="landing-highlight">{t("landing.hero.highlight")}</span>{t("landing.hero.titleAfter")}
           </h1>
-          <p className="landing-hero-sub">
-            {t("landing.hero.description")}
-          </p>
-          <div className="landing-hero-actions">
-            <Link to="/login/admin" className="btn-landing-primary">
-              {t("landing.hero.admin")}
-            </Link>
-            <Link to="/login/tecnico" className="btn-landing-secondary">
-              {t("landing.hero.technician")}
-            </Link>
-          </div>
+          <p className="landing-hero-sub">{t("landing.hero.description")}</p>
 
-          <form className="landing-track-form" onSubmit={consultarSeguimiento}>
+          <form id="consulta" className="landing-track-form" onSubmit={consultarSeguimiento}>
             <div className="landing-track-heading">
               <strong>{t("landing.hero.trackTitle")}</strong>
               <span>{t("landing.hero.trackHint")}</span>
@@ -280,7 +266,7 @@ export default function LandingPage() {
             <div className="landing-section-label">{t("landing.modules.label")}</div>
             <h2 className="landing-section-title">{t("landing.modules.title")}</h2>
             <p className="landing-section-sub">{t("landing.modules.description")}</p>
-            <Link to="/login/admin" className="btn-landing-primary">{t("landing.modules.action")}</Link>
+            <a href="#consulta" className="btn-landing-primary">{t("landing.hero.trackAction")}</a>
           </div>
           <ul className="landing-modules-list">{modules.map((module) => <li key={module}><span>✓</span>{module}</li>)}</ul>
         </div>
@@ -322,18 +308,13 @@ export default function LandingPage() {
           <p className="landing-cta-sub">
             {t("landing.cta.description")}
           </p>
-          <Link to="/login/admin" className="btn-landing-primary landing-cta-btn">
-            {t("landing.cta.action")}
-          </Link>
+          <a href="#consulta" className="btn-landing-primary landing-cta-btn">{t("landing.hero.trackAction")}</a>
         </div>
       </section>
 
       {/* ── FOOTER ─────────────────────────────────────────── */}
       {demoOpen && <div className="landing-demo-modal-backdrop" role="presentation" onMouseDown={() => setDemoOpen(false)}><section className="landing-demo-modal" role="dialog" aria-modal="true" aria-labelledby="demo-modal-title" onMouseDown={(event) => event.stopPropagation()}><button className="landing-modal-close" type="button" aria-label="Cerrar" onClick={() => setDemoOpen(false)}>×</button><span className="landing-section-label">Acceso de evaluación</span><h2 id="demo-modal-title">Probá OptiFix con datos de demostración.</h2><p>Ingresá al panel usando el modo demo. Encontrarás órdenes, clientes, equipos y métricas precargadas para recorrer la aplicación.</p><Link to="/login" className="btn-landing-primary">Ir al modo demo</Link></section></div>}
 
-      <footer className="landing-footer">
-        <Footer />
-      </footer>
     </div>
   );
 }

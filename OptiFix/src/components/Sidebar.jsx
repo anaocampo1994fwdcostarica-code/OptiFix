@@ -21,7 +21,7 @@ export default function Sidebar({ collapsed, mobileOpen = false, onToggle }) {
           <span className="brand-key-badge">
             <OptifixLogo size={28} />
           </span>
-          {!collapsed && <span className="brand-wordmark">OPTIFIX</span>}
+          {!collapsed && <span className="brand-wordmark text-slate-900 dark:text-white">Opti<span className="text-sky-600">Fix</span></span>}
         </Link>
         <button
           className="sidebar-toggle-btn"

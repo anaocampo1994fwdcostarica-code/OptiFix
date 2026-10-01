@@ -24,5 +24,5 @@ export const eliminarUsuario = (id) => request(`${USERS_ENDPOINT}/${encodeURICom
 /** Consulta credenciales en JSON Server; AuthContext resuelve el respaldo offline. */
 export async function autenticarUsuario({ usuario, password, rol }) {
   const coincidencias = await request(`${USERS_ENDPOINT}?usuario=${encodeURIComponent(usuario.trim())}`);
-  return coincidencias.find((candidate) => candidate.password === password && candidate.rol === rol) || null;
+  return coincidencias.find((candidate) => candidate.password === password && (!rol || candidate.rol === rol)) || null;
 }
