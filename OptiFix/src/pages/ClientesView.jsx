@@ -1,10 +1,15 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useWorkshop } from "../context/WorkshopContext.jsx";
 import ClienteModal from "../components/modals/ClienteModal.jsx";
 import Icono from "../components/icons.jsx";
 
 const PAGE_SIZE = 5;
 const AVATAR_PALETTE = ["bg-optifix-600", "bg-emerald-600", "bg-blue-600", "bg-slate-600", "bg-indigo-600", "bg-amber-600"];
+const CLIENTES_PARA_ELIMINAR = [
+  { id: "cli-demo-1", identificacion: "119990101", nombre: "Andrea Solano", email: "andrea.solano@correo.cr", telefono: "87001234", direccion: "San Ramón, Alajuela" },
+  { id: "cli-demo-2", identificacion: "208880202", nombre: "Diego Vargas", email: "diego.vargas@correo.cr", telefono: "88114567", direccion: "Tres Ríos, Cartago" },
+  { id: "cli-demo-3", identificacion: "311770303", nombre: "María José Araya", email: "maria.araya@correo.cr", telefono: "89907890", direccion: "Belén, Heredia" },
+];
 
 function iniciales(nombre = "") {
   const partes = nombre.trim().split(/\s+/).filter(Boolean);
@@ -26,15 +31,27 @@ export default function ClientesView() {
   const [page, setPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [clienteToEdit, setClienteToEdit] = useState(null);
+  const [deleteDialog, setDeleteDialog] = useState(null);
+  const [toast, setToast] = useState("");
+  const [deletedDemoIds, setDeletedDemoIds] = useState([]);
+  useEffect(() => {
+    if (!toast) return undefined;
+    const timer = window.setTimeout(() => setToast(""), 3000);
+    return () => window.clearTimeout(timer);
+  }, [toast]);
 
   // ── Métricas del encabezado ────────────
+  const clientesDisponibles = useMemo(() => {
+    const ids = new Set(clientes.map((cliente) => cliente.id));
+    return [...CLIENTES_PARA_ELIMINAR.filter((cliente) => !ids.has(cliente.id) && !deletedDemoIds.includes(cliente.id)), ...clientes];
+  }, [clientes, deletedDemoIds]);
   const ordenesEnTaller = ordenes.filter(o => o.estado_actual !== "ENTREGADO").length;
-  const clientesRegistrados = clientes.length;
+  const clientesRegistrados = clientesDisponibles.length;
   const equiposEnCustodia = equipos.length;
-  const clientesConTelefono = clientes.filter(c => c.telefono).length;
+  const clientesConTelefono = clientesDisponibles.filter(c => c.telefono).length;
 
   const filteredClientes = useMemo(() => {
-    return clientes.filter(c => {
+    return clientesDisponibles.filter(c => {
       const matchSearch = c.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           c.identificacion.includes(searchTerm) ||
                           (c.telefono && c.telefono.includes(searchTerm)) ||
@@ -47,7 +64,7 @@ export default function ClientesView() {
 
       return matchSearch && matchTab;
     });
-  }, [clientes, ordenes, searchTerm, tab]);
+  }, [clientesDisponibles, ordenes, searchTerm, tab]);
 
   const totalPages = Math.ceil(filteredClientes.length / PAGE_SIZE) || 1;
   const paginatedClientes = filteredClientes.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -70,9 +87,23 @@ export default function ClientesView() {
     }
   };
 
-  const handleDeleteCliente = async (cliente) => {
-    if (!window.confirm(`¿Eliminar a ${cliente.nombre}? Esta acción no se puede deshacer.`)) return;
-    try { await deleteCliente(cliente.id); } catch (error) { window.alert(error.message || "No se pudo eliminar el cliente."); }
+  const activeOrdersFor = (clienteId) => ordenes.filter((order) => order.cliente_id === clienteId && order.estado_actual !== "ENTREGADO").length;
+  const handleDeleteCliente = (cliente) => setDeleteDialog({ cliente, blocked: activeOrdersFor(cliente.id) > 0 });
+  const confirmDeleteCliente = async () => {
+    if (!deleteDialog || deleteDialog.blocked) return;
+    if (activeOrdersFor(deleteDialog.cliente.id) > 0) {
+      setDeleteDialog({ ...deleteDialog, blocked: true });
+      return;
+    }
+    try {
+      await deleteCliente(deleteDialog.cliente.id);
+      if (CLIENTES_PARA_ELIMINAR.some((cliente) => cliente.id === deleteDialog.cliente.id)) setDeletedDemoIds((ids) => [...ids, deleteDialog.cliente.id]);
+      setDeleteDialog(null);
+      setToast("Cliente eliminado correctamente");
+    } catch (error) {
+      setDeleteDialog(null);
+      setToast(error.message || "No se pudo eliminar el cliente.");
+    }
   };
 
   return (
@@ -241,7 +272,7 @@ export default function ClientesView() {
                           >
                             <Icono nombre="pencil" size={18} />
                           </button>
-                          <button className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" onClick={() => handleDeleteCliente(c)} title="Eliminar cliente" aria-label={`Eliminar cliente ${c.nombre}`}>
+                          <button disabled={activeOrdersCount > 0} className={`p-2 rounded-lg transition-colors ${activeOrdersCount > 0 ? "text-red-400 opacity-50 cursor-not-allowed" : "text-slate-400 hover:text-red-600 hover:bg-red-50"}`} onClick={() => handleDeleteCliente(c)} title={activeOrdersCount > 0 ? "No se puede eliminar: el cliente tiene órdenes activas" : "Eliminar cliente"} aria-label={`Eliminar cliente ${c.nombre}`}>
                             <Icono nombre="trash" size={18} />
                           </button>
                         </div>
@@ -286,6 +317,19 @@ export default function ClientesView() {
         onSave={handleSaveCliente}
         clienteToEdit={clienteToEdit}
       />
+      {deleteDialog && <DeleteClienteDialog dialog={deleteDialog} onClose={() => setDeleteDialog(null)} onConfirm={confirmDeleteCliente} />}
+      {toast && <div role="status" className={`fixed z-[100] right-5 bottom-5 rounded-xl px-4 py-3 text-sm font-semibold text-white shadow-lg ${toast === "Cliente eliminado correctamente" ? "bg-emerald-600" : "bg-red-600"}`}>{toast}</div>}
     </div>
   );
+}
+
+function DeleteClienteDialog({ dialog, onClose, onConfirm }) {
+  const { cliente, blocked } = dialog;
+  return <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/50 p-4" onMouseDown={onClose}>
+    <section role="dialog" aria-modal="true" aria-labelledby="delete-client-title" onMouseDown={(event) => event.stopPropagation()} className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+      <h2 id="delete-client-title" className={`text-lg font-bold ${blocked ? "text-red-700" : "text-slate-900"}`}>{blocked ? "No se puede eliminar el cliente" : "¿Eliminar cliente?"}</h2>
+      <p className={`mt-3 text-sm leading-6 ${blocked ? "text-red-600" : "text-slate-600"}`}>{blocked ? "No se puede eliminar a este cliente porque tiene órdenes activas en el taller. Por favor, finalice o cancele las órdenes primero." : "¿Está seguro que desea eliminar este contacto? Esta acción no se puede deshacer."}</p>
+      <div className="mt-6 flex justify-end gap-3">{blocked ? <button type="button" onClick={onClose} className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white">Entendido</button> : <><button type="button" onClick={onClose} className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">Cancelar</button><button type="button" onClick={onConfirm} className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700">Eliminar cliente</button></>}</div>
+    </section>
+  </div>;
 }

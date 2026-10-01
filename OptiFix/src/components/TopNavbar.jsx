@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Icono from "./icons.jsx";
-import OptifixLogo from "./OptifixLogo.jsx";
+import Logo from "./Logo.jsx";
 import { useWorkshop } from "../context/WorkshopContext.jsx";
 import { useAuth } from "../hooks/useAuth.js";
 import { useTranslation } from "react-i18next";
@@ -12,6 +12,7 @@ export default function TopNavbar({ onOpenNewOrderModal, onToggleMobileMenu, mob
   const { user, logout } = useAuth();
   const { t, i18n } = useTranslation();
   const [fontScale, setFontScale] = useState(() => Number(localStorage.getItem("optifix_font_scale")) || 1);
+  const [isChatOpen, setIsChatOpen] = useState(false);
   const {
     searchQuery,
     setSearchQuery,
@@ -50,13 +51,10 @@ export default function TopNavbar({ onOpenNewOrderModal, onToggleMobileMenu, mob
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   }
 
-  return (
+  return <>
     <header className="gestioo-topbar">
       <button type="button" className="mobile-menu-btn" onClick={onToggleMobileMenu} aria-label={mobileMenuOpen ? "Cerrar menú lateral" : "Abrir menú lateral"} aria-expanded={mobileMenuOpen} aria-controls="main-sidebar">☰</button>
-      <div className="topbar-brand md:hidden" aria-label="OptiFix brand">
-        <OptifixLogo size={22} className="topbar-brand-mark" />
-        <span className="topbar-brand-wordmark dark:text-white">Opti<span className="text-sky-600">Fix</span></span>
-      </div>
+      <div className="block md:hidden"><Logo iconSize={24} /></div>
 
       {/* Buscador Global */}
       <div className="topbar-search-wrapper">
@@ -182,7 +180,7 @@ export default function TopNavbar({ onOpenNewOrderModal, onToggleMobileMenu, mob
           <span>{t("action.newOrder")}</span>
         </button>
 
-        <button className="topbar-icon-btn" title="Mensajes internos">
+        <button className="topbar-icon-btn cursor-pointer hover:text-blue-600 transition-colors" onClick={() => setIsChatOpen(true)} title="Mensajes internos" aria-label="Abrir chat interno" aria-expanded={isChatOpen}>
           <Icono nombre="message" size={16} />
         </button>
 
@@ -204,5 +202,13 @@ export default function TopNavbar({ onOpenNewOrderModal, onToggleMobileMenu, mob
         </div>
       </div>
     </header>
-  );
+    {isChatOpen && <InternalChatDrawer onClose={() => setIsChatOpen(false)} />}
+  </>;
+}
+
+function InternalChatDrawer({ onClose }) {
+  const [message, setMessage] = useState("");
+  const [messages, setMessages] = useState([{ id: 1, author: "Sistema", text: "Canal interno del taller. Coordiná tareas con el equipo." }]);
+  const sendMessage = (event) => { event.preventDefault(); if (!message.trim()) return; setMessages((current) => [...current, { id: Date.now(), author: "Yo", text: message.trim() }]); setMessage(""); };
+  return <div className="internal-chat-backdrop" onMouseDown={onClose}><aside className="internal-chat-drawer" role="dialog" aria-modal="true" aria-label="Chat interno" onMouseDown={(event) => event.stopPropagation()}><header><div><span>COMUNICACIÓN</span><h2>Chat Interno</h2></div><button type="button" onClick={onClose} aria-label="Cerrar chat">×</button></header><div className="internal-chat-messages">{messages.map((item) => <div key={item.id} className={item.author === "Yo" ? "mine" : ""}><small>{item.author}</small><p>{item.text}</p></div>)}</div><form onSubmit={sendMessage}><input value={message} onChange={(event) => setMessage(event.target.value)} placeholder="Escribí un mensaje…" aria-label="Mensaje" /><button type="submit">Enviar</button></form></aside></div>;
 }

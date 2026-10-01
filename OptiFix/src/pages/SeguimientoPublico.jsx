@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { OptifixBrand } from "../components/OptifixLogo.jsx";
+import Logo from "../components/Logo.jsx";
 import { preguntarChatPublico } from "../services/n8nBackendService.js";
 
 // Lee datos del localStorage (misma key que el contexto)
@@ -13,11 +13,12 @@ function getDataFromStorage() {
 }
 
 const ESTADO_CONFIG = {
-  "RECEPCIÓN": { color: "#a3e635", bg: "#1a2e0a", icon: "📥", label: "Recepción / Ingresado" },
-  "EN TALLER": { color: "#0ea5e9", bg: "#0a1f30", icon: "🔧", label: "En Taller — En reparación" },
-  "PRESUPUESTO ENVIADO": { color: "#eab308", bg: "#2a200a", icon: "💬", label: "Presupuesto Comunicado" },
-  "REPARADO": { color: "#22c55e", bg: "#0a2a18", icon: "✅", label: "Reparado — Listo para retirar" },
-  "ENTREGADO": { color: "#8b5cf6", bg: "#1a0a3a", icon: "🎉", label: "Entregado al Cliente" }
+  "RECEPCIÓN": { color: "#00873A", bg: "#082518", icon: "📥", label: "Recepción / Ingresado" },
+  "EN TALLER": { color: "#565E74", bg: "#171b28", icon: "🔧", label: "En Taller — En reparación" },
+  "PRESUPUESTO ENVIADO": { color: "#007B89", bg: "#08262b", icon: "💬", label: "Presupuesto Comunicado" },
+  "REPARADO": { color: "#006B2C", bg: "#082518", icon: "✅", label: "Reparado — Listo para retirar" },
+  "ENTREGADO": { color: "#006B2C", bg: "#082518", icon: "🎉", label: "Entregado al Cliente" },
+  "RECHAZADO": { color: "#BA1A1A", bg: "#2d1111", icon: "⚠️", label: "Rechazado" }
 };
 
 function getEstadoConfig(estado) {
@@ -72,7 +73,7 @@ export default function SeguimientoPublico() {
       {/* Header público */}
       <header className="seguimiento-header">
         <Link to="/" style={{ textDecoration: "none" }}>
-          <OptifixBrand size={30} textSize={18} />
+          <Logo iconSize={30} />
         </Link>
         <span className="seguimiento-badge-header">Seguimiento de Orden</span>
       </header>
@@ -226,7 +227,7 @@ function ErrorView({ message, hint }) {
     <div className="seguimiento-root">
       <header className="seguimiento-header">
         <Link to="/" style={{ textDecoration: "none" }}>
-          <OptifixBrand size={30} textSize={18} />
+          <Logo iconSize={30} />
         </Link>
       </header>
       <div className="seguimiento-content" style={{ textAlign: "center", paddingTop: "80px" }}>

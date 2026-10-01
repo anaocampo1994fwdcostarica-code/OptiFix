@@ -35,6 +35,33 @@
       "telefono": "89110033",
       "direccion": "Alajuela, Costa Rica",
       "notas": "Urgente por uso comercial."
+    },
+    {
+      "id": "cli-demo-1",
+      "identificacion": "119990101",
+      "nombre": "Andrea Solano",
+      "email": "andrea.solano@correo.cr",
+      "telefono": "87001234",
+      "direccion": "San Ramón, Alajuela",
+      "notas": "Cliente de prueba sin órdenes activas."
+    },
+    {
+      "id": "cli-demo-2",
+      "identificacion": "208880202",
+      "nombre": "Diego Vargas",
+      "email": "diego.vargas@correo.cr",
+      "telefono": "88114567",
+      "direccion": "Tres Ríos, Cartago",
+      "notas": "Cliente de prueba sin órdenes activas."
+    },
+    {
+      "id": "cli-demo-3",
+      "identificacion": "311770303",
+      "nombre": "María José Araya",
+      "email": "maria.araya@correo.cr",
+      "telefono": "89907890",
+      "direccion": "Belén, Heredia",
+      "notas": "Cliente de prueba sin órdenes activas."
     }
   ],
   "equipos": [

@@ -1,9 +1,8 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { OptifixBrand } from "../components/OptifixLogo.jsx";
+import { Link } from "react-router-dom";
+import Logo from "../components/Logo.jsx";
 import AccessibilityPreferences from "../components/AccessibilityPreferences.jsx";
 import workshopHeroImage from "../assets/optifix-workshop-hero.png";
-import { useWorkshop } from "../context/WorkshopContext.jsx";
 import { useLanguage } from "../context/LanguageContext.jsx";
 import "./LandingPage.css";
 
@@ -69,12 +68,6 @@ const MODULES = [
   "Órdenes de trabajo digitales", "Historial por cliente y equipo", "Cotizaciones y adelantos", "Inventario de productos y servicios", "Agenda técnica", "Contacto directo por WhatsApp", "Boletas y reportes PDF", "Usuarios y permisos"
 ];
 
-const DEMO_VIEWS = {
-  seguimiento: { title: "Seguimiento de reparaci\u00F3n", items: ["Recepci\u00F3n registrada", "Diagn\u00F3stico t\u00E9cnico", "Equipo listo para entrega"] },
-  boleta: { title: "Boleta digital", items: ["Servicios y repuestos detallados", "Total y adelanto registrados", "Lista para imprimir o guardar como PDF"] },
-  metricas: { title: "Panel de m\u00E9tricas", items: ["\u00D3rdenes por estado", "Carga del banco de reparaci\u00F3n", "Facturaci\u00F3n estimada del mes"] }
-};
-
 const FAQS = [
   ["\u00BFNecesito instalar alg\u00FAn programa?", "No. OptiFix funciona desde el navegador, por lo que pod\u00E9s acceder desde una computadora, tablet o celular con conexi\u00F3n a internet."],
   ["\u00BFQu\u00E9 diferencia hay entre Administrador y T\u00E9cnico?", "El administrador configura el taller, usuarios y m\u00F3dulos. El t\u00E9cnico trabaja las \u00F3rdenes, actualiza diagn\u00F3sticos y consulta la operaci\u00F3n diaria."],
@@ -83,42 +76,15 @@ const FAQS = [
 ];
 
 export default function LandingPage() {
-  const navigate = useNavigate();
   const { t } = useLanguage();
-  const { ordenes, clientes } = useWorkshop();
-  const [consulta, setConsulta] = useState({ orden: "", documento: "" });
-  const [consultaError, setConsultaError] = useState("");
-  const [demoView, setDemoView] = useState("seguimiento");
   const [reparacionesMes, setReparacionesMes] = useState(40);
   const [faqAbierta, setFaqAbierta] = useState(null);
-  const [demoOpen, setDemoOpen] = useState(false);
-
-  function consultarSeguimiento(event) {
-    event.preventDefault();
-    const referencia = consulta.orden.trim().toLowerCase();
-    const verificacion = consulta.documento.replace(/\D/g, "");
-    const orden = ordenes.find((item) => String(item.id || "").toLowerCase() === referencia || String(item.numero || "").toLowerCase() === referencia);
-    const cliente = orden && clientes.find((item) => item.id === orden.cliente_id);
-    const telefono = String(cliente?.telefono || "").replace(/\D/g, "");
-    const identificacion = String(cliente?.identificacion || "").replace(/\D/g, "");
-    if (!orden || !orden.token_seguimiento || !verificacion || (!telefono.endsWith(verificacion) && !identificacion.endsWith(verificacion))) {
-      setConsultaError(t("landing.hero.trackError"));
-      return;
-    }
-    navigate(`/seguimiento/${orden.token_seguimiento}`);
-  }
-
   const ahorroHoras = Math.round(reparacionesMes * 0.18);
+  const progresoImpacto = ((reparacionesMes - 10) / 290) * 100;
   const features = t("landing.features.items", { returnObjects: true });
   const steps = t("landing.flow.steps", { returnObjects: true });
   const benefits = t("landing.benefits.items", { returnObjects: true });
   const modules = t("landing.modules.items", { returnObjects: true });
-  const demoViews = {
-    seguimiento: t("landing.demo.tracking", { returnObjects: true }),
-    boleta: t("landing.demo.receipt", { returnObjects: true }),
-    metricas: t("landing.demo.metrics", { returnObjects: true })
-  };
-  const demo = demoViews[demoView];
   const faqs = [
     [t("landing.faq.install"), t("landing.faq.installAnswer")],
     [t("landing.faq.roles"), t("landing.faq.rolesAnswer")],
@@ -130,13 +96,16 @@ export default function LandingPage() {
     <div className="landing-root navan-landing">
       {/* ── NAV ─────────────────────────────────────────── */}
       <nav className="landing-nav">
-        <OptifixBrand size={54} textSize={28} showTagline={false} />
+        <Logo iconSize={46} className="landing-logo" />
         <div className="landing-nav-links">
           <a href="#features">{t("landing.nav.features")}</a>
           <a href="#how">{t("landing.nav.how")}</a>
           <a href="#modulos">{t("landing.nav.modules")}</a>
           <a href="#contacto">{t("landing.nav.contact")}</a>
           <AccessibilityPreferences className="landing-accessibility-controls" />
+          <Link to="/login" className="landing-login-link" aria-label="Iniciar sesión" title="Iniciar sesión">
+            <span aria-hidden="true">◉</span><span className="landing-login-text">Ingresar</span>
+          </Link>
         </div>
       </nav>
 
@@ -144,34 +113,10 @@ export default function LandingPage() {
       <section className="landing-hero">
         <div className="landing-hero-glow" />
         <div className="landing-hero-content">
-          <div className="landing-badge">{t("landing.hero.badge")}</div>
           <h1 className="landing-hero-title">
             {t("landing.hero.titleBefore")}<span className="landing-highlight">{t("landing.hero.highlight")}</span>{t("landing.hero.titleAfter")}
           </h1>
           <p className="landing-hero-sub">{t("landing.hero.description")}</p>
-
-          <form id="consulta" className="landing-track-form" onSubmit={consultarSeguimiento}>
-            <div className="landing-track-heading">
-              <strong>{t("landing.hero.trackTitle")}</strong>
-              <span>{t("landing.hero.trackHint")}</span>
-            </div>
-            <div className="landing-track-fields">
-              <input aria-label={t("landing.hero.order")} value={consulta.orden} onChange={(event) => setConsulta({ ...consulta, orden: event.target.value })} placeholder={t("landing.hero.order")} required />
-              <input aria-label={t("landing.hero.document")} value={consulta.documento} onChange={(event) => setConsulta({ ...consulta, documento: event.target.value })} placeholder={t("landing.hero.document")} required />
-              <button type="submit">{t("landing.hero.trackAction")}</button>
-            </div>
-            {consultaError && <p className="landing-track-error" role="alert">{consultaError}</p>}
-          </form>
-
-          {/* Mini stats */}
-          <div className="landing-stats-row">
-            {t("landing.stats", { returnObjects: true }).map((s) => (
-              <div key={s.label} className="landing-stat-chip">
-                <strong>{s.val}</strong>
-                <span>{s.label}</span>
-              </div>
-            ))}
-          </div>
         </div>
 
         {/* Hero mockup */}
@@ -266,55 +211,39 @@ export default function LandingPage() {
             <div className="landing-section-label">{t("landing.modules.label")}</div>
             <h2 className="landing-section-title">{t("landing.modules.title")}</h2>
             <p className="landing-section-sub">{t("landing.modules.description")}</p>
-            <a href="#consulta" className="btn-landing-primary">{t("landing.hero.trackAction")}</a>
           </div>
           <ul className="landing-modules-list">{modules.map((module) => <li key={module}><span>✓</span>{module}</li>)}</ul>
         </div>
       </section>
 
       {/* ── CTA BOTTOM ────────────────────────────────────── */}
-      <section className="landing-section landing-demo-section">
-        <div className="landing-section-inner">
-          <div className="landing-section-label">{t("landing.demo.label")}</div>
-          <h2 className="landing-section-title">{t("landing.demo.title")}</h2>
-          <div className="landing-demo-layout">
-            <div className="landing-demo-tabs" role="tablist" aria-label="Demostraciones de OptiFix">
-              {Object.entries(demoViews).map(([key, value]) => <button key={key} type="button" role="tab" aria-selected={demoView === key} className={demoView === key ? "active" : ""} onClick={() => setDemoView(key)}>{value.title}</button>)}
-            </div>
-            <article className="landing-demo-preview" aria-live="polite">
-              <span className="landing-demo-eyebrow">{t("landing.demo.mode")}</span>
-              <h3>{demo.title}</h3>
-              <ol>{demo.items.map((item, index) => <li key={item}><b>0{index + 1}</b>{item}</li>)}</ol>
-              <button type="button" className="btn-landing-primary" onClick={() => setDemoOpen(true)}>{t("landing.demo.action")}</button>
-            </article>
+      <section className="landing-section landing-impact-section">
+        <div className="landing-section-inner landing-impact-layout">
+          <div><div className="landing-section-label">{t("landing.calculator.label")}</div><h2 className="landing-section-title">{t("landing.calculator.title")}</h2><p className="landing-section-sub">{t("landing.calculator.description")}</p></div>
+          <div className="landing-calculator"><label htmlFor="reparaciones-mes">{t("landing.calculator.monthly")} <strong>{reparacionesMes}</strong></label><input id="reparaciones-mes" type="range" min="10" max="300" step="10" value={reparacionesMes} onChange={(event) => setReparacionesMes(Number(event.target.value))} style={{ "--impact-progress": `${progresoImpacto}%` }} /><div className="landing-impact-result"><strong key={ahorroHoras} className="landing-impact-hours">{ahorroHoras} h</strong><span>{t("landing.calculator.result")}</span></div><small>{t("landing.calculator.note")}</small></div>
+        </div>
+      </section>
+
+      <section className="landing-section landing-faq-section"><div className="landing-section-inner"><div className="landing-section-label">{t("landing.faq.label")}</div><h2 className="landing-section-title">{t("landing.faq.title")}</h2><div className="landing-faq-list">{faqs.map(([pregunta, respuesta], index) => <article key={pregunta} className={faqAbierta === index ? "open" : ""}><button type="button" aria-expanded={faqAbierta === index} onClick={() => setFaqAbierta(faqAbierta === index ? null : index)}><span>{pregunta}</span><b aria-hidden="true">{faqAbierta === index ? "−" : "+"}</b></button>{faqAbierta === index && <p>{respuesta}</p>}</article>)}</div></div></section>
+
+      <section id="contacto" className="landing-section landing-pricing-section">
+        <div className="landing-section-inner landing-pricing-layout">
+          <div>
+            <div className="landing-section-label">Planes y precios</div>
+            <h2 className="landing-section-title">Una solución ajustada a la operación de tu taller.</h2>
+            <p className="landing-section-sub">OptiFix se cotiza a la medida: definimos los módulos, usuarios y configuración que necesitás antes de comenzar.</p>
           </div>
         </div>
       </section>
 
-      <section className="landing-section landing-impact-section">
-        <div className="landing-section-inner landing-impact-layout">
-          <div><div className="landing-section-label">{t("landing.calculator.label")}</div><h2 className="landing-section-title">{t("landing.calculator.title")}</h2><p className="landing-section-sub">{t("landing.calculator.description")}</p></div>
-          <div className="landing-calculator"><label htmlFor="reparaciones-mes">{t("landing.calculator.monthly")} <strong>{reparacionesMes}</strong></label><input id="reparaciones-mes" type="range" min="10" max="300" step="10" value={reparacionesMes} onChange={(event) => setReparacionesMes(Number(event.target.value))} /><div className="landing-impact-result"><strong>{ahorroHoras} h</strong><span>{t("landing.calculator.result")}</span></div><small>{t("landing.calculator.note")}</small></div>
-        </div>
-      </section>
-
-      <section className="landing-section landing-trust-section"><div className="landing-section-inner"><div className="landing-trust-metrics"><article><strong>{ordenes.length}</strong><span>{t("landing.trust.orders")}</span></article><article><strong>8</strong><span>{t("landing.trust.modules")}</span></article><article><strong>Web</strong><span>{t("landing.trust.web")}</span></article></div><div className="landing-testimonials"><blockquote>“{t("landing.trust.quoteOne")}”<footer>{t("landing.trust.admin")}</footer></blockquote><blockquote>“{t("landing.trust.quoteTwo")}”<footer>{t("landing.trust.technical")}</footer></blockquote></div></div></section>
-
-      <section className="landing-section landing-faq-section"><div className="landing-section-inner"><div className="landing-section-label">{t("landing.faq.label")}</div><h2 className="landing-section-title">{t("landing.faq.title")}</h2><div className="landing-faq-list">{faqs.map(([pregunta, respuesta], index) => <article key={pregunta} className={faqAbierta === index ? "open" : ""}><button type="button" aria-expanded={faqAbierta === index} onClick={() => setFaqAbierta(faqAbierta === index ? null : index)}><span>{pregunta}</span><b aria-hidden="true">{faqAbierta === index ? "−" : "+"}</b></button>{faqAbierta === index && <p>{respuesta}</p>}</article>)}</div></div></section>
-
       <section className="landing-cta-section">
         <div className="landing-section-inner" style={{ textAlign: "center" }}>
-          <h2 className="landing-cta-title">{t("landing.cta.title")}</h2>
-          <p className="landing-cta-sub">
-            {t("landing.cta.description")}
-          </p>
-          <a href="#consulta" className="btn-landing-primary landing-cta-btn">{t("landing.hero.trackAction")}</a>
+          <h2 className="landing-cta-title">¿Listo para optimizar tu taller?</h2>
+          <a href="https://wa.me/50684229991?text=Hola,%20me%20gustaría%20obtener%20más%20información%20sobre%20OptiFix%20para%20mi%20taller." target="_blank" rel="noopener noreferrer" className="btn-landing-primary landing-cta-btn">Contáctenos</a>
         </div>
       </section>
 
       {/* ── FOOTER ─────────────────────────────────────────── */}
-      {demoOpen && <div className="landing-demo-modal-backdrop" role="presentation" onMouseDown={() => setDemoOpen(false)}><section className="landing-demo-modal" role="dialog" aria-modal="true" aria-labelledby="demo-modal-title" onMouseDown={(event) => event.stopPropagation()}><button className="landing-modal-close" type="button" aria-label="Cerrar" onClick={() => setDemoOpen(false)}>×</button><span className="landing-section-label">Acceso de evaluación</span><h2 id="demo-modal-title">Probá OptiFix con datos de demostración.</h2><p>Ingresá al panel usando el modo demo. Encontrarás órdenes, clientes, equipos y métricas precargadas para recorrer la aplicación.</p><Link to="/login" className="btn-landing-primary">Ir al modo demo</Link></section></div>}
-
     </div>
   );
 }

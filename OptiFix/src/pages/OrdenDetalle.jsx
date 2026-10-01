@@ -7,6 +7,7 @@ import { getEstadoBadge } from "../utils/estadoColors.js";
 import ItemProductoModal from "../components/modals/ItemProductoModal.jsx";
 import CambiarEstadoModal from "../components/modals/CambiarEstadoModal.jsx";
 import { VistaPreviaReporteOrden } from "../components/ReporteOrdenPDF.jsx";
+import { WORKSHOP_NAME } from "../config/workshop.js";
 
 export default function OrdenDetalle() {
   const { numero } = useParams();
@@ -330,7 +331,7 @@ export default function OrdenDetalle() {
         <div className="meta-grid-2col">
           <div>
             <div className="meta-field-item">
-              <strong>Responsable:</strong> {orden.responsable}
+              <strong>Responsable:</strong> {WORKSHOP_NAME}
             </div>
             <div className="meta-field-item">
               <strong>📅 Ingresado:</strong> {orden.fecha_ingreso}
@@ -747,7 +748,7 @@ const PlantillaImpresion = React.forwardRef(function PlantillaImpresion({ datosO
   const { orden, cliente, equipo, items, subtotal, adelanto, total, archivos = [] } = datosOrden || {};
   const fotosAdjuntas = archivos.filter((archivo) => typeof archivo?.vistaPrevia === "string" && archivo.vistaPrevia.trim().length > 0);
   return <div ref={ref} className="print-order-template" style={{ display: "block", minHeight: "100vh", padding: "32px", backgroundColor: "#ffffff", color: "#111827", fontFamily: "Arial, sans-serif" }}>
-    <header className="print-order-header"><div><strong>OptiFix</strong><span>Centro de servicios técnicos</span></div><div><h1>Orden de Servicio N° {orden?.numero || "Nueva"}</h1><span>Fecha: {orden?.fecha_ingreso || "—"}</span></div></header>
+    <header className="print-order-header"><div><strong>{WORKSHOP_NAME}</strong><span>Centro de servicios técnicos</span></div><div><h1>Orden de Servicio N° {orden?.numero || "Nueva"}</h1><span>Fecha: {orden?.fecha_ingreso || "—"}</span></div></header>
     <section className="print-order-grid"><div><h2>Datos del cliente</h2><p><b>Nombre:</b> {cliente?.nombre || "—"}</p><p><b>Contacto:</b> {cliente?.telefono || "—"}</p><p><b>Email:</b> {cliente?.email || "—"}</p></div><div><h2>Datos del equipo</h2><p><b>Equipo:</b> {equipo?.tipo || "—"}</p><p><b>Modelo:</b> {[equipo?.marca, equipo?.modelo].filter(Boolean).join(" ") || "—"}</p><p><b>Serie:</b> {equipo?.serie || "—"}</p></div></section>
     <section className="print-order-work"><h2>Trabajo solicitado</h2><p>{orden?.trabajo_solicitado || "Sin detalle"}</p><p><b>Estado actual:</b> {orden?.estado_actual || "—"}</p></section>
     <table className="print-order-table"><thead><tr><th>Descripción</th><th>Cant.</th><th>Importe</th></tr></thead><tbody>{items?.length ? items.map((item) => <tr key={item.id}><td>{item.descripcion}</td><td>{item.cantidad}</td><td>₡ {Number(item.importe || 0).toFixed(2)}</td></tr>) : <tr><td colSpan="3">Sin productos o servicios registrados.</td></tr>}</tbody></table>

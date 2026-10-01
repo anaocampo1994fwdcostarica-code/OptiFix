@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import Icono from "./icons.jsx";
-import OptifixLogo from "./OptifixLogo.jsx";
+import Logo from "./Logo.jsx";
 import { useAuth } from "../hooks/useAuth.js";
 import { useTranslation } from "react-i18next";
 
@@ -18,10 +18,7 @@ export default function Sidebar({ collapsed, mobileOpen = false, onToggle }) {
     <aside id="main-sidebar" className={`gestioo-sidebar ${collapsed ? "collapsed" : ""} ${mobileOpen ? "mobile-open" : ""}`} aria-label="Navegación principal">
       <div className="sidebar-header">
         <Link to="/dashboard" className="brand-logo">
-          <span className="brand-key-badge">
-            <OptifixLogo size={28} />
-          </span>
-          {!collapsed && <span className="brand-wordmark text-slate-900 dark:text-white">Opti<span className="text-sky-600">Fix</span></span>}
+          <Logo iconSize={30} showText={!collapsed} />
         </Link>
         <button
           className="sidebar-toggle-btn"

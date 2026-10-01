@@ -17,10 +17,17 @@ import { listarEquipos, crearEquipo as crearEquipoEnServidor, actualizarEquipo a
 import { listarProductos, crearProducto as crearProductoEnServidor, actualizarProducto as actualizarProductoEnServidor, eliminarProducto as eliminarProductoEnServidor } from "../services/productosService.js";
 import { listarServicios, crearServicio as crearServicioEnServidor, actualizarServicio as actualizarServicioEnServidor, eliminarServicio as eliminarServicioEnServidor } from "../services/serviciosService.js";
 import { listarCotizaciones, crearCotizacion as crearCotizacionEnServidor, actualizarCotizacion as actualizarCotizacionEnServidor, eliminarCotizacion as eliminarCotizacionEnServidor } from "../services/cotizacionesService.js";
+import { WORKSHOP_NAME } from "../config/workshop.js";
 
 const WorkshopContext = createContext(null);
 
 const STORAGE_KEY = "optifix_data_v1";
+const DEMO_CLIENTS_SEEDED_KEY = "optifix_deletable_clients_seeded_v1";
+const DELETABLE_DEMO_CLIENTS = [
+  { id: "cli-demo-1", identificacion: "119990101", nombre: "Andrea Solano", email: "andrea.solano@correo.cr", telefono: "87001234", direccion: "San Ramón, Alajuela", notas: "Cliente de prueba sin órdenes activas." },
+  { id: "cli-demo-2", identificacion: "208880202", nombre: "Diego Vargas", email: "diego.vargas@correo.cr", telefono: "88114567", direccion: "Tres Ríos, Cartago", notas: "Cliente de prueba sin órdenes activas." },
+  { id: "cli-demo-3", identificacion: "311770303", nombre: "María José Araya", email: "maria.araya@correo.cr", telefono: "89907890", direccion: "Belén, Heredia", notas: "Cliente de prueba sin órdenes activas." },
+];
 
 // Catálogo inicial de marcas del taller
 const MARCAS_SEED = [
@@ -52,11 +59,18 @@ export function WorkshopProvider({ children }) {
         if (!parsed.usuarios || parsed.usuarios.length === 0) {
           parsed.usuarios = USUARIOS_SEED;
         }
+        // Se insertan una sola vez para probar la eliminación sin afectar órdenes existentes.
+        if (!localStorage.getItem(DEMO_CLIENTS_SEEDED_KEY)) {
+          const ids = new Set((parsed.clientes || []).map((cliente) => cliente.id));
+          parsed.clientes = [...DELETABLE_DEMO_CLIENTS.filter((cliente) => !ids.has(cliente.id)), ...(parsed.clientes || [])];
+          localStorage.setItem(DEMO_CLIENTS_SEEDED_KEY, "true");
+        }
         return parsed;
       }
     } catch (e) {
       console.error("Error al cargar datos locales de OptiFix", e);
     }
+    localStorage.setItem(DEMO_CLIENTS_SEEDED_KEY, "true");
     return { ...initialData, marcas: MARCAS_SEED, usuarios: USUARIOS_SEED };
   });
 
@@ -119,6 +133,19 @@ export function WorkshopProvider({ children }) {
       ];
       const resultados = await Promise.allSettled(recursos.map(([, listar]) => listar()));
       if (cancelled) return;
+      // El servidor puede haberse iniciado antes de actualizar db.json. Sincronizamos
+      // los tres contactos de prueba para que estén disponibles de inmediato.
+      const clientesResultado = resultados[0];
+      if (clientesResultado.status === "fulfilled" && Array.isArray(clientesResultado.value)) {
+        const idsRemotos = new Set(clientesResultado.value.map((cliente) => cliente.id));
+        const faltantes = DELETABLE_DEMO_CLIENTS.filter((cliente) => !idsRemotos.has(cliente.id));
+        if (faltantes.length) {
+          const creados = await Promise.allSettled(faltantes.map((cliente) => crearClienteEnServidor(cliente)));
+          const confirmados = creados.filter((resultado) => resultado.status === "fulfilled").map((resultado) => resultado.value);
+          const idsConfirmados = new Set(confirmados.map((cliente) => cliente.id));
+          clientesResultado.value = [...confirmados, ...faltantes.filter((cliente) => !idsConfirmados.has(cliente.id)), ...clientesResultado.value];
+        }
+      }
       setData((prev) => {
         const siguiente = { ...prev };
         resultados.forEach((resultado, indice) => {
@@ -223,8 +250,13 @@ export function WorkshopProvider({ children }) {
   };
 
   const deleteUsuario = async (id) => {
-    await eliminarUsuarioEnServidor(id);
     setData((prev) => ({ ...prev, usuarios: (prev.usuarios || []).filter((user) => user.id !== id) }));
+    try {
+      await eliminarUsuarioEnServidor(id);
+    } catch (error) {
+      // La eliminación local mantiene la sesión operativa si el mock remoto no responde.
+      console.warn("No se pudo sincronizar la eliminación del usuario con el servidor.", error);
+    }
   };
 
   // ── CLIENTES CRUD ─────────────────────────────────────────────────────────────
@@ -260,7 +292,12 @@ export function WorkshopProvider({ children }) {
   };
 
   const deleteCliente = async (id) => {
-    await eliminarClienteEnServidor(id);
+    try {
+      await eliminarClienteEnServidor(id);
+    } catch (error) {
+      // Los contactos de prueba también se pueden borrar si el servidor local no los persistió.
+      if (!DELETABLE_DEMO_CLIENTS.some((cliente) => cliente.id === id)) throw error;
+    }
     setData((prev) => ({ ...prev, clientes: prev.clientes.filter((cliente) => cliente.id !== id) }));
   };
 
@@ -308,6 +345,7 @@ export function WorkshopProvider({ children }) {
       id: `cot-${Date.now()}`,
       numero: nextNum,
       cliente_id: cotizacionData.cliente_id,
+      cliente_nombre: cotizacionData.cliente_nombre || "",
       equipo_texto: cotizacionData.equipo_texto || "",
       falla: cotizacionData.falla || "",
       estado: "PENDIENTE",
@@ -384,7 +422,7 @@ export function WorkshopProvider({ children }) {
       referencia_externa: ordenData.referencia_externa || "",
       prioridad: ordenData.prioridad || "Normal",
       area: ordenData.area || "Entrada",
-      responsable: ordenData.responsable || "OptiFix Centro de Servicios",
+      responsable: WORKSHOP_NAME,
       fecha_ingreso: nowStr,
       fecha_entrega: null,
       fecha_prometida: ordenData.fecha_prometida || null,

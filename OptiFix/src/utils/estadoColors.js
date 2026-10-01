@@ -1,13 +1,13 @@
 // src/utils/estadoColors.js
 // Paleta oficial de estados — Anteproyecto OptiFix, sección "Sistema de color":
-// Recepción #00873A · En trámite #565E74 · Presupuesto #2C8FC4 · Entregado #28814D · Rechazado #C43D3D
+// Recepción #00873A · En trámite #565E74 · Presupuesto #007B89 · Entregado #006B2C · Rechazado #BA1A1A
 
 export const ESTADOS_OFICIALES = {
   RECEPCION:   { label: "Recepción",   bg: "#00873A", color: "#ffffff" },
   TRAMITE:     { label: "En trámite",  bg: "#565E74", color: "#ffffff" },
-  PRESUPUESTO: { label: "Presupuesto", bg: "#2C8FC4", color: "#ffffff" },
-  ENTREGADO:   { label: "Entregado",   bg: "#28814D", color: "#ffffff" },
-  RECHAZADO:   { label: "Rechazado",   bg: "#C43D3D", color: "#ffffff" },
+  PRESUPUESTO: { label: "Presupuesto", bg: "#007B89", color: "#ffffff" },
+  ENTREGADO:   { label: "Entregado",   bg: "#006B2C", color: "#ffffff" },
+  RECHAZADO:   { label: "Rechazado",   bg: "#BA1A1A", color: "#ffffff" },
 };
 
 /**

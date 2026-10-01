@@ -2,32 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useWorkshop } from "../context/WorkshopContext.jsx";
 import AsistenteDiagnostico from "../components/ai/AsistenteDiagnostico.jsx";
-
-/* ────────────────────────────────────────────────────────────────
-   OptiFix Logo SVG – Inline component (isotipo con punto naranja)
-   ──────────────────────────────────────────────────────────────── */
-function OptifixLogo({ size = 40 }) {
-  return (
-    <svg viewBox="0 0 140 140" style={{ width: size, height: size }} fill="none" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="optifix_hdr_grad" x1="16" y1="16" x2="124" y2="124" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#0284c7" />
-          <stop offset="100%" stopColor="#0369a1" />
-        </linearGradient>
-      </defs>
-      <rect x="16" y="16" width="108" height="108" rx="28" fill="url(#optifix_hdr_grad)" />
-      <circle cx="70" cy="70" r="36" stroke="#ffffff" strokeWidth="4.2" fill="none" opacity="0.95" />
-      <circle cx="70" cy="34" r="4.6" fill="#ffffff" />
-      <circle cx="70" cy="106" r="4.6" fill="#ffffff" />
-      <circle cx="34" cy="70" r="4.6" fill="#ffffff" />
-      <circle cx="106" cy="70" r="4.6" fill="#ffffff" />
-      <circle cx="70" cy="70" r="23" fill="#0b1728" />
-      <path d="M59.5 70.5L67 78L80.5 62.5" stroke="#0284c7" strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" />
-      {/* Punto Anaranjado Oficial de Calibración */}
-      <circle cx="90.5" cy="49" r="6.8" fill="#ff7a00" stroke="#ffffff" strokeWidth="2.2" />
-    </svg>
-  );
-}
+import Logo from "../components/Logo.jsx";
 
 export default function NuevaOrdenView({ onOrdenCreada }) {
   const { clientes, equipos, addCliente, addEquipo, addOrden } = useWorkshop();
@@ -182,8 +157,8 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
      ================================================================ */
   return (
     <div
-      className="nueva-orden-view min-h-screen flex flex-col pb-28 md:pb-24"
-      style={{ backgroundColor: "#f0f4f9", fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", color: "#1e293b" }}
+      className="nueva-orden-view min-h-screen flex flex-col pb-28 md:pb-24 bg-gray-50 dark:bg-gray-950"
+      style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}
       onClick={() => { setShowClienteDropdown(false); setShowEquipoDropdown(false); }}
     >
       {/* ═══════════════ HEADER / TOPBAR ═══════════════ */}
@@ -193,7 +168,7 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
           <div className="flex items-center gap-3 sm:gap-4 shrink-0">
             <a href="#" className="flex items-center gap-2.5 group focus:outline-none" onClick={e => e.preventDefault()}>
               <div className="w-9 h-9 sm:w-10 sm:h-10 shrink-0 drop-shadow-sm">
-                <OptifixLogo size={40} />
+                <Logo iconSize={40} showText={false} />
               </div>
               <div className="flex flex-col">
                 <span className="text-xl sm:text-2xl font-extrabold tracking-tight leading-none text-slate-900">
@@ -272,7 +247,7 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
         <div className="grid grid-cols-1 gap-6">
 
           {/* ─── CARD 1: CLIENTE SOLICITANTE ─── */}
-          <section className="bg-white dark:bg-gray-900 rounded-2xl border border-slate-200/80 dark:border-gray-700 p-5 sm:p-6 shadow-xs dark:shadow-xl flex flex-col justify-between relative overflow-hidden">
+          <section className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-6 flex flex-col justify-between relative overflow-hidden">
             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-sky-500 to-sky-600"></div>
             <div>
               <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
@@ -280,7 +255,7 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
                   <span className="w-7 h-7 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center font-bold text-sm">
                     <i className="ph ph-user"></i>
                   </span>
-                  <h2 className="text-lg font-semibold text-slate-900 dark:text-white border-b dark:border-gray-700 pb-2 mb-4">1. Datos del Cliente</h2>
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-100 dark:border-gray-800 pb-3 mb-5">1. Datos del Cliente</h2>
                   <span className="text-rose-500 font-bold">*</span>
                 </div>
                 <button
@@ -429,7 +404,7 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
           </section>
 
           {/* ─── CARD 2: DISPOSITIVO / EQUIPO ─── */}
-          <section className="bg-white dark:bg-gray-900 rounded-2xl border border-slate-200/80 dark:border-gray-700 p-5 sm:p-6 shadow-xs dark:shadow-xl flex flex-col justify-between relative overflow-hidden">
+          <section className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-6 flex flex-col justify-between relative overflow-hidden">
             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-sky-600 to-indigo-600"></div>
             <div>
               <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
@@ -437,7 +412,7 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
                   <span className="w-7 h-7 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center font-bold text-sm">
                     <i className="ph ph-laptop"></i>
                   </span>
-                  <h2 className="text-lg font-semibold text-slate-900 dark:text-white border-b dark:border-gray-700 pb-2 mb-4">2. Datos del Dispositivo</h2>
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-100 dark:border-gray-800 pb-3 mb-5">2. Datos del Dispositivo</h2>
                   <span className="text-rose-500 font-bold">*</span>
                 </div>
                 <button
@@ -603,8 +578,8 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
         </div>
 
         {/* ═══ CENTRAL SECTION: TABS + FORM ═══ */}
-        <section className="bg-white dark:bg-gray-900 rounded-2xl border border-slate-200/80 dark:border-gray-700 shadow-xs dark:shadow-xl p-5 sm:p-7 space-y-6">
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-white border-b border-slate-200 dark:border-gray-700 pb-2 mb-4">3. Estado Inicial y Recepción</h2>
+        <section className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-6 space-y-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-100 dark:border-gray-800 pb-3 mb-5">3. Estado Inicial y Recepción</h2>
           <div className="space-y-6">
             <div className="space-y-6">
               {/* Row 1: Priority, Area, Status, Technician */}

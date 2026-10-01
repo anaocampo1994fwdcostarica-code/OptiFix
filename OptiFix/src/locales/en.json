@@ -14,7 +14,7 @@
   },
   "common": { "loading": "Loading...", "save": "Save", "cancel": "Cancel" },
   "language": { "switch": "Change language", "spanish": "Spanish", "english": "English" },
-  "login": { "title": "Sign in", "subtitle": "Enter your credentials to continue", "username": "Username", "password": "Password", "submit": "Sign in", "forgot": "Forgot your password?", "back": "Back to home", "admin": "Administrator", "technician": "Technician", "invalid": "Incorrect username or password." },
+  "login": { "title": "Sign in", "subtitle": "Enter your credentials to continue", "username": "Username", "password": "Password", "submit": "Sign in", "forgot": "Forgot your password?", "back": "Back to home", "admin": "Administrator", "technician": "Technician", "invalid": "Incorrect username or password.", "testCredentials": "TEST CREDENTIALS", "testAdmin": "Admin", "testTechnician": "Technician" },
   "landing": {
     "nav": { "features": "Features", "how": "How it works", "modules": "Modules", "contact": "Contact", "enter": "Enter dashboard", "internal": "Internal access" },
     "hero": { "badge": "OptiFix repair tracking", "titleBefore": "Check your ", "highlight": "order status", "titleAfter": " in seconds.", "description": "Enter your order number and phone number or ID to see your equipment's current status, without creating an account or signing in.", "trackTitle": "Check my order status", "trackHint": "Fast, private, and no sign-in required", "order": "Order number", "document": "Phone number or ID", "trackAction": "Check status", "trackError": "We could not find an order with those details. Check the order number and phone number or ID." },

@@ -1,5 +1,6 @@
 import pdfMake from "pdfmake/build/pdfmake";
 import pdfFonts from "pdfmake/build/vfs_fonts";
+import { WORKSHOP_NAME } from "../config/workshop.js";
 
 pdfMake.addVirtualFileSystem(pdfFonts);
 
@@ -7,7 +8,7 @@ export function descargarReportePDF({ orden, cliente, equipo, archivos = [] }) {
     const fotos = archivos.filter((archivo) => archivo.vistaPrevia).map((archivo) => ({ image: archivo.vistaPrevia, width: 180, margin: [0, 8, 8, 8] }));
     const definicionDocumento = {
       content: [
-        { text: "OPTIFIX · Reporte de Orden de Servicio", fontSize: 18, bold: true, color: "#0369a1", margin: [0, 0, 0, 10] },
+        { text: `${WORKSHOP_NAME} · Reporte de Orden de Servicio`, fontSize: 18, bold: true, color: "#0369a1", margin: [0, 0, 0, 10] },
         { text: `Orden N°: ${orden.numero}`, fontSize: 14, bold: true, margin: [0, 0, 0, 14] },
         { table: { widths: ["*", "*"], body: [[{ text: `Cliente: ${cliente.nombre || "—"}`, bold: true }, { text: `Equipo: ${equipo.tipo || "—"}`, bold: true }], [{ text: `Correo: ${cliente.email || "—"}` }, { text: `Teléfono: ${cliente.telefono || "—"}` }], [{ text: `Modelo: ${[equipo.marca, equipo.modelo].filter(Boolean).join(" ") || "—"}` }, { text: `Serie: ${equipo.serie || "—"}` }]] }, margin: [0, 0, 0, 14] },
         { text: "Trabajo solicitado", bold: true, margin: [0, 0, 0, 4] },
@@ -30,7 +31,7 @@ export function VistaPreviaReporteOrden({ orden, cliente, equipo, archivos = [],
       <section className="report-preview-modal" onMouseDown={(event) => event.stopPropagation()}>
         <header className="report-preview-header">
           <div>
-            <span className="report-preview-eyebrow">OPTIFIX</span>
+            <span className="report-preview-eyebrow">{WORKSHOP_NAME}</span>
             <h2 id="report-preview-title">Vista previa · Orden N° {orden.numero}</h2>
           </div>
           <button type="button" className="report-preview-close" onClick={onClose} aria-label="Cerrar vista previa">×</button>

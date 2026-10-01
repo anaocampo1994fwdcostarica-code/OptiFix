@@ -370,3 +370,8 @@ html:not(.light-mode) .login-panel .login-credentials div { color: #cbd5e1; }
 html:not(.light-mode) .login-panel .login-credentials code { background: #0b1728; color: #7dd3fc; }
 html:not(.light-mode) .login-recovery { color: #bae6fd; background: #0c2b40; border-color: #1d6089; }
 html:not(.light-mode) .login-recovery button { color: #bae6fd; }
+
+/* El texto de la marca conserva contraste sobre la tarjeta en ambos temas. */
+.login-panel .brand-center > div > span { color: #0f172a !important; }
+.login-panel .brand-center > div > span > span { color: #0284c7 !important; }
+html:not(.light-mode) .login-panel .brand-center > div > span { color: #f8fafc !important; }

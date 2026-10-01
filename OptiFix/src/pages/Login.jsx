@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import OptifixLogo from "../components/OptifixLogo.jsx";
+import Logo from "../components/Logo.jsx";
 import { useAuth } from "../hooks/useAuth.js";
 import { useWorkshop } from "../context/WorkshopContext.jsx";
 import AccessibilityPreferences from "../components/AccessibilityPreferences.jsx";
@@ -33,7 +33,7 @@ export function LoginCard() {
   }
 
   return <div className="form_main login-panel">
-    <div className="form-title-wrap"><div className="brand-center"><OptifixLogo size={76} /></div><p className="login-brand-name">Opti<span>Fix</span></p><h1 className="heading">{t("login.title")}</h1><p className="login-sub">{t("login.subtitle")}</p></div>
+    <div className="form-title-wrap"><div className="brand-center"><Logo iconSize={76} className="justify-center" /></div><h1 className="heading">{t("login.title")}</h1><p className="login-sub">{t("login.subtitle")}</p></div>
     <form onSubmit={handleSubmit} className="login-form">
       <div className="login-field"><label htmlFor="login-usuario">{t("login.username")}</label><input id="login-usuario" name="usuario" type="text" placeholder={t("login.username")} value={usuario} onChange={(event) => setUsuario(event.target.value)} required autoComplete="username" className="inputField" /></div>
       <div className="login-field"><label htmlFor="login-password">{t("login.password")}</label><input id="login-password" name="password" type="password" placeholder="••••••••" value={password} onChange={(event) => setPassword(event.target.value)} required autoComplete="current-password" className="inputField" /></div>
@@ -41,6 +41,11 @@ export function LoginCard() {
       <button type="submit" disabled={cargando} className="btn-submit">{cargando ? t("common.loading") : t("login.submit")}</button>
       <button type="button" className="forgotLink" onClick={() => setForgotOpen(true)}>{t("login.forgot")}</button>
     </form>
+    <aside className="login-credentials" aria-label={t("login.testCredentials")}>
+      <p className="cred-title">{t("login.testCredentials")}</p>
+      <div><strong>{t("login.testAdmin")}</strong><code>admin / admin123</code></div>
+      <div><strong>{t("login.testTechnician")}</strong><code>tecnico / tec123</code></div>
+    </aside>
     {forgotOpen && <div className="login-recovery" role="status"><span>Para recuperar el acceso, contactá al administrador del taller.</span><button type="button" onClick={() => setForgotOpen(false)} aria-label="Cerrar aviso">×</button></div>}
   </div>;
 }

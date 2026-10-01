@@ -440,3 +440,62 @@ html:not(.light-mode) .navan-landing .landing-track-form{background:#10253a;bord
 .navan-landing .landing-track-fields button{min-height:46px;padding:12px 18px;font-size:13px}
 html:not(.light-mode) .navan-landing .landing-nav-cta{color:#7dd3fc!important}
 @media(max-width:640px){.navan-landing .landing-track-heading{align-items:flex-start;gap:4px;flex-direction:column}.navan-landing .landing-nav-cta{padding:7px 10px;font-size:10px}}
+
+/* Ajustes de conversión y contraste de la página pública. */
+.navan-landing .landing-logo > span { color: #0b1728 !important; }
+.navan-landing .landing-logo > span > span { color: #0284c7 !important; }
+.landing-login-link { display:inline-flex; align-items:center; gap:6px; padding:8px 11px; color:#075e96; text-decoration:none; border:1px solid #9cc9e5; border-radius:999px; font-size:12px; font-weight:700; }
+.landing-login-link:hover { color:#fff; background:#0284c7; border-color:#0284c7; }
+.landing-section-label { display:inline-flex; align-items:center; width:max-content; padding:5px 10px; color:#0369a1; background:#e7f3ff; border:1px solid #c8e2f4; border-radius:999px; line-height:1; }
+.landing-pricing-section { background:#f1f7fd !important; }
+.landing-pricing-layout { display:grid; grid-template-columns:minmax(0,760px); align-items:center; }
+.landing-pricing-card { padding:28px; background:#fff; border:1px solid #c8e2f4; border-radius:16px; box-shadow:0 14px 32px rgba(2,132,199,.10); }
+.landing-pricing-card > span { display:inline-block; margin-bottom:10px; color:#0369a1; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
+.landing-pricing-card h3 { margin:0 0 10px; color:#0b1728; font-size:22px; }
+.landing-pricing-card p { margin:0 0 20px; color:#526174; font-size:13px; line-height:1.6; }
+.navan-landing .landing-cta-btn { color:#fff !important; background:#0284c7 !important; }
+html:not(.light-mode) .navan-landing .landing-logo > span { color:#f8fbff !important; }
+html:not(.light-mode) .navan-landing .landing-logo > span > span { color:#38bdf8 !important; }
+html:not(.light-mode) .landing-section-label { color:#dbeafe; background:#0d2b47; border-color:#1d6090; }
+html:not(.light-mode) .landing-login-link { color:#dbeafe; border-color:#3a739c; }
+html:not(.light-mode) .landing-pricing-section { background:#07111e !important; }
+html:not(.light-mode) .landing-pricing-card { background:#10253a; border-color:#1d405d; }
+html:not(.light-mode) .landing-pricing-card h3 { color:#f8fbff; }
+html:not(.light-mode) .landing-pricing-card p { color:#c7d8e7; }
+@media(max-width:760px){.landing-pricing-layout{grid-template-columns:1fr;gap:24px}.landing-login-text{display:none}.landing-login-link{padding:8px 10px}}
+
+/* Acentos y microinteracciones de la landing. */
+.navan-landing .feature-card { position:relative; overflow:hidden; transition:transform .24s ease, box-shadow .24s ease, border-color .24s ease !important; }
+.navan-landing .feature-card::before { position:absolute; top:0; left:0; width:100%; height:3px; content:""; background:#ff7a00; transform:scaleX(0); transform-origin:left; transition:transform .24s ease; }
+.navan-landing .feature-card:hover { transform:translateY(-6px) !important; border-color:rgba(255,122,0,.48) !important; box-shadow:0 16px 28px rgba(11,23,40,.12) !important; }
+.navan-landing .feature-card:hover::before { transform:scaleX(1); }
+.navan-landing .feature-card:hover .feature-icon { color:#fff; background:#ff7a00; transform:rotate(-4deg) scale(1.06); }
+.navan-landing .feature-icon { transition:transform .24s ease, background .24s ease, color .24s ease; }
+.navan-landing .step-num { color:#f97316; }
+.navan-landing .landing-calculator { transition:transform .24s ease, box-shadow .24s ease, border-color .24s ease; }
+.navan-landing .landing-calculator:hover { transform:translateY(-4px); border-color:#fb923c; box-shadow:0 16px 30px rgba(249,115,22,.15); }
+.navan-landing .landing-calculator input { transition:filter .2s ease; }
+.navan-landing .landing-calculator:hover input { filter:saturate(1.25); }
+.navan-landing .btn-landing-primary { transition:transform .18s ease, box-shadow .18s ease, background .18s ease; }
+.navan-landing .btn-landing-primary:hover { transform:translateY(-2px); box-shadow:0 10px 20px rgba(2,132,199,.24); }
+.navan-landing .btn-landing-primary:active { transform:translateY(0) scale(.98); }
+@media (prefers-reduced-motion: reduce) { .navan-landing .feature-card, .navan-landing .feature-card::before, .navan-landing .feature-icon, .navan-landing .landing-calculator, .navan-landing .btn-landing-primary { transition:none; } .navan-landing .feature-card:hover, .navan-landing .landing-calculator:hover, .navan-landing .btn-landing-primary:hover { transform:none !important; } }
+
+/* Módulos y beneficios: el naranja de la marca guía la lectura. */
+.navan-landing .landing-modules-list span { color:#fff !important; background:#f97316 !important; box-shadow:0 3px 8px rgba(249,115,22,.24); }
+.navan-landing .landing-benefit { border:1px solid rgba(249,115,22,.42) !important; box-shadow:0 6px 18px rgba(249,115,22,.08) !important; transition:transform .22s ease, border-color .22s ease, box-shadow .22s ease; }
+.navan-landing .landing-benefit > span { color:#f97316 !important; }
+.navan-landing .landing-benefit:hover { transform:translateY(-4px); border-color:#f97316 !important; box-shadow:0 14px 28px rgba(249,115,22,.16) !important; }
+html:not(.light-mode) .navan-landing .landing-benefit { border-color:rgba(251,146,60,.55) !important; box-shadow:0 7px 20px rgba(0,0,0,.18) !important; }
+@media (prefers-reduced-motion: reduce) { .navan-landing .landing-benefit { transition:none; } .navan-landing .landing-benefit:hover { transform:none; } }
+
+/* Contacto y calculadora interactivos. */
+.navan-landing .landing-cta-btn { border:0; cursor:pointer; }
+.landing-calculator input[type="range"] { appearance:none; height:7px; border-radius:999px; background:linear-gradient(90deg, #f97316 var(--impact-progress, 10%), #cfe0eb var(--impact-progress, 10%)); cursor:pointer; transition:background .2s ease; }
+.landing-calculator input[type="range"]::-webkit-slider-thumb { appearance:none; width:19px; height:19px; background:#f97316; border:3px solid #fff; border-radius:50%; box-shadow:0 2px 7px rgba(249,115,22,.35); transition:transform .18s ease; }
+.landing-calculator input[type="range"]::-moz-range-thumb { width:14px; height:14px; background:#f97316; border:3px solid #fff; border-radius:50%; box-shadow:0 2px 7px rgba(249,115,22,.35); transition:transform .18s ease; }
+.landing-calculator input[type="range"]:hover::-webkit-slider-thumb,.landing-calculator input[type="range"]:focus-visible::-webkit-slider-thumb { transform:scale(1.16); }
+.landing-calculator input[type="range"]:hover::-moz-range-thumb,.landing-calculator input[type="range"]:focus-visible::-moz-range-thumb { transform:scale(1.16); }
+.landing-impact-hours { display:inline-block; animation:impact-pop .3s ease-out; }
+@keyframes impact-pop { 0% { opacity:.35; transform:translateY(5px) scale(.88); } 100% { opacity:1; transform:translateY(0) scale(1); } }
+@media (prefers-reduced-motion: reduce) { .landing-impact-hours { animation:none; } .landing-calculator input[type="range"],.landing-calculator input[type="range"]::-webkit-slider-thumb,.landing-calculator input[type="range"]::-moz-range-thumb { transition:none; } }

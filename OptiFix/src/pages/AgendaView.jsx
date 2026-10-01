@@ -1,236 +1,55 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useWorkshop } from "../context/WorkshopContext.jsx";
 import Icono from "../components/icons.jsx";
 
-const DUMMY_APPOINTMENTS = [
-  {
-    id: "cita-1",
-    cliente: "María Fernández",
-    equipo: "Samsung QLED 55\"",
-    motivo: "Revisión a domicilio",
-    fecha: "Hoy",
-    hora: "10:00 AM",
-    estado: "Confirmada",
-    tipo: "Domicilio",
-  },
-  {
-    id: "cita-2",
-    cliente: "Carlos Rodríguez",
-    equipo: "Laptop Dell XPS",
-    motivo: "Retiro de equipo reparado",
-    fecha: "Hoy",
-    hora: "02:30 PM",
-    estado: "Pendiente",
-    tipo: "Taller",
-  },
-  {
-    id: "cita-3",
-    cliente: "Empresa XYZ S.A.",
-    equipo: "Lote de 5 Monitores",
-    motivo: "Ingreso de nuevos equipos",
-    fecha: "Mañana",
-    hora: "09:00 AM",
-    estado: "Confirmada",
-    tipo: "Taller",
-  },
-  {
-    id: "cita-4",
-    cliente: "Laura Gómez",
-    equipo: "Microondas Oster",
-    motivo: "Diagnóstico inicial",
-    fecha: "Mañana",
-    hora: "11:15 AM",
-    estado: "Reprogramada",
-    tipo: "Taller",
-  }
+const TODAY = "2026-09-24";
+const SEED = [
+  { id: "c1", cliente: "María Fernández", equipo: "Samsung QLED 55\"", fecha: "2026-09-24", hora: "10:00", estado: "Confirmada", tipo: "Visita técnica", notas: "Revisión a domicilio", telefono: "8888-1200", direccion: "San Pedro, Montes de Oca", ordenId: "1092" },
+  { id: "c2", cliente: "Carlos Rodríguez", equipo: "Laptop Dell XPS", fecha: "2026-09-24", hora: "14:30", estado: "Pendiente", tipo: "Retiro", notas: "Retiro de equipo reparado", telefono: "8888-2400", direccion: "Barrio Escalante, San José", ordenId: "1091" },
+  { id: "c3", cliente: "Empresa XYZ S.A.", equipo: "Lote de monitores", fecha: "2026-09-25", hora: "09:00", estado: "Confirmada", tipo: "Entrega", notas: "Entrega de equipos", telefono: "2222-1000", direccion: "La Uruca, San José", ordenId: "1090" },
+  { id: "c4", cliente: "Laura Gómez", equipo: "Microondas Oster", fecha: "2026-09-25", hora: "11:15", estado: "Completada", tipo: "Visita técnica", notas: "Diagnóstico inicial", telefono: "8888-3456", direccion: "Curridabat centro", ordenId: "" }
 ];
+const blank = (fecha = TODAY) => ({ tipo: "Retiro", fecha, hora: "09:00", notas: "", vinculo: "", vinculoTipo: "cliente", busqueda: "" });
+const fmt = (date) => new Intl.DateTimeFormat("es-CR", { day: "numeric", month: "short" }).format(new Date(`${date}T12:00:00`));
 
 export default function AgendaView() {
-  const [activeTab, setActiveTab] = useState("Proximas");
-  const [appointments] = useState(DUMMY_APPOINTMENTS);
-
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case "Confirmada":
-        return "bg-emerald-500/10 text-emerald-600 ring-1 ring-emerald-500/20";
-      case "Pendiente":
-        return "bg-amber-500/10 text-amber-600 ring-1 ring-amber-500/20";
-      case "Reprogramada":
-        return "bg-blue-500/10 text-blue-600 ring-1 ring-blue-500/20";
-      default:
-        return "bg-slate-500/10 text-slate-600 ring-1 ring-slate-500/20";
-    }
-  };
-
-  const getIconForType = (tipo) => {
-    return tipo === "Domicilio" ? "truck" : "storefront";
-  };
-
-  return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6 animate-fade-in">
-      {/* Encabezado */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Agenda y Citas</h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Gestiona retiros, entregas y visitas técnicas.
-          </p>
+  const { clientes, ordenes, equipos } = useWorkshop();
+  const [selectedDate, setSelectedDate] = useState(TODAY), [activeFilter, setActiveFilter] = useState("Próximas"), [appointments, setAppointments] = useState(SEED);
+  const [month, setMonth] = useState(new Date(2026, 8, 1)), [formOpen, setFormOpen] = useState(false), [editing, setEditing] = useState(null), [detail, setDetail] = useState(null), [removing, setRemoving] = useState(null), [form, setForm] = useState(blank());
+  const year = month.getFullYear(), mon = month.getMonth(), total = new Date(year, mon + 1, 0).getDate(), start = new Date(year, mon, 1).getDay();
+  const filtered = useMemo(() => appointments.filter(a => a.fecha === selectedDate && (activeFilter === "Próximas" ? a.estado !== "Completada" && a.fecha >= TODAY : activeFilter === "Hoy" ? a.fecha === TODAY : a.estado === "Completada")), [appointments, selectedDate, activeFilter]);
+  const openNew = () => { setEditing(null); setForm(blank(selectedDate)); setFormOpen(true); };
+  const openEdit = (a) => { setDetail(null); setEditing(a); setForm({ tipo: a.tipo, fecha: a.fecha, hora: a.hora, notas: a.notas, vinculo: a.ordenId || "", vinculoTipo: a.ordenId ? "orden" : "cliente", busqueda: a.ordenId ? `OT #${a.ordenId}` : a.cliente }); setFormOpen(true); };
+  const candidates = useMemo(() => form.vinculoTipo === "orden" ? ordenes.filter(o => (`${o.numero} ${o.estado_actual}`).toLowerCase().includes(form.busqueda.toLowerCase())).slice(0, 5) : clientes.filter(c => (`${c.nombre} ${c.telefono || ""}`).toLowerCase().includes(form.busqueda.toLowerCase())).slice(0, 5), [form.vinculoTipo, form.busqueda, ordenes, clientes]);
+  const changeTipo = (tipo) => setForm({ ...form, tipo, vinculoTipo: tipo === "Entrega" ? "orden" : form.vinculoTipo, vinculo: tipo === "Entrega" && form.vinculoTipo !== "orden" ? "" : form.vinculo, busqueda: tipo === "Entrega" && form.vinculoTipo !== "orden" ? "" : form.busqueda });
+  const save = (e) => { e.preventDefault(); if (form.tipo === "Entrega" && !form.vinculo) return; const id = form.vinculo; const order = form.vinculoTipo === "orden" ? ordenes.find(o => String(o.id) === id || String(o.numero) === id) : null; const client = form.vinculoTipo === "cliente" ? clientes.find(c => String(c.id) === id) : clientes.find(c => c.id === order?.cliente_id); const equipment = equipos.find(x => x.id === order?.equipo_id); const item = { ...editing, id: editing?.id || `c${Date.now()}`, fecha: form.fecha, hora: form.hora, tipo: form.tipo, notas: form.notas || form.tipo, estado: editing?.estado || "Pendiente", cliente: client?.nombre || editing?.cliente || "Cliente por confirmar", equipo: equipment ? `${equipment.marca || ""} ${equipment.modelo || ""}`.trim() : editing?.equipo || "Equipo por confirmar", telefono: client?.telefono || editing?.telefono || "Sin teléfono", direccion: client?.direccion || editing?.direccion || "Dirección por confirmar", ordenId: order?.numero || editing?.ordenId || "" }; setAppointments(a => editing ? a.map(x => x.id === editing.id ? item : x) : [...a, item]); setSelectedDate(form.fecha); setFormOpen(false); };
+  const status = s => ({ Confirmada: "bg-emerald-100 text-emerald-700", Pendiente: "bg-amber-100 text-amber-700", Completada: "bg-slate-200 text-slate-700" }[s]);
+  return <main className="agenda-view p-6 max-w-7xl mx-auto space-y-6"><header className="flex flex-col sm:flex-row justify-between gap-4"><div><h1 className="text-3xl font-extrabold tracking-tight !text-slate-950">Agenda y Citas</h1><p className="mt-1 text-sm font-medium !text-slate-600">Centro de mando para técnicos.</p></div><button onClick={openNew} className="inline-flex items-center gap-2 bg-optifix-600 hover:bg-optifix-700 text-white px-4 py-2.5 rounded-xl font-medium shadow-sm hover:shadow-md transition-all"><Icono nombre="plus" size={18} />Nueva Cita</button></header>
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6"><section className="!bg-white rounded-2xl border border-slate-200 p-5 h-fit shadow-sm"><div className="flex justify-between mb-4"><b className="!text-slate-900 capitalize">{new Intl.DateTimeFormat("es-CR", { month: "long", year: "numeric" }).format(month)}</b><span><button onClick={() => setMonth(new Date(year, mon - 1, 1))} className="p-1 !text-slate-600 cursor-pointer hover:bg-orange-100 rounded-full transition-all">‹</button><button onClick={() => setMonth(new Date(year, mon + 1, 1))} className="p-1 !text-slate-600 cursor-pointer hover:bg-orange-100 rounded-full transition-all">›</button></span></div><div className="grid grid-cols-7 text-center text-xs !text-slate-400">{["Do","Lu","Ma","Mi","Ju","Vi","Sa"].map(d=><span key={d}>{d}</span>)}</div><div className="grid grid-cols-7 gap-1 mt-2 text-center">{Array.from({length:start}).map((_,i)=><i key={i}/>)}{Array.from({length:total}).map((_,i)=>{const d=i+1,date=`${year}-${String(mon+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`,sel=date===selectedDate,event=appointments.some(a=>a.fecha===date);return <button key={date} onClick={()=>setSelectedDate(date)} className={`p-2 cursor-pointer hover:bg-orange-100 rounded-full transition-all relative ${sel?"rounded-full bg-orange-500 text-white font-bold shadow-md":"!text-slate-700"}`}>{d}{event&&!sel&&<i className="absolute bottom-1 left-1/2 w-1 h-1 bg-orange-500 rounded-full"/>}</button>})}</div></section>
+      <section className="lg:col-span-2 !bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm"><div className="p-3 border-b border-slate-100 flex gap-2">{["Próximas","Hoy","Completadas"].map(f=><button key={f} onClick={()=>setActiveFilter(f)} className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-all ${activeFilter===f?"bg-orange-100 !text-orange-700 ring-1 ring-orange-200":"!text-slate-500 hover:!text-slate-800 hover:bg-slate-100"}`}>{f}</button>)}</div><div className="p-4 text-sm font-semibold !text-slate-500">{fmt(selectedDate)} · {filtered.length} cita(s)</div><div className="divide-y divide-slate-100">{filtered.map(a=><article key={a.id} onClick={()=>setDetail(a)} className="p-5 cursor-pointer hover:bg-orange-50 hover:shadow-md transition-all group flex justify-between gap-4 border-l-4 border-l-transparent hover:border-l-orange-400"><div><b className="!text-slate-900">{a.hora} · {a.cliente}</b><p className="text-sm !text-slate-500">{a.equipo} · {a.notas}</p><span className={`inline-block mt-2 px-2 py-0.5 text-xs rounded-full ${status(a.estado)}`}>{a.estado}</span></div><div className="flex opacity-100 sm:opacity-0 sm:group-hover:opacity-100"><button onClick={e=>{e.stopPropagation();openEdit(a)}} className="p-2 !text-slate-600 hover:bg-orange-100 rounded-lg" title="Editar"><Icono nombre="pencil" size={18}/></button><button onClick={e=>{e.stopPropagation();setRemoving(a)}} className="p-2 hover:bg-red-100 text-red-600 rounded-lg" title="Eliminar"><Icono nombre="trash" size={18}/></button></div></article>)}{!filtered.length&&<p className="p-12 text-center !text-slate-500">No hay citas para esta selección.</p>}</div></section></div>
+    {formOpen && <Modal title={editing ? "Reprogramar cita" : "Nueva cita"} close={() => setFormOpen(false)}>
+      <form onSubmit={save} className="grid sm:grid-cols-2 gap-4">
+        <label className="grid gap-1 text-sm font-semibold text-slate-700 dark:text-slate-200">Tipo
+          <select value={form.tipo} onChange={e => changeTipo(e.target.value)} className="rounded-lg border p-2 bg-white dark:bg-slate-800 dark:text-white"><option>Retiro</option><option>Entrega</option><option>Visita técnica</option></select>
+        </label>
+        <div className="sm:col-span-2">
+          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">Vincular</p>
+          <div className="mt-2 inline-flex rounded-full bg-slate-100 dark:bg-slate-800 p-1">
+            <button type="button" disabled={form.tipo === "Entrega"} onClick={() => setForm({...form, vinculoTipo:"cliente", vinculo:"", busqueda:""})} className={`px-3 py-1.5 rounded-full text-sm transition-all ${form.vinculoTipo === "cliente" ? "bg-orange-500 text-white shadow-sm" : "text-slate-500 hover:text-slate-800 dark:hover:text-white"} ${form.tipo === "Entrega" ? "cursor-not-allowed opacity-50" : ""}`}>Vincular a Cliente</button>
+            <button type="button" onClick={() => setForm({...form, vinculoTipo:"orden", vinculo:"", busqueda:""})} className={`px-3 py-1.5 rounded-full text-sm transition-all ${form.vinculoTipo === "orden" ? "bg-orange-500 text-white shadow-sm" : "text-slate-500 hover:text-slate-800 dark:hover:text-white"}`}>Vincular a Orden</button>
+          </div>
+          {form.tipo === "Entrega" && <p className="mt-2 text-xs text-orange-600 dark:text-orange-300">Las entregas se vinculan a una orden de trabajo.</p>}
+          <input value={form.busqueda} onChange={e => setForm({...form, busqueda:e.target.value, vinculo:""})} placeholder={form.vinculoTipo === "cliente" ? "Buscar cliente por nombre o teléfono..." : "Buscar por N° de boleta (OT)..."} className="mt-3 w-full rounded-lg border p-2 bg-white dark:bg-slate-800 dark:text-white" />
+          {form.busqueda && <ul className="mt-2 overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700 divide-y dark:divide-slate-700">{candidates.map(item => <li key={item.id}><button type="button" onClick={() => setForm({...form, vinculo:String(item.id), busqueda:form.vinculoTipo === "orden" ? `OT #${item.numero}` : item.nombre})} className="w-full px-3 py-2 text-left text-sm hover:bg-orange-50 dark:hover:bg-orange-950/30 transition-colors"><b className="text-slate-800 dark:text-white">{form.vinculoTipo === "orden" ? `OT #${item.numero}` : item.nombre}</b><span className="ml-2 text-slate-500">{form.vinculoTipo === "orden" ? item.estado_actual : item.telefono}</span></button></li>)}</ul>}
         </div>
-        <button className="inline-flex items-center gap-2 bg-optifix-600 hover:bg-optifix-700 text-white px-4 py-2.5 rounded-xl font-medium transition-colors shadow-sm shadow-optifix-500/20">
-          <Icono nombre="plus" size={18} />
-          Nueva Cita
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Columna Izquierda: Calendario & Resumen */}
-        <div className="space-y-6">
-          {/* Mini Calendario Decorativo */}
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-bold text-slate-800">Septiembre 2026</h2>
-              <div className="flex gap-1">
-                <button className="p-1 hover:bg-slate-100 rounded text-slate-400 hover:text-slate-600 transition-colors">
-                  <Icono nombre="chevron-left" size={16} />
-                </button>
-                <button className="p-1 hover:bg-slate-100 rounded text-slate-400 hover:text-slate-600 transition-colors">
-                  <Icono nombre="chevron-right" size={16} />
-                </button>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-7 gap-1 text-center text-xs font-medium text-slate-400 mb-2">
-              <div>Do</div><div>Lu</div><div>Ma</div><div>Mi</div><div>Ju</div><div>Vi</div><div>Sa</div>
-            </div>
-            <div className="grid grid-cols-7 gap-1 text-center text-sm">
-              {/* Días en blanco */}
-              <div className="p-2 text-transparent">0</div>
-              <div className="p-2 text-transparent">0</div>
-              {/* Días del mes (Mockup 1-30) */}
-              {Array.from({ length: 30 }).map((_, i) => {
-                const isToday = i + 1 === 24;
-                const hasEvent = [24, 25, 28].includes(i + 1);
-                return (
-                  <div 
-                    key={i} 
-                    className={`
-                      p-2 rounded-lg cursor-pointer transition-all relative
-                      ${isToday ? 'bg-optifix-600 text-white font-bold shadow-md shadow-optifix-500/30' : 'text-slate-700 hover:bg-slate-50'}
-                    `}
-                  >
-                    {i + 1}
-                    {hasEvent && !isToday && (
-                      <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-optifix-500 rounded-full"></span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Resumen de Hoy */}
-          <div className="bg-gradient-to-br from-optifix-600 to-optifix-800 rounded-2xl shadow-lg p-5 text-white relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-4 opacity-10">
-              <Icono nombre="calendar-check" size={100} />
-            </div>
-            <div className="relative z-10">
-              <h3 className="text-optifix-100 font-medium text-sm mb-1">Resumen de Hoy</h3>
-              <div className="text-3xl font-bold mb-4">2 Citas</div>
-              
-              <div className="space-y-3">
-                <div className="flex items-center justify-between bg-white/10 rounded-lg p-3 backdrop-blur-sm">
-                  <span className="text-sm font-medium">10:00 AM</span>
-                  <span className="text-sm text-optifix-100 truncate ml-3">Revisión a domicilio</span>
-                </div>
-                <div className="flex items-center justify-between bg-white/10 rounded-lg p-3 backdrop-blur-sm">
-                  <span className="text-sm font-medium">02:30 PM</span>
-                  <span className="text-sm text-optifix-100 truncate ml-3">Retiro de equipo</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Columna Derecha: Lista de Citas */}
-        <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden flex flex-col">
-          <div className="border-b border-slate-100 p-2">
-            <div className="flex gap-2 p-1 bg-slate-50/50 rounded-lg w-fit">
-              {['Proximas', 'Hoy', 'Completadas'].map(tab => (
-                <button 
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`
-                    px-4 py-2 rounded-md text-sm font-medium transition-all
-                    ${activeTab === tab 
-                      ? 'bg-white text-optifix-700 shadow-sm ring-1 ring-slate-200/50' 
-                      : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100/50'}
-                  `}
-                >
-                  {tab === 'Proximas' ? 'Próximas' : tab}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex-1 p-0 overflow-y-auto">
-            <div className="divide-y divide-slate-100">
-              {appointments.map((apt) => (
-                <div key={apt.id} className="p-5 hover:bg-slate-50/80 transition-colors group">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-start gap-4 flex-1">
-                      {/* Hora / Fecha */}
-                      <div className="flex flex-col items-center justify-center min-w-[70px] py-2 px-3 bg-slate-50 rounded-xl border border-slate-100">
-                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">{apt.fecha}</span>
-                        <span className="text-sm font-bold text-slate-800 mt-0.5">{apt.hora.split(' ')[0]}</span>
-                        <span className="text-[10px] font-semibold text-slate-400">{apt.hora.split(' ')[1]}</span>
-                      </div>
-                      
-                      {/* Detalles */}
-                      <div className="flex-1 pt-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h4 className="text-base font-bold text-slate-900">{apt.cliente}</h4>
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide ${getStatusBadge(apt.estado)}`}>
-                            {apt.estado}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-slate-500 mb-2">
-                          <span className="font-medium text-slate-700">{apt.equipo}</span>
-                          <span className="w-1 h-1 rounded-full bg-slate-300"></span>
-                          <span>{apt.motivo}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 text-xs font-medium text-slate-400">
-                          <Icono nombre={getIconForType(apt.tipo)} size={14} />
-                          {apt.tipo}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Acciones */}
-                    <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity pt-2">
-                      <button className="p-2 text-slate-400 hover:text-optifix-600 hover:bg-optifix-50 rounded-lg transition-colors" title="Editar cita">
-                        <Icono nombre="pencil" size={18} />
-                      </button>
-                      <button className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Cancelar cita">
-                        <Icono nombre="trash" size={18} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-
-              {appointments.length === 0 && (
-                <div className="p-12 text-center flex flex-col items-center justify-center">
-                  <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 mb-4">
-                    <Icono nombre="calendar-blank" size={32} />
-                  </div>
-                  <h3 className="text-slate-800 font-bold mb-1">No hay citas</h3>
-                  <p className="text-slate-500 text-sm">No tienes citas programadas para esta vista.</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+        <label className="grid gap-1 text-sm font-semibold text-slate-700 dark:text-slate-200">Fecha<input type="date" required value={form.fecha} onChange={e => setForm({...form, fecha:e.target.value})} className="rounded-lg border p-2 bg-white dark:bg-slate-800 dark:text-white" /></label>
+        <label className="grid gap-1 text-sm font-semibold text-slate-700 dark:text-slate-200">Hora<input type="time" required value={form.hora} onChange={e => setForm({...form, hora:e.target.value})} className="rounded-lg border p-2 bg-white dark:bg-slate-800 dark:text-white" /></label>
+        <label className="sm:col-span-2 grid gap-1 text-sm font-semibold text-slate-700 dark:text-slate-200">Notas<textarea rows="3" value={form.notas} onChange={e => setForm({...form, notas:e.target.value})} className="rounded-lg border p-2 bg-white dark:bg-slate-800 dark:text-white" /></label>
+        <button disabled={form.tipo === "Entrega" && !form.vinculo} className="sm:col-span-2 bg-optifix-600 text-white rounded-lg p-2 font-semibold disabled:opacity-50 disabled:cursor-not-allowed">Guardar cita</button>
+      </form>
+    </Modal>}
+    {detail&&<Modal title="Detalles de la cita" close={()=>setDetail(null)}><p><b>Dirección:</b> {detail.direccion}</p><p><b>Teléfono:</b> {detail.telefono}</p><p><b>Equipo:</b> {detail.equipo}</p><p><b>Orden:</b> {detail.ordenId?`OT #${detail.ordenId}`:"Sin vincular"}</p><div className="mt-5 flex gap-2"><button onClick={()=>openEdit(detail)} className="p-2 rounded-lg bg-blue-100 text-blue-700">Reprogramar</button><button onClick={()=>setRemoving(detail)} className="p-2 rounded-lg bg-red-100 text-red-700">Cancelar</button></div></Modal>}
+    {removing&&<Modal title="¿Eliminar esta cita?" close={()=>setRemoving(null)}><p className="text-slate-600">Se eliminará la cita de {removing.cliente}. Esta acción requiere confirmación.</p><div className="mt-5 flex justify-end gap-2"><button onClick={()=>setRemoving(null)} className="p-2">Volver</button><button onClick={()=>{setAppointments(a=>a.filter(x=>x.id!==removing.id));setRemoving(null);setDetail(null)}} className="p-2 rounded-lg bg-red-600 text-white">Sí, eliminar</button></div></Modal>}
+  </main>;
 }
+function Modal({title,children,close}){return <div onMouseDown={close} className="fixed inset-0 z-50 grid place-items-center p-4 bg-slate-950/50"><section onMouseDown={e=>e.stopPropagation()} role="dialog" aria-modal="true" className="agenda-modal w-full max-w-xl p-6 rounded-2xl"><header className="flex justify-between mb-4"><h2 className="font-bold text-lg">{title}</h2><button onClick={close} aria-label="Cerrar">×</button></header>{children}</section></div>}

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { OptifixBrand } from "../components/OptifixLogo.jsx";
+import Logo from "../components/Logo.jsx";
 import { useWorkshop } from "../context/WorkshopContext.jsx";
 import { registrarUsuario } from "../services/n8nBackendService.js";
 import "./Login.css";
@@ -52,7 +52,7 @@ export default function Register() {
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: "linear-gradient(135deg, #0a2547 0%, #0d4d8a 55%, #38bdf8 120%)", fontFamily: "'Inter', 'Outfit', sans-serif" }}>
       <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 16px" }}>
         <div className="form_main login-panel">
-          <div className="form-title-wrap"><div className="brand-center"><OptifixBrand size={48} textSize={26} taglineSize={9} /></div><h1 className="heading">Crear cuenta</h1><p className="login-sub">Registro de personal técnico del taller</p></div>
+          <div className="form-title-wrap"><div className="brand-center"><Logo iconSize={48} className="justify-center" /></div><h1 className="heading">Crear cuenta</h1><p className="login-sub">Registro de personal técnico del taller</p></div>
           {exito ? (
             <div className="login-credentials" role="status" style={{ textAlign: "center" }}><p className="cred-title">¡Cuenta creada!</p><p>Redirigiendo al inicio de sesión…</p></div>
           ) : (

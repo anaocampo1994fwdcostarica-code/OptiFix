@@ -1,13 +1,34 @@
-const FALLBACK_USD_TO_CRC = 510;
-
-/** Consulta Frankfurter, API pública y gratuita de tipos de cambio. */
+/** Consulta las tasas públicas reportadas para Banco Nacional de Costa Rica. */
 export async function obtenerTipoCambioUsdCrc() {
   try {
-    const response = await fetch("https://api.frankfurter.app/latest?from=USD&to=CRC");
+    const response = await fetch("https://tipodecambio.cr/api/rates");
     if (!response.ok) throw new Error("No se pudo consultar el tipo de cambio");
     const data = await response.json();
-    return { rate: data.rates?.CRC || FALLBACK_USD_TO_CRC, date: data.date, source: "Frankfurter" };
+    const bancoNacional = data.rates?.find((item) =>
+      item.entidad?.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() === "banco nacional"
+    );
+    if (!bancoNacional?.venta) throw new Error("Banco Nacional no disponible");
+
+    return {
+      rate: Number(bancoNacional.venta),
+      date: bancoNacional.actualizacion || null,
+      source: `Banco Nacional${bancoNacional.actualizacion ? ` · ${bancoNacional.actualizacion}` : ""}`
+    };
   } catch {
-    return { rate: FALLBACK_USD_TO_CRC, date: null, source: "Referencia sin conexión" };
+    // Respaldo oficial: Hacienda publica la referencia diaria del BCCR.
+    try {
+      const response = await fetch("https://api.hacienda.go.cr/indicadores/tc/dolar");
+      if (!response.ok) throw new Error("No se pudo consultar el BCCR");
+      const data = await response.json();
+      if (!data.venta?.valor) throw new Error("Venta BCCR no disponible");
+
+      return {
+        rate: Number(data.venta.valor),
+        date: data.venta.fecha || null,
+        source: `BCCR (respaldo)${data.venta.fecha ? ` · ${data.venta.fecha}` : ""}`
+      };
+    } catch {
+      return { rate: null, date: null, source: "Tipo de cambio no disponible" };
+    }
   }
 }

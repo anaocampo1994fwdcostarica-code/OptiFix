@@ -14,7 +14,7 @@
   },
   "common": { "loading": "Cargando...", "save": "Guardar", "cancel": "Cancelar" },
   "language": { "switch": "Cambiar idioma", "spanish": "Español", "english": "Inglés" },
-  "login": { "title": "Acceso", "subtitle": "Ingrese sus credenciales para continuar", "username": "Usuario", "password": "Contraseña", "submit": "Ingresar", "forgot": "¿Olvidaste tu contraseña?", "back": "Volver al inicio", "admin": "Administrador", "technician": "Técnico", "invalid": "Usuario o contraseña incorrectos." },
+  "login": { "title": "Acceso", "subtitle": "Ingrese sus credenciales para continuar", "username": "Usuario", "password": "Contraseña", "submit": "Ingresar", "forgot": "¿Olvidaste tu contraseña?", "back": "Volver al inicio", "admin": "Administrador", "technician": "Técnico", "invalid": "Usuario o contraseña incorrectos.", "testCredentials": "CREDENCIALES DE PRUEBA", "testAdmin": "Admin", "testTechnician": "Técnico" },
   "landing": {
     "nav": { "features": "Características", "how": "Cómo funciona", "modules": "Módulos", "contact": "Contacto", "enter": "Ingresar al Panel", "internal": "Acceso interno" },
     "hero": { "badge": "Seguimiento de reparaciones OptiFix", "titleBefore": "Consultá el ", "highlight": "estado de tu orden", "titleAfter": " en segundos.", "description": "Ingresá el número de orden y tu teléfono o cédula para conocer el estado actual de tu equipo, sin crear una cuenta ni iniciar sesión.", "trackTitle": "Consultar estado de mi orden", "trackHint": "Rápido, privado y sin iniciar sesión", "order": "Número de orden", "document": "Teléfono o cédula", "trackAction": "Consultar estado", "trackError": "No encontramos una orden con esos datos. Verificá el número de orden y teléfono o cédula." },
