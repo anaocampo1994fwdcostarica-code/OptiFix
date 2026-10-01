@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 jest.mock("../services/aiService.js", () => ({ sugerirDiagnostico: jest.fn() }));
+jest.mock("../services/optibotService.js", () => ({ consultarOptiBot: jest.fn() }));
 import App from "../App.jsx";
 import { AuthProvider } from "../context/AuthContext.jsx";
 import { WorkshopProvider } from "../context/WorkshopContext.jsx";

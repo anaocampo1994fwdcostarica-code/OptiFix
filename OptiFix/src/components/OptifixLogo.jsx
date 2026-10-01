@@ -27,7 +27,7 @@ export default function OptifixLogo({ size = 72, className = "" }) {
 /**
  * Versión horizontal del logo de referencia.
  */
-export function OptifixBrand({ size = 88, textSize = 64, taglineSize = 26 }) {
+export function OptifixBrand({ size = 88, textSize = 64, taglineSize = 26, showTagline = true }) {
   return (
     <svg width={size * 4.5} height={size} viewBox="0 0 450 100" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Logo OptiFix">
       <defs><linearGradient id="optifixBrandGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#0284c7" /><stop offset="100%" stopColor="#0369a1" /></linearGradient></defs>
@@ -41,7 +41,7 @@ export function OptifixBrand({ size = 88, textSize = 64, taglineSize = 26 }) {
         <circle cx="56" cy="24" r="3.5" fill="#f97316" />
       </g>
       <text x="110" y="58" fontFamily="Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" fontSize="46" fontWeight="800" letterSpacing="-0.03em" fill="#0f172a">Opti<tspan fill="#0284c7">Fix</tspan></text>
-      <text x="112" y="82" fontFamily="Inter, system-ui, -apple-system, sans-serif" fontSize={taglineSize} fontWeight="500" letterSpacing="0.05em" fill="#64748b">TALLER & ERP</text>
+      {showTagline && <text x="112" y="82" fontFamily="Inter, system-ui, -apple-system, sans-serif" fontSize={taglineSize} fontWeight="500" letterSpacing="0.05em" fill="#64748b">TALLER & ERP</text>}
     </svg>
   );
 }

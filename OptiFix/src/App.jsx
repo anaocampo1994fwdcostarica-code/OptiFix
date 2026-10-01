@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import Sidebar from "./components/Sidebar.jsx";
 import TopNavbar from "./components/TopNavbar.jsx";
 import NotificationDrawer from "./components/NotificationDrawer.jsx";
+import OptiBotFloating from "./components/ai/OptiBotFloating.jsx";
 import Routing from "./routes/Routing.jsx";
 import { useAuth } from "./hooks/useAuth.js";
 
@@ -54,6 +55,7 @@ export default function App() {
 
       {/* Cajón Lateral de Notificaciones (Captura 3) */}
       <NotificationDrawer />
+      {location.pathname !== "/asistente" && <OptiBotFloating />}
     </div>
   );
 }

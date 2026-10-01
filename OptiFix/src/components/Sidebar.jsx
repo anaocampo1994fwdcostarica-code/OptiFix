@@ -48,7 +48,6 @@ export default function Sidebar({ collapsed, mobileOpen = false, onToggle }) {
           <Icono nombre="calendar" size={18} />
           {!collapsed && <span>{t("nav.agenda")}</span>}
         </Link>
-
         {/* Centro de Servicios Acordeón */}
         <div className="nav-group">
           <button

@@ -16,6 +16,7 @@ import CotizacionesView from "../pages/CotizacionesView.jsx";
 import AgendaView from "../pages/AgendaView.jsx";
 import DashboardView from "../pages/DashboardView.jsx";
 import UsuariosView from "../pages/UsuariosView.jsx";
+import AsistenteIAView from "../pages/AsistenteIAView.jsx";
 import ProtectedRoute from "../components/ProtectedRoute.jsx";
 
 import NuevaOrdenView from "../pages/NuevaOrdenView.jsx";
@@ -107,6 +108,10 @@ export default function Routing({ onOpenNewOrderModal }) {
             <ServiciosView />
           </ProtectedRoute>
         }
+      />
+      <Route
+        path="/asistente"
+        element={<ProtectedRoute allowedRoles={["admin", "tecnico"]}><AsistenteIAView /></ProtectedRoute>}
       />
 
       {/* Rutas privadas — exclusivas de Administrador */}

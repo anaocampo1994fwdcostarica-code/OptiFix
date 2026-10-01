@@ -4,7 +4,7 @@ import { registrarUsuario } from "../services/n8nBackendService.js";
 import "./UsuariosView.css";
 
 const AVAILABLE_PERMISSIONS = ["ver_ordenes", "crear_orden", "crear_cotizacion", "gestionar_usuarios"];
-const EMPTY_USER = { nombre: "", usuario: "", password: "", rol: "tecnico", roles: ["ver_ordenes", "crear_orden"] };
+const EMPTY_USER = { nombre: "", usuario: "", email: "", telefono: "", password: "", rol: "tecnico", roles: ["ver_ordenes", "crear_orden"] };
 
 export default function UsuariosView() {
   const { usuarios, addUsuario, updateUsuario, deleteUsuario } = useWorkshop();
@@ -52,6 +52,8 @@ export default function UsuariosView() {
         <h2>Agregar usuario</h2>
         <label>Nombre completo<input value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} required /></label>
         <label>Usuario<input value={form.usuario} onChange={(e) => setForm({ ...form, usuario: e.target.value })} required /></label>
+        <label>Correo electrónico<input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required /></label>
+        <label>Teléfono<input type="tel" value={form.telefono} onChange={(e) => setForm({ ...form, telefono: e.target.value })} required /></label>
         <label>Contraseña<input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required /></label>
         <label>Tipo de usuario<select value={form.rol} onChange={(e) => setForm({ ...form, rol: e.target.value })}><option value="tecnico">Técnico</option><option value="admin">Administrador</option></select></label>
         <fieldset><legend>Permisos</legend>{AVAILABLE_PERMISSIONS.map((permission) => <label className="permission-check" key={permission}><input type="checkbox" checked={form.roles.includes(permission)} onChange={() => togglePermission(permission)} /> {permission.replace(/_/g, " ")}</label>)}</fieldset>

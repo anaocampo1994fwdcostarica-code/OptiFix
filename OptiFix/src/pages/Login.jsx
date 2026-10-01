@@ -6,6 +6,7 @@ import { useAuth } from "../hooks/useAuth.js";
 import { useWorkshop } from "../context/WorkshopContext.jsx";
 import AccessibilityPreferences from "../components/AccessibilityPreferences.jsx";
 import "./Login.css";
+import { useLanguage } from "../context/LanguageContext.jsx";
 
 const ETIQUETAS_ROL = { admin: "Administrador", tecnico: "Técnico" };
 
@@ -17,6 +18,7 @@ export function LoginCard({ initialRole = "admin" }) {
   const [cargando, setCargando] = useState(false);
   const navigate = useNavigate();
   const { login, loginConCredenciales } = useAuth();
+  const { t } = useLanguage();
   const { usuarios } = useWorkshop();
 
   function entrarComo(user) { login(user); navigate("/ordenes"); }
@@ -28,7 +30,7 @@ export function LoginCard({ initialRole = "admin" }) {
     try {
       const sesion = await loginConCredenciales({ usuario, password, rol: tab, fallbackUsers: usuarios });
       if (sesion) navigate("/ordenes");
-      else setError(`Usuario o contraseña incorrectos para el acceso de ${ETIQUETAS_ROL[tab]}.`);
+      else setError(t("login.invalid", { role: t(tab === "admin" ? "login.admin" : "login.technician") }));
     } finally {
       setCargando(false);
     }
@@ -40,13 +42,13 @@ export function LoginCard({ initialRole = "admin" }) {
   }
 
   return <div className="form_main login-panel">
-    <div className="form-title-wrap"><div className="brand-center"><OptifixBrand size={48} textSize={26} taglineSize={9} /></div><h1 className="heading">Acceso</h1><p className="login-sub">Ingrese sus credenciales para continuar</p></div>
+    <div className="form-title-wrap"><div className="brand-center"><OptifixBrand size={48} textSize={26} taglineSize={9} /></div><h1 className="heading">{t("login.title")}</h1><p className="login-sub">{t("login.subtitle")}</p></div>
     <form onSubmit={handleSubmit} className="login-form">
-      <div className="inputContainer"><input name="usuario" type="text" placeholder="Usuario" value={usuario} onChange={(event) => setUsuario(event.target.value)} required autoComplete="username" className="inputField" /></div>
-      <div className="inputContainer"><input name="password" type="password" placeholder="••••••••" value={password} onChange={(event) => setPassword(event.target.value)} required autoComplete="current-password" className="inputField" /></div>
+      <div className="inputContainer"><input name="usuario" type="text" placeholder={t("login.username")} value={usuario} onChange={(event) => setUsuario(event.target.value)} required autoComplete="username" className="inputField" /></div>
+      <div className="inputContainer"><input name="password" type="password" placeholder={t("login.password")} value={password} onChange={(event) => setPassword(event.target.value)} required autoComplete="current-password" className="inputField" /></div>
       {error && <div className="login-error" role="alert">{error}</div>}
-      <button type="submit" disabled={cargando} className="btn-submit">{cargando ? "Verificando..." : "Ingresar"}</button>
-      <a className="forgotLink" href="/login">¿Olvidaste tu contraseña?</a>
+      <button type="submit" disabled={cargando} className="btn-submit">{cargando ? t("common.loading") : t("login.submit")}</button>
+      <a className="forgotLink" href="/login">{t("login.forgot")}</a>
     </form>
     <div className="login-divider"><div className="line" /><span>o</span><div className="line" /></div>
     <button type="button" onClick={handleDemo} className="login-demo-btn">Entrar en modo demo</button>

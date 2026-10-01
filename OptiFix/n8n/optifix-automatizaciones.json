@@ -45,6 +45,51 @@
     {
       "parameters": { "respondWith": "json", "responseBody": "={{ $json }}" },
       "name": "Responder chat", "type": "n8n-nodes-base.respondToWebhook", "typeVersion": 1, "position": [960, 620]
+    },
+    {
+      "parameters": { "path": "optifix-admin-chat", "httpMethod": "POST", "responseMode": "responseNode" },
+      "name": "Webhook OptiBot administrativo", "type": "n8n-nodes-base.webhook", "typeVersion": 2, "position": [180, 870]
+    },
+    {
+      "parameters": { "jsCode": "const d = $json.body ?? $json;\nconst pregunta = String(d.pregunta || '').trim();\nif (!pregunta) throw new Error('La pregunta es obligatoria');\nconst u = d.usuario || {};\nreturn [{ json: { pregunta, usuario: { id: u.id, nombre: u.nombre, usuario: u.usuario, email: u.email, rol: u.rol } } }];" },
+      "name": "Validar consulta OptiBot", "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [420, 870]
+    },
+    {
+      "parameters": { "promptType": "define", "text": "={{ $json.pregunta }}", "options": { "systemMessage": "Eres OptiBot, asistente administrativo de OptiFix. Responde con claridad, brevedad y tono profesional. Fundamenta tus respuestas exclusivamente en los datos que obtengas desde las herramientas conectadas a este agente: órdenes, clientes, equipos, servicios y usuarios. No inventes datos, fechas ni contactos. Si no hay evidencia suficiente, indícalo y sugiere verificarlo en el sistema. El usuario autenticado es: {{ JSON.stringify($json.usuario) }}." } },
+      "name": "AI Agent OptiBot", "type": "@n8n/n8n-nodes-langchain.agent", "typeVersion": 2, "position": [700, 870]
+    },
+    {
+      "parameters": { "model": "deepseek-chat", "options": {} },
+      "name": "Modelo DeepSeek Configurar", "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi", "typeVersion": 1, "position": [620, 1040],
+      "credentials": { "openAiApi": { "id": "CONFIGURAR_DEEPSEEK", "name": "Configurar credencial DeepSeek" } }
+    },
+    {
+      "parameters": { "jsCode": "const respuesta = String($json.output || $json.text || '').trim();\nif (!respuesta) throw new Error('El agente no devolvió una respuesta');\nreturn [{ json: { success: true, respuesta } }];" },
+      "name": "Formatear respuesta OptiBot", "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [960, 870]
+    },
+    {
+      "parameters": { "respondWith": "json", "responseBody": "={{ $json }}" },
+      "name": "Responder OptiBot", "type": "n8n-nodes-base.respondToWebhook", "typeVersion": 1, "position": [1200, 870]
+    },
+    {
+      "parameters": { "toolDescription": "Consulta las órdenes de reparación. Úsala para estados, números, diagnósticos, importes o fechas.", "method": "GET", "url": "http://host.docker.internal:3001/ordenes" },
+      "name": "Datos · Órdenes (solo lectura)", "type": "@n8n/n8n-nodes-langchain.toolHttpRequest", "typeVersion": 1, "position": [520, 1170]
+    },
+    {
+      "parameters": { "toolDescription": "Consulta clientes del taller. Úsala únicamente para datos de contacto o identificación necesarios.", "method": "GET", "url": "http://host.docker.internal:3001/clientes" },
+      "name": "Datos · Clientes (solo lectura)", "type": "@n8n/n8n-nodes-langchain.toolHttpRequest", "typeVersion": 1, "position": [720, 1170]
+    },
+    {
+      "parameters": { "toolDescription": "Consulta equipos registrados y su información técnica.", "method": "GET", "url": "http://host.docker.internal:3001/equipos" },
+      "name": "Datos · Equipos (solo lectura)", "type": "@n8n/n8n-nodes-langchain.toolHttpRequest", "typeVersion": 1, "position": [920, 1170]
+    },
+    {
+      "parameters": { "toolDescription": "Consulta el catálogo de servicios y precios de referencia del taller.", "method": "GET", "url": "http://host.docker.internal:3001/servicios" },
+      "name": "Datos · Servicios (solo lectura)", "type": "@n8n/n8n-nodes-langchain.toolHttpRequest", "typeVersion": 1, "position": [1120, 1170]
+    },
+    {
+      "parameters": { "toolDescription": "Consulta colaboradores y técnicos registrados. La fuente no contiene contraseñas; úsala para nombre, correo, teléfono o rol.", "method": "GET", "url": "http://host.docker.internal:3001/usuarios-publicos" },
+      "name": "Datos · Usuarios (solo lectura)", "type": "@n8n/n8n-nodes-langchain.toolHttpRequest", "typeVersion": 1, "position": [1320, 1170]
     }
   ],
   "connections": {
@@ -55,7 +100,17 @@
     "Validar registro de usuario": { "main": [[{ "node": "Responder registro de usuario", "type": "main", "index": 0 }]] },
     "Webhook · Chat público": { "main": [[{ "node": "Consultar contexto de orden", "type": "main", "index": 0 }]] },
     "Consultar contexto de orden": { "main": [[{ "node": "Agente IA · Fallback seguro", "type": "main", "index": 0 }]] },
-    "Agente IA · Fallback seguro": { "main": [[{ "node": "Responder chat", "type": "main", "index": 0 }]] }
+    "Agente IA · Fallback seguro": { "main": [[{ "node": "Responder chat", "type": "main", "index": 0 }]] },
+    "Webhook OptiBot administrativo": { "main": [[{ "node": "Validar consulta OptiBot", "type": "main", "index": 0 }]] },
+    "Validar consulta OptiBot": { "main": [[{ "node": "AI Agent OptiBot", "type": "main", "index": 0 }]] },
+    "Modelo DeepSeek Configurar": { "ai_languageModel": [[{ "node": "AI Agent OptiBot", "type": "ai_languageModel", "index": 0 }]] },
+    "AI Agent OptiBot": { "main": [[{ "node": "Formatear respuesta OptiBot", "type": "main", "index": 0 }]] },
+    "Datos · Órdenes (solo lectura)": { "ai_tool": [[{ "node": "AI Agent OptiBot", "type": "ai_tool", "index": 0 }]] },
+    "Datos · Clientes (solo lectura)": { "ai_tool": [[{ "node": "AI Agent OptiBot", "type": "ai_tool", "index": 0 }]] },
+    "Datos · Equipos (solo lectura)": { "ai_tool": [[{ "node": "AI Agent OptiBot", "type": "ai_tool", "index": 0 }]] },
+    "Datos · Servicios (solo lectura)": { "ai_tool": [[{ "node": "AI Agent OptiBot", "type": "ai_tool", "index": 0 }]] },
+    "Datos · Usuarios (solo lectura)": { "ai_tool": [[{ "node": "AI Agent OptiBot", "type": "ai_tool", "index": 0 }]] },
+    "Formatear respuesta OptiBot": { "main": [[{ "node": "Responder OptiBot", "type": "main", "index": 0 }]] }
   },
   "active": false,
   "settings": {}

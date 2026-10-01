@@ -565,6 +565,8 @@
       "id": "user-1",
       "nombre": "Administrador OptiFix",
       "usuario": "admin",
+      "email": "admin@optifix.local",
+      "telefono": "7000-0001",
       "password": "admin123",
       "rol": "admin",
       "roles": ["ver_ordenes", "crear_orden", "crear_cotizacion", "gestionar_usuarios"]
@@ -573,6 +575,8 @@
       "id": "user-2",
       "nombre": "Técnico Principal",
       "usuario": "tecnico",
+      "email": "tecnico@optifix.local",
+      "telefono": "7000-0002",
       "password": "tec123",
       "rol": "tecnico",
       "roles": ["ver_ordenes", "crear_orden"]

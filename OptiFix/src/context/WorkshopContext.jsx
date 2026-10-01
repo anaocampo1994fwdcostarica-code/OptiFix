@@ -33,9 +33,9 @@ const MARCAS_SEED = [
 
 // Usuarios semilla para autenticación (admin / técnico)
 const USUARIOS_SEED = [
-  { id: "user-1", nombre: "Administrador", usuario: "admin", password: "admin123", rol: "admin", roles: ["ver_ordenes", "crear_orden", "crear_cotizacion", "gestionar_usuarios"] },
-  { id: "user-2", nombre: "Técnico Principal", usuario: "tecnico", password: "tec123", rol: "tecnico", roles: ["ver_ordenes", "crear_orden"] },
-  { id: "user-3", nombre: "Usuario Demo", usuario: "demo", password: "demo", rol: "admin", roles: ["ver_ordenes", "crear_orden", "crear_cotizacion", "gestionar_usuarios"] },
+  { id: "user-1", nombre: "Administrador", usuario: "admin", email: "admin@optifix.local", telefono: "7000-0001", password: "admin123", rol: "admin", roles: ["ver_ordenes", "crear_orden", "crear_cotizacion", "gestionar_usuarios"] },
+  { id: "user-2", nombre: "Técnico Principal", usuario: "tecnico", email: "tecnico@optifix.local", telefono: "7000-0002", password: "tec123", rol: "tecnico", roles: ["ver_ordenes", "crear_orden"] },
+  { id: "user-3", nombre: "Usuario Demo", usuario: "demo", email: "demo@optifix.local", telefono: "7000-0003", password: "demo", rol: "admin", roles: ["ver_ordenes", "crear_orden", "crear_cotizacion", "gestionar_usuarios"] },
 ];
 
 export function WorkshopProvider({ children }) {
@@ -177,6 +177,8 @@ export function WorkshopProvider({ children }) {
       id: `user-${Date.now()}`,
       nombre: usuarioData.nombre.trim(),
       usuario: usuarioData.usuario.trim(),
+      email: usuarioData.email?.trim() || "",
+      telefono: usuarioData.telefono?.trim() || "",
       password: usuarioData.password,
       rol: usuarioData.rol === "tecnico" ? "tecnico" : "admin",
       roles: usuarioData.roles || (usuarioData.rol === "tecnico" ? ["ver_ordenes", "crear_orden"] : ["ver_ordenes", "crear_orden", "crear_cotizacion", "gestionar_usuarios"]),

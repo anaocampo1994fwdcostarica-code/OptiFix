@@ -38,6 +38,24 @@ o ante una falla:
 
 Endpoints del workflow: `optifix-users`, `optifix-order-delivered` y `optifix-chat`. En n8n, cada Webhook recibe `{ action, ...payload }`, usa un nodo Code o HTTP para leer/escribir el `db.json` montado en el servidor, y termina con **Respond to Webhook**. Nunca exponga un webhook de escritura sin autenticación o una firma compartida; el navegador no debe tener acceso directo al archivo del servidor.
 
+## OptiBot IA (administración)
+
+OptiBot es un chat interno para administradores y técnicos, disponible en `/asistente`. El frontend no consume un proveedor de IA directamente: solo envía `pregunta` y el perfil seguro de la sesión (`id`, `nombre`, `usuario`, `email`, `rol`) al webhook de n8n. No se envían contraseñas, claves de IA ni el `db.json` completo desde el navegador.
+
+1. Copie `.env.example` a `.env.local` y defina `VITE_N8N_OPTIBOT_WEBHOOK_URL=http://localhost:5678/webhook/optifix-admin-chat`. Reinicie Vite después de modificar el archivo.
+2. El workflow activo debe conservar **Webhook OptiBot administrativo** → **Validar consulta OptiBot** → **AI Agent OptiBot** → **Formatear respuesta OptiBot** → **Responder OptiBot**. Seleccione en el agente la credencial de DeepSeek que ya está configurada en n8n; la clave del proveedor queda únicamente allí.
+3. El export incluye herramientas HTTP Request de solo lectura para `ordenes`, `clientes`, `equipos`, `servicios` y `usuarios-publicos`. El endpoint `usuarios-publicos` elimina `password` antes de responder. Nunca conecte `/usuarios` directamente al agente.
+4. La API mock confirmada por `package.json`, `server.js` y `src/config.js` usa el puerto `3001`. Si n8n se ejecuta directamente en Windows, use `http://localhost:3001/...`; si se ejecuta en Docker, use `http://host.docker.internal:3001/...` en cada herramienta.
+5. Active el workflow y pruebe una pregunta desde `/asistente`. El webhook debe devolver:
+
+```json
+{ "ok": true, "respuesta": "Texto generado por el agente" }
+```
+
+`json-server` aplica CORS mediante `jsonServer.defaults()`. Para la comunicación React → n8n, configure en el proceso de n8n `N8N_CORS_ORIGIN=http://localhost:5175` y reinícielo. Si Vite se inició en otro puerto, sustituya `5175` por el puerto que muestra el navegador. No use extensiones ni desactive CORS en el navegador.
+
+Si n8n está apagado, el webhook no está configurado o el agente falla, la interfaz conserva el historial y muestra un error visible y recuperable; no bloquea la aplicación. Para producción, proteja el webhook con autenticación, un proxy de backend o firma verificable y limite el acceso de las herramientas de datos.
+
 ## Pruebas
 
 ```bash

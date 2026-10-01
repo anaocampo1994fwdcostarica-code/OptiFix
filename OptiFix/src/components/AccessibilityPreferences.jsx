@@ -1,22 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useWorkshop } from "../context/WorkshopContext.jsx";
-import i18n from "../i18n.js";
+import { useLanguage } from "../context/LanguageContext.jsx";
 
 /** Controles de preferencias disponibles antes y después de iniciar sesión. */
 export default function AccessibilityPreferences({ className = "" }) {
   const { theme, toggleTheme } = useWorkshop();
-  const [language, setLanguage] = useState(i18n.language || "es");
+  const { language, toggleLanguage, t } = useLanguage();
   const nextTheme = theme === "light" ? "modo oscuro" : "modo claro";
-
-  useEffect(() => {
-    const updateLanguage = (nextLanguage) => setLanguage(nextLanguage);
-    i18n.on("languageChanged", updateLanguage);
-    return () => i18n.off("languageChanged", updateLanguage);
-  }, []);
 
   return (
     <div className={`accessibility-preferences ${className}`.trim()} aria-label="Preferencias de accesibilidad">
-      <button type="button" onClick={() => i18n.changeLanguage(language === "es" ? "en" : "es")} aria-label={`Cambiar idioma a ${language === "es" ? "inglés" : "español"}`} title="Cambiar idioma">
+      <button type="button" onClick={toggleLanguage} aria-label={t("language.switch")} title={t("language.switch")}>
         {language === "es" ? "EN" : "ES"}
       </button>
       <button type="button" onClick={toggleTheme} aria-label={`Activar ${nextTheme}`} aria-pressed={theme === "dark"} title={`Activar ${nextTheme}`}>
