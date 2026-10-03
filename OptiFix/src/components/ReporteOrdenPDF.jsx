@@ -1,6 +1,7 @@
 import pdfMake from "pdfmake/build/pdfmake";
 import pdfFonts from "pdfmake/build/vfs_fonts";
 import { WORKSHOP_NAME } from "../config/workshop.js";
+import { useFocusTrap } from "../hooks/useFocusTrap.js";
 
 pdfMake.addVirtualFileSystem(pdfFonts);
 
@@ -23,12 +24,13 @@ export function descargarReportePDF({ orden, cliente, equipo, archivos = [] }) {
 }
 
 export function VistaPreviaReporteOrden({ orden, cliente, equipo, archivos = [], onClose, onPrint }) {
+  const dialogRef = useFocusTrap(true, onClose);
   const fotos = archivos.filter((archivo) => archivo.vistaPrevia);
   const modelo = [equipo.marca, equipo.modelo].filter(Boolean).join(" ") || "Sin especificar";
 
   return (
-    <div className="report-preview-overlay" role="dialog" aria-modal="true" aria-labelledby="report-preview-title" onMouseDown={onClose}>
-      <section className="report-preview-modal" onMouseDown={(event) => event.stopPropagation()}>
+    <div className="report-preview-overlay" onMouseDown={onClose}>
+      <section ref={dialogRef} tabIndex={-1} className="report-preview-modal" role="dialog" aria-modal="true" aria-labelledby="report-preview-title" onMouseDown={(event) => event.stopPropagation()}>
         <header className="report-preview-header">
           <div>
             <span className="report-preview-eyebrow">{WORKSHOP_NAME}</span>

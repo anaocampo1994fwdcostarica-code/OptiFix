@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import Icono from "../icons.jsx";
+import { useFocusTrap } from "../../hooks/useFocusTrap.js";
 
 export default function ItemProductoModal({ isOpen, onClose, onAdd }) {
+  const dialogRef = useFocusTrap(isOpen, onClose);
   const [descripcion, setDescripcion] = useState("");
   const [cantidad, setCantidad] = useState(1);
   const [importe, setImporte] = useState(0);
@@ -24,10 +26,10 @@ export default function ItemProductoModal({ isOpen, onClose, onAdd }) {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+      <section ref={dialogRef} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="item-product-title" className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h3>Agregar Producto / Servicio a la Orden</h3>
-          <button className="modal-close-btn" onClick={onClose}>
+          <h3 id="item-product-title">Agregar Producto / Servicio a la Orden</h3>
+          <button type="button" aria-label="Cerrar formulario de producto o servicio" className="modal-close-btn" onClick={onClose}>
             <Icono nombre="x" size={18} />
           </button>
         </div>
@@ -89,7 +91,7 @@ export default function ItemProductoModal({ isOpen, onClose, onAdd }) {
             </button>
           </div>
         </form>
-      </div>
+      </section>
     </div>
   );
 }

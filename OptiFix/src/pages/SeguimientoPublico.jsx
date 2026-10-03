@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import Logo from "../components/Logo.jsx";
 import { preguntarChatPublico } from "../services/n8nBackendService.js";
 
@@ -30,9 +30,14 @@ function getEstadoConfig(estado) {
 
 export default function SeguimientoPublico() {
   const { token } = useParams();
+  const navigate = useNavigate();
   const [mensaje, setMensaje] = useState("");
   const [chat, setChat] = useState([{ remitente: "ia", texto: "Hola, soy el asistente virtual de OptiFix. Puedo ayudarte con el estado de tu reparación." }]);
   const storageData = getDataFromStorage();
+
+  if (!token) {
+    return <TrackingSearch onSearch={(code) => navigate(`/seguimiento/${encodeURIComponent(code)}`)} />;
+  }
 
   if (!storageData) {
     return <ErrorView message="No se pudo cargar la base de datos del sistema." />;
@@ -219,6 +224,46 @@ export default function SeguimientoPublico() {
         </div>
       </div>
     </div>
+  );
+}
+
+function TrackingSearch({ onSearch }) {
+  const [code, setCode] = useState("");
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    const normalizedCode = code.trim();
+    if (normalizedCode) onSearch(normalizedCode);
+  };
+
+  return (
+    <main className="tracking-lookup-page">
+      <div className="tracking-lookup-orb tracking-lookup-orb-one" aria-hidden="true" />
+      <div className="tracking-lookup-orb tracking-lookup-orb-two" aria-hidden="true" />
+      <header className="tracking-lookup-nav">
+        <Link to="/" aria-label="Volver al inicio de OptiFix"><Logo iconSize={34} /></Link>
+      </header>
+      <section className="tracking-lookup-shell" aria-labelledby="tracking-lookup-title">
+        <span className="tracking-lookup-eyebrow">SEGUIMIENTO DE REPARACIÓN</span>
+        <h1 id="tracking-lookup-title">Conocé el estado de tu equipo.</h1>
+        <p>Ingresá el número de orden o código de seguimiento para revisar la actualización más reciente de tu reparación.</p>
+        <form className="tracking-lookup-form" onSubmit={handleSubmit}>
+          <label htmlFor="tracking-order-code">Número de orden o código de seguimiento</label>
+          <div>
+            <input
+              id="tracking-order-code"
+              value={code}
+              onChange={(event) => setCode(event.target.value)}
+              placeholder="Ej. 8712 u ORD-8712"
+              autoComplete="off"
+              required
+            />
+            <button type="submit">Consultar estado</button>
+          </div>
+        </form>
+        <small>Tu información se muestra de forma privada y segura.</small>
+      </section>
+    </main>
   );
 }
 

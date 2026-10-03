@@ -28,6 +28,7 @@ export default function Routing({ onOpenNewOrderModal }) {
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/seguimiento" element={<SeguimientoOrdenView />} />
       <Route path="/seguimiento/:token" element={<SeguimientoOrdenView />} />
 
       {/* Rutas privadas — cualquier sesión (admin o técnico) */}
@@ -38,7 +39,7 @@ export default function Routing({ onOpenNewOrderModal }) {
       <Route
         path="/dashboard"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={["admin", "recepcion"]}>
             <DashboardView onOpenNewOrderModal={onOpenNewOrderModal} />
           </ProtectedRoute>
         }
@@ -70,7 +71,7 @@ export default function Routing({ onOpenNewOrderModal }) {
       <Route
         path="/clientes"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={["admin", "recepcion"]}>
             <ClientesView />
           </ProtectedRoute>
         }
@@ -94,7 +95,7 @@ export default function Routing({ onOpenNewOrderModal }) {
       <Route
         path="/productos"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={["admin", "recepcion"]}>
             <ProductosView />
           </ProtectedRoute>
         }
@@ -102,7 +103,7 @@ export default function Routing({ onOpenNewOrderModal }) {
       <Route
         path="/servicios"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={["admin", "recepcion"]}>
             <ServiciosView />
           </ProtectedRoute>
         }

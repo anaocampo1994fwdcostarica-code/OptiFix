@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import Icono from "../components/icons.jsx";
 import { useWorkshop } from "../context/WorkshopContext.jsx";
 import "./ServiciosView.css";
+import { useTranslation } from "react-i18next";
 
 const SEED_SERVICIOS = [
   { id: 1, categoria: "Diagnóstico", nombre: "Diagnóstico Preliminar - TV/Monitor", codigo: "SRV-DIAG-TV", precio: 15.00, duracion: "30 min", tipo: "MO" },
@@ -29,6 +30,8 @@ function estiloCategoria(categoria) {
 }
 
 export default function ServiciosView() {
+  const { t, i18n } = useTranslation();
+  const categoryLabel = (category) => ({ "Todos": t("common.all"), "Diagnóstico": t("services.diagnosis"), "Reparación": t("services.repair"), "Mantenimiento": t("services.maintenance"), "Instalación": t("services.installation") }[category] || category);
   const { servicios, addServicio, updateServicio, deleteServicio } = useWorkshop();
   const [busqueda, setBusqueda] = useState("");
   const [categoriaActiva, setCategoriaActiva] = useState("Todos");
@@ -53,7 +56,7 @@ export default function ServiciosView() {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm("¿Seguro que deseas eliminar este servicio?")) {
+    if (window.confirm(t("services.deleteConfirm"))) {
       await deleteServicio(id);
     }
   };
@@ -75,23 +78,23 @@ export default function ServiciosView() {
   return (
     <div className="page-container">
       <div className="breadcrumb-nav">
-        <span>Principal</span>
+        <span>{t("common.home")}</span>
         <span>/</span>
-        <span>Administración</span>
+        <span>{t("common.administration")}</span>
         <span>/</span>
-        <span className="breadcrumb-current">Catálogo de Servicios</span>
+        <span className="breadcrumb-current">{t("services.catalog")}</span>
       </div>
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", flexWrap: "wrap", gap: "12px" }}>
         <div>
-          <h1 style={{ fontSize: "22px", color: "var(--text-heading)", fontWeight: 700, margin: 0, background: "transparent" }}>Gestión de Servicios</h1>
+          <h1 style={{ fontSize: "22px", color: "var(--text-heading)", fontWeight: 700, margin: 0, background: "transparent" }}>{t("services.title")}</h1>
           <p style={{ color: "var(--text-muted)", fontSize: "13px", marginTop: "4px" }}>
-            Administre el catálogo de servicios, diagnósticos y reparaciones.
+            {t("services.subtitle")}
           </p>
         </div>
         <div style={{ display: "flex", gap: "10px" }}>
           <button className="btn-primary" style={{ backgroundColor: "#006194" }} onClick={() => { setFormData(vacio()); setFormAbierto(true); }}>
-            + Nuevo Servicio
+            + {t("services.new")}
           </button>
         </div>
       </div>
@@ -99,22 +102,22 @@ export default function ServiciosView() {
       <div className="servicios-kpi-row">
         <div className="servicios-kpi-card">
           <div>
-            <div className="servicios-kpi-label">Servicios Activos</div>
+            <div className="servicios-kpi-label">{t("services.active")}</div>
             <div className="servicios-kpi-value">{activeCount}</div>
           </div>
           <div className="servicios-kpi-icon"><Icono nombre="clipboard" /></div>
         </div>
         <div className="servicios-kpi-card">
           <div>
-            <div className="servicios-kpi-label">Categorías</div>
+            <div className="servicios-kpi-label">{t("services.categories")}</div>
             <div className="servicios-kpi-value">{CATEGORIAS_SRV.length - 1}</div>
           </div>
           <div className="servicios-kpi-icon"><Icono nombre="tag" /></div>
         </div>
         <div className="servicios-kpi-card">
           <div>
-            <div className="servicios-kpi-label">Valor Promedio</div>
-            <div className="servicios-kpi-value">₡{(totalValue / (activeCount || 1)).toLocaleString("es-CR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            <div className="servicios-kpi-label">{t("services.average")}</div>
+            <div className="servicios-kpi-value">₡{(totalValue / (activeCount || 1)).toLocaleString(i18n.language === "en" ? "en-US" : "es-CR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
           </div>
           <div className="servicios-kpi-icon"><Icono nombre="dollar-sign" /></div>
         </div>
@@ -122,21 +125,21 @@ export default function ServiciosView() {
 
       {formAbierto && (
         <div className="table-card" style={{ marginBottom: "20px", padding: "20px" }}>
-          <h3 style={{ margin: "0 0 16px", color: "var(--text-heading)", fontSize: "16px" }}>{formData.id ? "Editar Servicio" : "Nuevo Servicio"}</h3>
+          <h3 style={{ margin: "0 0 16px", color: "var(--text-heading)", fontSize: "16px" }}>{formData.id ? t("services.edit") : t("services.new")}</h3>
           <div className="servicios-form-grid">
-            <label>Código <input value={formData.codigo} onChange={e => setFormData({...formData, codigo: e.target.value})} placeholder="SRV-..." /></label>
-            <label>Nombre <input value={formData.nombre} onChange={e => setFormData({...formData, nombre: e.target.value})} /></label>
-            <label>Categoría 
+            <label>{t("common.code")} <input value={formData.codigo} onChange={e => setFormData({...formData, codigo: e.target.value})} placeholder="SRV-..." /></label>
+            <label>{t("common.name")} <input value={formData.nombre} onChange={e => setFormData({...formData, nombre: e.target.value})} /></label>
+            <label>{t("common.category")}
               <select value={formData.categoria} onChange={e => setFormData({...formData, categoria: e.target.value})}>
-                {CATEGORIAS_SRV.slice(1).map(c => <option key={c}>{c}</option>)}
+                {CATEGORIAS_SRV.slice(1).map(c => <option key={c} value={c}>{categoryLabel(c)}</option>)}
               </select>
             </label>
-            <label>Duración <input value={formData.duracion} onChange={e => setFormData({...formData, duracion: e.target.value})} placeholder="Ej: 45 min" /></label>
-            <label>Precio (₡) <input type="number" value={formData.precio} onChange={e => setFormData({...formData, precio: Number(e.target.value)})} /></label>
+            <label>{t("common.duration")} <input value={formData.duracion} onChange={e => setFormData({...formData, duracion: e.target.value})} placeholder={t("services.exampleDuration")} /></label>
+            <label>{t("services.price")} <input type="number" value={formData.precio} onChange={e => setFormData({...formData, precio: Number(e.target.value)})} /></label>
           </div>
           <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
-            <button className="btn-secondary" onClick={() => { setFormAbierto(false); setFormData(vacio()); }}>Cancelar</button>
-            <button className="btn-primary" style={{ backgroundColor: "#006194" }} onClick={handleSave}>Guardar</button>
+            <button className="btn-secondary" onClick={() => { setFormAbierto(false); setFormData(vacio()); }}>{t("common.cancel")}</button>
+            <button className="btn-primary" style={{ backgroundColor: "#006194" }} onClick={handleSave}>{t("common.save")}</button>
           </div>
         </div>
       )}
@@ -146,7 +149,7 @@ export default function ServiciosView() {
           <Icono nombre="search" size={14} />
           <input
             type="text"
-            placeholder="Buscar servicio por código o nombre..."
+            placeholder={t("services.search")}
             value={busqueda}
             onChange={(e) => { setBusqueda(e.target.value); setPage(1); }}
           />
@@ -159,7 +162,7 @@ export default function ServiciosView() {
               className={categoriaActiva === cat ? "active" : ""} 
               onClick={() => { setCategoriaActiva(cat); setPage(1); }}
             >
-              {cat}
+              {categoryLabel(cat)}
             </button>
           ))}
         </div>
@@ -169,19 +172,19 @@ export default function ServiciosView() {
         <table className="gestioo-table">
           <thead>
             <tr>
-              <th>CÓDIGO</th>
-              <th>NOMBRE DEL SERVICIO</th>
-              <th>CATEGORÍA</th>
-              <th>DURACIÓN</th>
-              <th style={{ textAlign: "right" }}>TARIFA</th>
-              <th style={{ textAlign: "center" }}>ACCIONES</th>
+              <th>{t("common.code")}</th>
+              <th>{t("services.serviceName")}</th>
+              <th>{t("common.category")}</th>
+              <th>{t("common.duration")}</th>
+              <th style={{ textAlign: "right" }}>{t("services.rate")}</th>
+              <th style={{ textAlign: "center" }}>{t("common.actions")}</th>
             </tr>
           </thead>
           <tbody>
             {paginados.length === 0 ? (
               <tr>
                 <td colSpan="6" style={{ textAlign: "center", padding: "40px", color: "var(--text-dim)" }}>
-                  No se encontraron servicios.
+                  {t("services.empty")}
                 </td>
               </tr>
             ) : (
@@ -191,17 +194,17 @@ export default function ServiciosView() {
                   <td style={{ color: "var(--text-heading)", fontWeight: 500 }}>{s.nombre}</td>
                   <td>
                     <span style={{ padding: "4px 8px", borderRadius: "6px", fontSize: "11px", fontWeight: 600, ...estiloCategoria(s.categoria) }}>
-                      {s.categoria}
+                      {categoryLabel(s.categoria)}
                     </span>
                   </td>
                   <td style={{ color: "var(--text-muted)", fontSize: "12px" }}>{s.duracion}</td>
                   <td style={{ textAlign: "right", fontWeight: 700, color: "var(--text-heading)" }}>
-                    ₡{s.precio.toLocaleString("es-CR", { minimumFractionDigits: 2 })}
+                    ₡{s.precio.toLocaleString(i18n.language === "en" ? "en-US" : "es-CR", { minimumFractionDigits: 2 })}
                   </td>
                   <td style={{ textAlign: "center" }}>
                     <div style={{ display: "inline-flex", gap: "8px" }}>
-                      <button className="btn-outline-icon" onClick={() => handleEdit(s)} title="Editar"><Icono nombre="edit" size={14}/></button>
-                      <button className="btn-outline-icon" onClick={() => handleDelete(s.id)} title="Eliminar"><Icono nombre="trash" size={14}/></button>
+                      <button className="btn-outline-icon" onClick={() => handleEdit(s)} title={t("common.edit")}><Icono nombre="edit" size={14}/></button>
+                      <button className="btn-outline-icon" onClick={() => handleDelete(s.id)} title={t("common.delete")}><Icono nombre="trash" size={14}/></button>
                     </div>
                   </td>
                 </tr>
@@ -212,11 +215,11 @@ export default function ServiciosView() {
 
         {totalPages > 1 && (
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 16px", borderTop: "1px solid var(--border-subtle)", fontSize: "12px", color: "var(--text-muted)" }}>
-            <span>Mostrando {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, filtrados.length)} de {filtrados.length} servicios</span>
+            <span>{t("services.showing", { from: (page - 1) * PAGE_SIZE + 1, to: Math.min(page * PAGE_SIZE, filtrados.length), total: filtrados.length })}</span>
             <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-              <button disabled={page === 1} onClick={() => setPage(p => Math.max(1, p - 1))} style={{ padding: "6px 12px", borderRadius: "6px", border: "1px solid var(--border-color)", background: "#fff", cursor: "pointer" }}>Anterior</button>
+              <button disabled={page === 1} onClick={() => setPage(p => Math.max(1, p - 1))} style={{ padding: "6px 12px", borderRadius: "6px", border: "1px solid var(--border-color)", background: "#fff", cursor: "pointer" }}>{t("common.previous")}</button>
               <div style={{ background: "#006194", color: "#fff", width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "6px", fontWeight: 700 }}>{page}</div>
-              <button disabled={page === totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))} style={{ padding: "6px 12px", borderRadius: "6px", border: "1px solid var(--border-color)", background: "#fff", cursor: "pointer" }}>Siguiente</button>
+              <button disabled={page === totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))} style={{ padding: "6px 12px", borderRadius: "6px", border: "1px solid var(--border-color)", background: "#fff", cursor: "pointer" }}>{t("common.next")}</button>
             </div>
           </div>
         )}

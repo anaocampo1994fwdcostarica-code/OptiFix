@@ -1,4 +1,5 @@
-import React, { useEffect } from "react";
+import React from "react";
+import { useFocusTrap } from "../hooks/useFocusTrap.js";
 
 const legalContent = {
   terms: {
@@ -21,14 +22,10 @@ const legalContent = {
 
 export default function LegalModal({ type, onClose }) {
   const content = legalContent[type];
-  useEffect(() => {
-    const handleKeyDown = (event) => event.key === "Escape" && onClose();
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onClose]);
+  const dialogRef = useFocusTrap(true, onClose);
 
   return <div className="legal-modal-backdrop" role="presentation" onMouseDown={onClose}>
-    <section className="legal-modal" role="dialog" aria-modal="true" aria-labelledby="legal-modal-title" onMouseDown={(event) => event.stopPropagation()}>
+    <section ref={dialogRef} tabIndex={-1} className="legal-modal" role="dialog" aria-modal="true" aria-labelledby="legal-modal-title" onMouseDown={(event) => event.stopPropagation()}>
       <header className="legal-modal-header"><h2 id="legal-modal-title">{content.title}</h2><button type="button" onClick={onClose} aria-label="Cerrar contenido legal">×</button></header>
       <div className="legal-modal-content">{content.sections.map(([heading, text]) => <section key={heading}><h3>{heading}</h3><p>{text}</p></section>)}</div>
       <button type="button" className="legal-modal-close" onClick={onClose}>Entendido</button>

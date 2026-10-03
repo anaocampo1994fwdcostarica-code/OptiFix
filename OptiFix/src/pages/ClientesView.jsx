@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useWorkshop } from "../context/WorkshopContext.jsx";
 import ClienteModal from "../components/modals/ClienteModal.jsx";
 import Icono from "../components/icons.jsx";
+import { useTranslation } from "react-i18next";
+import { useFocusTrap } from "../hooks/useFocusTrap.js";
 
 const PAGE_SIZE = 5;
 const AVATAR_PALETTE = ["bg-optifix-600", "bg-emerald-600", "bg-blue-600", "bg-slate-600", "bg-indigo-600", "bg-amber-600"];
@@ -25,6 +27,7 @@ function colorAvatar(nombre = "") {
 }
 
 export default function ClientesView() {
+  const { t } = useTranslation();
   const { clientes, ordenes, equipos, addCliente, updateCliente, deleteCliente } = useWorkshop();
   const [searchTerm, setSearchTerm] = useState("");
   const [tab, setTab] = useState("TODOS");
@@ -99,10 +102,10 @@ export default function ClientesView() {
       await deleteCliente(deleteDialog.cliente.id);
       if (CLIENTES_PARA_ELIMINAR.some((cliente) => cliente.id === deleteDialog.cliente.id)) setDeletedDemoIds((ids) => [...ids, deleteDialog.cliente.id]);
       setDeleteDialog(null);
-      setToast("Cliente eliminado correctamente");
+      setToast(t("clients.deleted"));
     } catch (error) {
       setDeleteDialog(null);
-      setToast(error.message || "No se pudo eliminar el cliente.");
+      setToast(error.message || t("clients.deleteError"));
     }
   };
 
@@ -111,36 +114,34 @@ export default function ClientesView() {
       {/* Encabezado */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Directorio de Clientes</h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Administra los datos de contacto, expedientes y equipos asociados.
-          </p>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">{t("clients.title")}</h1>
+          <p className="text-sm text-slate-500 mt-1">{t("clients.subtitle")}</p>
         </div>
         <button 
           onClick={handleOpenCreate}
           className="inline-flex items-center gap-2 bg-optifix-600 hover:bg-optifix-700 text-white px-4 py-2.5 rounded-xl font-medium transition-colors shadow-sm shadow-optifix-500/20"
         >
           <Icono nombre="plus" size={18} />
-          Nuevo Cliente
+          {t("clients.new")}
         </button>
       </div>
 
       {/* KPIs */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-5 flex flex-col justify-between">
-          <div className="text-sm font-medium text-slate-500 mb-2">Clientes Registrados</div>
+          <div className="text-sm font-medium text-slate-500 mb-2">{t("clients.registered")}</div>
           <div className="text-3xl font-bold text-slate-900">{clientesRegistrados}</div>
         </div>
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-5 flex flex-col justify-between">
-          <div className="text-sm font-medium text-slate-500 mb-2">Órdenes en Taller</div>
+          <div className="text-sm font-medium text-slate-500 mb-2">{t("clients.ordersWorkshop")}</div>
           <div className="text-3xl font-bold text-optifix-600">{ordenesEnTaller}</div>
         </div>
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-5 flex flex-col justify-between">
-          <div className="text-sm font-medium text-slate-500 mb-2">Equipos en Custodia</div>
+          <div className="text-sm font-medium text-slate-500 mb-2">{t("clients.inCustody")}</div>
           <div className="text-3xl font-bold text-slate-700">{equiposEnCustodia}</div>
         </div>
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-5 flex flex-col justify-between">
-          <div className="text-sm font-medium text-slate-500 mb-2">Canal WhatsApp</div>
+          <div className="text-sm font-medium text-slate-500 mb-2">{t("clients.whatsapp")}</div>
           <div className="text-3xl font-bold text-emerald-600">{clientesConTelefono}</div>
         </div>
       </div>
@@ -151,9 +152,9 @@ export default function ClientesView() {
         <div className="border-b border-slate-100 p-4 flex flex-col sm:flex-row gap-4 justify-between bg-slate-50/50 erp-directory-toolbar">
           <div className="flex gap-2 p-1 bg-white rounded-lg w-fit ring-1 ring-slate-200/50 erp-directory-tabs">
             {[
-              { id: "TODOS", label: "Todos" },
-              { id: "CON_ORDENES", label: "Con Órdenes Activas" },
-              { id: "HISTORICOS", label: "Históricos" }
+              { id: "TODOS", label: t("common.all") },
+              { id: "CON_ORDENES", label: t("clients.activeTab") },
+              { id: "HISTORICOS", label: t("clients.historical") }
             ].map(t => (
               <button 
                 key={t.id}
@@ -176,7 +177,7 @@ export default function ClientesView() {
             </span>
             <input
               type="text"
-              placeholder="Buscar por nombre, cédula..."
+              placeholder={t("clients.search")}
               value={searchTerm}
               onChange={(e) => { setSearchTerm(e.target.value); setPage(1); }}
               className="pl-9 pr-4 py-2 rounded-xl border-slate-200 text-sm focus:ring-optifix-500 focus:border-optifix-500 w-full sm:w-72 shadow-sm"
@@ -189,12 +190,12 @@ export default function ClientesView() {
           <table className="w-full text-left text-sm text-slate-600 erp-directory-table">
             <thead className="bg-slate-50/80 text-slate-500 uppercase text-[10px] font-bold tracking-wider">
               <tr>
-                <th className="px-6 py-4">Cliente</th>
-                <th className="px-6 py-4">Identificación</th>
-                <th className="px-6 py-4">Contacto</th>
-                <th className="px-6 py-4">Equipos</th>
-                <th className="px-6 py-4">Órdenes Activas</th>
-                <th className="px-6 py-4 text-right">Acciones</th>
+                <th className="px-6 py-4">{t("common.client")}</th>
+                <th className="px-6 py-4">{t("clients.identification")}</th>
+                <th className="px-6 py-4">{t("clients.contact")}</th>
+                <th className="px-6 py-4">{t("shell.equipment")}</th>
+                <th className="px-6 py-4">{t("clients.activeOrders")}</th>
+                <th className="px-6 py-4 text-right">{t("common.actions")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -203,7 +204,7 @@ export default function ClientesView() {
                   <td colSpan="6" className="px-6 py-12 text-center text-slate-500">
                     <div className="flex flex-col items-center justify-center">
                       <Icono nombre="users" size={32} className="text-slate-300 mb-3" />
-                      <p>No se encontraron clientes con esos filtros.</p>
+                      <p>{t("clients.empty")}</p>
                     </div>
                   </td>
                 </tr>
@@ -222,7 +223,7 @@ export default function ClientesView() {
                           </div>
                           <div>
                             <div className="font-bold text-slate-900">{c.nombre}</div>
-                            <div className="text-xs text-slate-500 truncate max-w-[150px]">{c.direccion || "Sin dirección"}</div>
+                            <div className="text-xs text-slate-500 truncate max-w-[150px]">{c.direccion || t("clients.noAddress")}</div>
                           </div>
                         </div>
                       </td>
@@ -245,12 +246,12 @@ export default function ClientesView() {
                       </td>
                       <td className="px-6 py-4">
                         <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-slate-100 text-slate-600">
-                          {clientEquipos.length} equipos
+                          {t("clients.equipmentCount", { count: clientEquipos.length })}
                         </span>
                       </td>
                       <td className="px-6 py-4">
                         <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${activeOrdersCount > 0 ? 'bg-optifix-50 text-optifix-700 ring-1 ring-optifix-600/20' : 'bg-slate-50 text-slate-500'}`}>
-                          {activeOrdersCount} activas
+                          {t("clients.activeCount", { count: activeOrdersCount })}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right">
@@ -261,6 +262,7 @@ export default function ClientesView() {
                             rel="noreferrer"
                             className={`p-2 rounded-lg transition-colors ${c.telefono ? 'text-emerald-600 hover:bg-emerald-50' : 'text-slate-300 cursor-not-allowed'}`}
                             title="WhatsApp"
+                            aria-label={`WhatsApp: ${c.nombre}`}
                             onClick={(e) => { if (!c.telefono) e.preventDefault(); }}
                           >
                             <Icono nombre="whatsapp" size={18} />
@@ -268,11 +270,12 @@ export default function ClientesView() {
                           <button
                             className="p-2 text-slate-400 hover:text-optifix-600 hover:bg-optifix-50 rounded-lg transition-colors"
                             onClick={() => handleOpenEdit(c)}
-                            title="Editar cliente"
+                            title={t("clients.edit")}
+                            aria-label={`${t("clients.edit")}: ${c.nombre}`}
                           >
                             <Icono nombre="pencil" size={18} />
                           </button>
-                          <button disabled={activeOrdersCount > 0} className={`p-2 rounded-lg transition-colors ${activeOrdersCount > 0 ? "text-red-400 opacity-50 cursor-not-allowed" : "text-slate-400 hover:text-red-600 hover:bg-red-50"}`} onClick={() => handleDeleteCliente(c)} title={activeOrdersCount > 0 ? "No se puede eliminar: el cliente tiene órdenes activas" : "Eliminar cliente"} aria-label={`Eliminar cliente ${c.nombre}`}>
+                          <button disabled={activeOrdersCount > 0} className={`p-2 rounded-lg transition-colors ${activeOrdersCount > 0 ? "text-red-400 opacity-50 cursor-not-allowed" : "text-slate-400 hover:text-red-600 hover:bg-red-50"}`} onClick={() => handleDeleteCliente(c)} title={activeOrdersCount > 0 ? t("clients.deleteBlockedHint") : t("clients.delete")} aria-label={`${t("clients.delete")} ${c.nombre}`}>
                             <Icono nombre="trash" size={18} />
                           </button>
                         </div>
@@ -289,7 +292,7 @@ export default function ClientesView() {
         {totalPages > 1 && (
           <div className="border-t border-slate-100 p-4 flex items-center justify-between bg-slate-50/50 erp-directory-pagination">
             <span className="text-sm text-slate-500">
-              Página <span className="font-medium text-slate-900">{page}</span> de <span className="font-medium text-slate-900">{totalPages}</span>
+              {t("common.pageOf", { page, total: totalPages })}
             </span>
             <div className="flex gap-2">
               <button 
@@ -297,14 +300,14 @@ export default function ClientesView() {
                 onClick={() => setPage(p => p - 1)}
                 className="px-3 py-1.5 rounded-lg text-sm font-medium border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                Anterior
+                {t("common.previous")}
               </button>
               <button 
                 disabled={page === totalPages} 
                 onClick={() => setPage(p => p + 1)}
                 className="px-3 py-1.5 rounded-lg text-sm font-medium border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                Siguiente
+                {t("common.next")}
               </button>
             </div>
           </div>
@@ -318,18 +321,20 @@ export default function ClientesView() {
         clienteToEdit={clienteToEdit}
       />
       {deleteDialog && <DeleteClienteDialog dialog={deleteDialog} onClose={() => setDeleteDialog(null)} onConfirm={confirmDeleteCliente} />}
-      {toast && <div role="status" className={`fixed z-[100] right-5 bottom-5 rounded-xl px-4 py-3 text-sm font-semibold text-white shadow-lg ${toast === "Cliente eliminado correctamente" ? "bg-emerald-600" : "bg-red-600"}`}>{toast}</div>}
+      {toast && <div role="status" aria-live="polite" aria-atomic="true" className={`fixed z-[100] right-5 bottom-5 rounded-xl border-2 px-4 py-3 text-sm font-semibold text-white shadow-lg ${toast === t("clients.deleted") ? "border-emerald-900 bg-emerald-700" : "border-red-950 bg-red-700"}`}><span aria-hidden="true" className="mr-2">{toast === t("clients.deleted") ? "✓" : "!"}</span>{toast}</div>}
     </div>
   );
 }
 
 function DeleteClienteDialog({ dialog, onClose, onConfirm }) {
+  const { t } = useTranslation();
+  const dialogRef = useFocusTrap(true, onClose);
   const { cliente, blocked } = dialog;
   return <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/50 p-4" onMouseDown={onClose}>
-    <section role="dialog" aria-modal="true" aria-labelledby="delete-client-title" onMouseDown={(event) => event.stopPropagation()} className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
-      <h2 id="delete-client-title" className={`text-lg font-bold ${blocked ? "text-red-700" : "text-slate-900"}`}>{blocked ? "No se puede eliminar el cliente" : "¿Eliminar cliente?"}</h2>
-      <p className={`mt-3 text-sm leading-6 ${blocked ? "text-red-600" : "text-slate-600"}`}>{blocked ? "No se puede eliminar a este cliente porque tiene órdenes activas en el taller. Por favor, finalice o cancele las órdenes primero." : "¿Está seguro que desea eliminar este contacto? Esta acción no se puede deshacer."}</p>
-      <div className="mt-6 flex justify-end gap-3">{blocked ? <button type="button" onClick={onClose} className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white">Entendido</button> : <><button type="button" onClick={onClose} className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">Cancelar</button><button type="button" onClick={onConfirm} className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700">Eliminar cliente</button></>}</div>
+    <section ref={dialogRef} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="delete-client-title" onMouseDown={(event) => event.stopPropagation()} className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+      <h2 id="delete-client-title" className={`text-lg font-bold ${blocked ? "text-red-700" : "text-slate-900"}`}>{blocked ? t("clients.blockedTitle") : t("clients.deleteTitle")}</h2>
+      <p className={`mt-3 text-sm leading-6 ${blocked ? "text-red-600" : "text-slate-600"}`}>{blocked ? t("clients.blockedBody") : t("clients.deleteBody")}</p>
+      <div className="mt-6 flex justify-end gap-3">{blocked ? <button type="button" onClick={onClose} className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white">{t("clients.understood")}</button> : <><button type="button" onClick={onClose} className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">{t("common.cancel")}</button><button type="button" onClick={onConfirm} className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700">{t("clients.deleteAction")}</button></>}</div>
     </section>
   </div>;
 }

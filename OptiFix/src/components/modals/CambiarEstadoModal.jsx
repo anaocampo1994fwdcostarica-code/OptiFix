@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Icono from "../icons.jsx";
 import { actualizarEstadoOrden } from "../../services/n8nBackendService.js";
+import { useFocusTrap } from "../../hooks/useFocusTrap.js";
 
 const ESTADOS_DISPONIBLES = [
   { estado: "RECEPCIÓN", etapa: "ENTRADA", desc: "Equipo recién ingresado a recepción" },
@@ -13,6 +14,7 @@ const ESTADOS_DISPONIBLES = [
 ];
 
 export default function CambiarEstadoModal({ isOpen, onClose, orden, cliente = {}, equipo = {}, onConfirmChange }) {
+  const dialogRef = useFocusTrap(isOpen, onClose);
   const [selectedEstado, setSelectedEstado] = useState(orden?.estado_actual || "RECEPCIÓN");
   const [detalle, setDetalle] = useState("");
   const [loading, setLoading] = useState(false);
@@ -39,10 +41,10 @@ export default function CambiarEstadoModal({ isOpen, onClose, orden, cliente = {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+      <section ref={dialogRef} tabIndex={-1} className="modal-content" role="dialog" aria-modal="true" aria-labelledby="change-status-title" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h3>Cambiar Estado — Orden Nº {orden.numero}</h3>
-          <button className="modal-close-btn" onClick={onClose}>
+          <h3 id="change-status-title">Cambiar Estado — Orden Nº {orden.numero}</h3>
+          <button type="button" className="modal-close-btn" onClick={onClose} aria-label="Cerrar cambio de estado">
             <Icono nombre="x" size={18} />
           </button>
         </div>
@@ -92,7 +94,7 @@ export default function CambiarEstadoModal({ isOpen, onClose, orden, cliente = {
             </button>
           </div>
         </form>
-      </div>
+      </section>
     </div>
   );
 }

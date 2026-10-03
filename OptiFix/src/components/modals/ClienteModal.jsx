@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from "react";
 import Icono from "../icons.jsx";
+import { useTranslation } from "react-i18next";
+import { useFocusTrap } from "../../hooks/useFocusTrap.js";
 
 export default function ClienteModal({ isOpen, onClose, onSave, clienteToEdit }) {
+  const { t } = useTranslation();
+  const dialogRef = useFocusTrap(isOpen, onClose);
   const [formData, setFormData] = useState({
     identificacion: "",
     nombre: "",
@@ -44,20 +48,27 @@ export default function ClienteModal({ isOpen, onClose, onSave, clienteToEdit })
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fade-in" onClick={onClose}>
-      <div 
+      <section
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="client-modal-title"
+        tabIndex={-1}
         className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col animate-scale-up border border-slate-200"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
           <div>
-            <h3 className="text-lg font-bold text-slate-900">
-              {clienteToEdit ? "Editar Cliente" : "Nuevo Cliente"}
+            <h3 id="client-modal-title" className="text-lg font-bold text-slate-900">
+              {clienteToEdit ? t("clients.edit") : t("clients.new")}
             </h3>
             <p className="text-xs text-slate-500 mt-0.5">
-              Complete la información de contacto del cliente.
+              {t("clients.modalSubtitle")}
             </p>
           </div>
           <button 
+            type="button"
+            aria-label={t("common.close")}
             className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-200/50 rounded-lg transition-colors" 
             onClick={onClose}
           >
@@ -70,7 +81,7 @@ export default function ClienteModal({ isOpen, onClose, onSave, clienteToEdit })
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Identificación / Cédula *</label>
+                <label className="block text-sm font-semibold text-slate-700 mb-1.5">{t("clients.idField")} *</label>
                 <input
                   type="text"
                   required
@@ -81,7 +92,7 @@ export default function ClienteModal({ isOpen, onClose, onSave, clienteToEdit })
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Teléfono / WhatsApp *</label>
+                <label className="block text-sm font-semibold text-slate-700 mb-1.5">{t("clients.phoneWhatsapp")} *</label>
                 <input
                   type="text"
                   required
@@ -94,7 +105,7 @@ export default function ClienteModal({ isOpen, onClose, onSave, clienteToEdit })
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Nombre Completo / Razón Social *</label>
+              <label className="block text-sm font-semibold text-slate-700 mb-1.5">{t("clients.fullName")} *</label>
               <input
                 type="text"
                 required
@@ -106,7 +117,7 @@ export default function ClienteModal({ isOpen, onClose, onSave, clienteToEdit })
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Correo Electrónico</label>
+              <label className="block text-sm font-semibold text-slate-700 mb-1.5">{t("clients.email")}</label>
               <input
                 type="email"
                 className="w-full rounded-xl border-slate-200 shadow-sm focus:border-optifix-500 focus:ring-optifix-500 sm:text-sm"
@@ -117,7 +128,7 @@ export default function ClienteModal({ isOpen, onClose, onSave, clienteToEdit })
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Dirección</label>
+              <label className="block text-sm font-semibold text-slate-700 mb-1.5">{t("clients.address")}</label>
               <input
                 type="text"
                 className="w-full rounded-xl border-slate-200 shadow-sm focus:border-optifix-500 focus:ring-optifix-500 sm:text-sm"
@@ -128,7 +139,7 @@ export default function ClienteModal({ isOpen, onClose, onSave, clienteToEdit })
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Notas Internas</label>
+              <label className="block text-sm font-semibold text-slate-700 mb-1.5">{t("clients.internalNotes")}</label>
               <textarea
                 className="w-full rounded-xl border-slate-200 shadow-sm focus:border-optifix-500 focus:ring-optifix-500 sm:text-sm resize-none"
                 rows="3"
@@ -146,17 +157,17 @@ export default function ClienteModal({ isOpen, onClose, onSave, clienteToEdit })
               onClick={onClose}
               className="px-4 py-2.5 rounded-xl font-medium text-slate-600 hover:bg-slate-200/50 transition-colors"
             >
-              Cancelar
+              {t("common.cancel")}
             </button>
             <button 
               type="submit"
               className="inline-flex items-center gap-2 bg-optifix-600 hover:bg-optifix-700 text-white px-5 py-2.5 rounded-xl font-medium transition-colors shadow-sm shadow-optifix-500/20"
             >
-              Guardar Cliente
+              {t("clients.save")}
             </button>
           </div>
         </form>
-      </div>
+      </section>
     </div>
   );
 }

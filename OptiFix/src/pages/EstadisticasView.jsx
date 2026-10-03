@@ -5,10 +5,12 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from "recharts";
 import { useWorkshop } from "../context/WorkshopContext.jsx";
+import { useTranslation } from "react-i18next";
 
 const COLORS_PIE = ["#a3e635", "#0ea5e9", "#eab308", "#22c55e", "#8b5cf6"];
 
 const CustomTooltip = ({ active, payload, label }) => {
+  const { t } = useTranslation();
   if (active && payload && payload.length) {
     return (
       <div style={{
@@ -21,7 +23,7 @@ const CustomTooltip = ({ active, payload, label }) => {
       }}>
         <strong>{label || payload[0]?.name}</strong>
         <div style={{ color: "var(--accent-cyan)", marginTop: "2px" }}>
-          {payload[0]?.value} {typeof payload[0]?.value === "number" && payload[0]?.name === "Facturado" ? "" : " órdenes"}
+          {payload[0]?.value} {typeof payload[0]?.value === "number" && payload[0]?.name === "Facturado" ? "" : ` ${t("stats.orders")}`}
         </div>
       </div>
     );
@@ -30,6 +32,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 export default function EstadisticasView() {
+  const { t, i18n } = useTranslation();
   const { ordenes, clientes, equipos, resetToSeedData } = useWorkshop();
 
   // ── Cálculos dinámicos ──────────────────────────────────────────────────────
@@ -49,19 +52,19 @@ export default function EstadisticasView() {
 
   // Datos para gráficas
   const pieData = [
-    { name: "Entrada / Recepción", value: enRecepcion },
-    { name: "En trámite",          value: enTramite },
-    { name: "En taller",           value: enTaller },
-    { name: "Bodega",              value: enBodega },
-    { name: "Entregados",          value: entregadas }
+    { name: t("stats.inReception"), value: enRecepcion },
+    { name: t("stats.inProgress"), value: enTramite },
+    { name: t("stats.inWorkshop"), value: enTaller },
+    { name: t("stats.warehouse"), value: enBodega },
+    { name: t("stats.delivered"), value: entregadas }
   ].filter((d) => d.value > 0);
 
   const barData = [
-    { name: "Recepción", ordenes: enRecepcion },
-    { name: "En trámite", ordenes: enTramite },
-    { name: "En taller",  ordenes: enTaller },
-    { name: "Bodega",     ordenes: enBodega },
-    { name: "Entregado",  ordenes: entregadas }
+    { name: t("stats.inReception"), ordenes: enRecepcion },
+    { name: t("stats.inProgress"), ordenes: enTramite },
+    { name: t("stats.inWorkshop"), ordenes: enTaller },
+    { name: t("stats.warehouse"), ordenes: enBodega },
+    { name: t("stats.delivered"), ordenes: entregadas }
   ];
 
   // Equipos por tipo
@@ -76,9 +79,9 @@ export default function EstadisticasView() {
     <div className="page-container">
       {/* Header */}
       <div className="breadcrumb-nav">
-        <span>Principal</span><span>/</span>
-        <span>Centro de Servicios</span><span>/</span>
-        <span className="breadcrumb-current">Estadísticas</span>
+        <span>{t("common.home")}</span><span>/</span>
+        <span>{t("stats.serviceCenter")}</span><span>/</span>
+        <span className="breadcrumb-current">{t("nav.statistics")}</span>
       </div>
 
       <div style={{
@@ -87,19 +90,19 @@ export default function EstadisticasView() {
       }}>
         <div>
           <h1 style={{ fontSize: "22px", color: "#0f172a", fontWeight: 700, marginBottom: "4px" }}>
-            Panel de Estadísticas — OptiFix
+            {t("stats.title")}
           </h1>
           <p style={{ color: "var(--text-muted)", fontSize: "13px" }}>
-            Métricas de rendimiento operativo del taller en tiempo real.
+            {t("stats.subtitle")}
           </p>
         </div>
         <button
           className="btn-secondary"
           onClick={() => {
-            if (window.confirm("¿Restaurar los datos de demostración originales?")) resetToSeedData();
+            if (window.confirm(t("stats.restoreConfirm"))) resetToSeedData();
           }}
         >
-          <span>Restaurar Demo</span>
+          <span>{t("stats.restore")}</span>
         </button>
       </div>
 
@@ -111,12 +114,12 @@ export default function EstadisticasView() {
         marginBottom: "28px"
       }}>
         {[
-          { label: "Total de Órdenes", value: totalOrdenes,  icon: "wrench",      color: "#0ea5e9" },
-          { label: "En Recepción",     value: enRecepcion,   icon: "clock",       color: "#a3e635" },
-          { label: "En Trámite",       value: enTramite,     icon: "refresh-cw",  color: "#eab308" },
-          { label: "En Taller",        value: enTaller,      icon: "laptop",      color: "#8b5cf6" },
-          { label: "Entregados",       value: entregadas,    icon: "check-circle",color: "#22c55e" },
-          { label: "Clientes",         value: clientes.length, icon: "users",     color: "#f97316" }
+          { label: t("stats.totalOrders"), value: totalOrdenes,  icon: "wrench", color: "#0ea5e9" },
+          { label: t("stats.inReception"), value: enRecepcion, icon: "clock", color: "#a3e635" },
+          { label: t("stats.inProgress"), value: enTramite, icon: "refresh-cw", color: "#eab308" },
+          { label: t("stats.inWorkshop"), value: enTaller, icon: "laptop", color: "#8b5cf6" },
+          { label: t("stats.delivered"), value: entregadas, icon: "check-circle",color: "#22c55e" },
+          { label: t("stats.clients"), value: clientes.length, icon: "users", color: "#f97316" }
         ].map((kpi) => (
           <div key={kpi.label} className="kpi-card">
             <div className="kpi-content">
@@ -142,15 +145,15 @@ export default function EstadisticasView() {
       }}>
         <div>
           <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "4px" }}>
-            Facturación Total Estimada (Productos y Servicios)
+            {t("stats.estimatedBilling")}
           </div>
           <div style={{ fontSize: "32px", fontWeight: 800, color: "var(--accent-cyan)" }}>
-            ₡ {totalFacturado.toLocaleString("es-CR", { minimumFractionDigits: 2 })}
+            ₡ {totalFacturado.toLocaleString(i18n.language === "en" ? "en-US" : "es-CR", { minimumFractionDigits: 2 })}
           </div>
         </div>
         <div style={{ textAlign: "right" }}>
           <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "4px" }}>
-            Equipos registrados
+            {t("stats.registeredEquipment")}
           </div>
           <div style={{ fontSize: "28px", fontWeight: 700, color: "#ffffff" }}>
             {equipos.length}
@@ -166,9 +169,9 @@ export default function EstadisticasView() {
         marginBottom: "24px"
       }}>
         {/* Bar chart: Órdenes por estado */}
-        <div className="work-order-meta-card">
+        <section className="work-order-meta-card" role="group" aria-label={t("stats.operationalDistribution")}>
           <h3 style={{ fontSize: "14px", color: "#ffffff", marginBottom: "18px" }}>
-            Distribución por Estado Operativo
+            {t("stats.operationalDistribution")}
           </h3>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={barData} margin={{ top: 0, right: 8, left: -20, bottom: 0 }}>
@@ -178,17 +181,18 @@ export default function EstadisticasView() {
               <Tooltip content={<CustomTooltip />} />
               <Bar dataKey="ordenes" radius={[4, 4, 0, 0]}>
                 {barData.map((_, i) => (
-                  <Cell key={i} fill={COLORS_PIE[i % COLORS_PIE.length]} />
+                  <Cell key={i} fill={COLORS_PIE[i % COLORS_PIE.length]} stroke="#0f172a" strokeWidth={i % 2 ? 2 : 1} strokeDasharray={i % 2 ? "5 2" : undefined} />
                 ))}
               </Bar>
             </BarChart>
           </ResponsiveContainer>
-        </div>
+          <ul className="sr-only">{barData.map((item) => <li key={item.name}>{item.name}: {item.ordenes} {t("stats.orders")}</li>)}</ul>
+        </section>
 
         {/* Pie chart */}
-        <div className="work-order-meta-card">
+        <section className="work-order-meta-card" role="group" aria-label={t("stats.statusRatio")}>
           <h3 style={{ fontSize: "14px", color: "#ffffff", marginBottom: "18px" }}>
-            Proporción de Estados
+            {t("stats.statusRatio")}
           </h3>
           <ResponsiveContainer width="100%" height={220}>
             <PieChart>
@@ -202,7 +206,7 @@ export default function EstadisticasView() {
                 dataKey="value"
               >
                 {pieData.map((_, i) => (
-                  <Cell key={i} fill={COLORS_PIE[i % COLORS_PIE.length]} />
+                  <Cell key={i} fill={COLORS_PIE[i % COLORS_PIE.length]} stroke="#0f172a" strokeWidth={2} strokeDasharray={i % 2 ? "4 2" : undefined} />
                 ))}
               </Pie>
               <Tooltip content={<CustomTooltip />} />
@@ -213,13 +217,14 @@ export default function EstadisticasView() {
               />
             </PieChart>
           </ResponsiveContainer>
-        </div>
+          <ul className="sr-only">{pieData.map((item) => <li key={item.name}>{item.name}: {item.value} {t("stats.orders")}</li>)}</ul>
+        </section>
       </div>
 
       {/* Bar chart: Tipos de equipo */}
-      <div className="work-order-meta-card">
+      <section className="work-order-meta-card" role="group" aria-label={t("stats.equipmentByType")}>
         <h3 style={{ fontSize: "14px", color: "#ffffff", marginBottom: "18px" }}>
-          Equipos Ingresados por Tipo de Artículo
+          {t("stats.equipmentByType")}
         </h3>
         <ResponsiveContainer width="100%" height={200}>
           <BarChart data={tipoBarData} layout="vertical" margin={{ top: 0, right: 16, left: 40, bottom: 0 }}>
@@ -230,7 +235,8 @@ export default function EstadisticasView() {
             <Bar dataKey="value" radius={[0, 4, 4, 0]} fill="#0ea5e9" />
           </BarChart>
         </ResponsiveContainer>
-      </div>
+        <ul className="sr-only">{tipoBarData.map((item) => <li key={item.name}>{item.name}: {item.value}</li>)}</ul>
+      </section>
     </div>
   );
 }

@@ -11,32 +11,37 @@ export default function Sidebar({ collapsed, mobileOpen = false, onToggle }) {
   const { user } = useAuth();
   const { t } = useTranslation();
   const esAdmin = user?.rol === "admin";
+  const esTecnico = user?.rol === "tecnico";
+  // Recepción comparte el acceso administrativo a catálogos e historial.
+  const puedeVerGestion = ["admin", "recepcion"].includes(user?.rol);
 
   const isActive = (path) => location.pathname === path;
 
   return (
-    <aside id="main-sidebar" className={`gestioo-sidebar ${collapsed ? "collapsed" : ""} ${mobileOpen ? "mobile-open" : ""}`} aria-label="Navegación principal">
+    <aside id="main-sidebar" className={`gestioo-sidebar ${collapsed ? "collapsed" : ""} ${mobileOpen ? "mobile-open" : ""}`} aria-label={t("shell.navigation")}>
       <div className="sidebar-header">
-        <Link to="/dashboard" className="brand-logo">
+        <Link to={esTecnico ? "/ordenes" : "/dashboard"} className="brand-logo">
           <Logo iconSize={30} showText={!collapsed} />
         </Link>
         <button
           className="sidebar-toggle-btn"
           onClick={onToggle}
-          title={collapsed ? "Expandir menú" : "Colapsar menú"}
+          title={collapsed ? t("shell.expandMenu") : t("shell.collapseMenu")}
         >
           <Icono nombre={collapsed ? "chevron-right" : "arrow-left"} size={16} />
         </button>
       </div>
 
       <nav className="sidebar-nav">
-        <Link
-          to="/dashboard"
-          className={`nav-item ${isActive("/dashboard") ? "active" : ""}`}
-        >
-          <Icono nombre="barchart" size={18} />
-          {!collapsed && <span>{t("nav.dashboard")}</span>}
-        </Link>
+        {!esTecnico && (
+          <Link
+            to="/dashboard"
+            className={`nav-item ${isActive("/dashboard") ? "active" : ""}`}
+          >
+            <Icono nombre="barchart" size={18} />
+            {!collapsed && <span>{t("nav.dashboard")}</span>}
+          </Link>
+        )}
         {/* Agenda */}
         <Link
           to="/agenda"
@@ -84,12 +89,14 @@ export default function Sidebar({ collapsed, mobileOpen = false, onToggle }) {
               >
                 {t("nav.equipment")}
               </Link>
-              <Link
-                to="/clientes"
-                className={`nav-subitem ${isActive("/clientes") ? "active" : ""}`}
-              >
-                {t("nav.clients")}
-              </Link>
+              {puedeVerGestion && (
+                <Link
+                  to="/clientes"
+                  className={`nav-subitem ${isActive("/clientes") ? "active" : ""}`}
+                >
+                  {t("nav.clients")}
+                </Link>
+              )}
               {esAdmin && (
                 <Link
                   to="/estadisticas"
@@ -121,22 +128,26 @@ export default function Sidebar({ collapsed, mobileOpen = false, onToggle }) {
         )}
 
         {/* Productos */}
-        <Link
-          to="/productos"
-          className={`nav-item ${isActive("/productos") ? "active" : ""}`}
-        >
-          <Icono nombre="box" size={18} />
-          {!collapsed && <span>{t("nav.products")}</span>}
-        </Link>
+        {puedeVerGestion && (
+          <Link
+            to="/productos"
+            className={`nav-item ${isActive("/productos") ? "active" : ""}`}
+          >
+            <Icono nombre="box" size={18} />
+            {!collapsed && <span>{t("nav.products")}</span>}
+          </Link>
+        )}
 
         {/* Servicios */}
-        <Link
-          to="/servicios"
-          className={`nav-item ${isActive("/servicios") ? "active" : ""}`}
-        >
-          <Icono nombre="wrench" size={18} />
-          {!collapsed && <span>{t("nav.services")}</span>}
-        </Link>
+        {puedeVerGestion && (
+          <Link
+            to="/servicios"
+            className={`nav-item ${isActive("/servicios") ? "active" : ""}`}
+          >
+            <Icono nombre="wrench" size={18} />
+            {!collapsed && <span>{t("nav.services")}</span>}
+          </Link>
+        )}
       </nav>
     </aside>
   );

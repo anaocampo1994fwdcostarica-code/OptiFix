@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect } from "react";
 import { FaCamera, FaTimes } from "react-icons/fa";
 import { useWorkshop } from "../../context/WorkshopContext.jsx";
+import { useFocusTrap } from "../../hooks/useFocusTrap.js";
 
 export default function CreandoEquipoModal({ isOpen, onClose, onGuardar }) {
+  const dialogRef = useFocusTrap(isOpen, onClose);
   const { marcas, addMarca } = useWorkshop();
 
   const [marca, setMarca] = useState("");
@@ -86,11 +88,11 @@ export default function CreandoEquipoModal({ isOpen, onClose, onGuardar }) {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-box" style={{ maxWidth: "650px", padding: 0, overflow: "hidden" }} onClick={e => e.stopPropagation()}>
+      <section ref={dialogRef} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="create-equipment-title" className="modal-box" style={{ maxWidth: "650px", padding: 0, overflow: "hidden" }} onClick={e => e.stopPropagation()}>
         {/* Header */}
         <div style={{ padding: "16px 24px", borderBottom: "1px solid var(--border-color)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <h2 style={{ fontSize: "20px", fontWeight: 600, color: "var(--text-color)" }}>Creando Equipo</h2>
-          <button className="modal-close-btn" onClick={onClose}>✕</button>
+          <h2 id="create-equipment-title" style={{ fontSize: "20px", fontWeight: 600, color: "var(--text-color)" }}>Creando Equipo</h2>
+          <button type="button" aria-label="Cerrar creación de equipo" className="modal-close-btn" onClick={onClose}>✕</button>
         </div>
 
         <div style={{ padding: "24px", display: "flex", gap: "24px" }}>
@@ -104,7 +106,7 @@ export default function CreandoEquipoModal({ isOpen, onClose, onGuardar }) {
             }}>
               <FaCamera size={48} />
             </div>
-            <button className="btn-outline-icon" style={{ padding: "6px 16px", borderRadius: "6px" }}>✎</button>
+            <button type="button" aria-label="Agregar fotografía del equipo" className="btn-outline-icon" style={{ padding: "6px 16px", borderRadius: "6px" }}>✎</button>
           </div>
 
           {/* Columna Derecha (Formulario) */}
@@ -157,7 +159,7 @@ export default function CreandoEquipoModal({ isOpen, onClose, onGuardar }) {
                     value={tipo} onChange={e => { setTipo(e.target.value); setErrors({...errors, tipo: null}); }} 
                   />
                   {tipo && (
-                    <button 
+                    <button type="button" aria-label="Limpiar tipo de equipo"
                       onClick={() => setTipo("")}
                       style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#64748b" }}
                     >
@@ -210,7 +212,7 @@ export default function CreandoEquipoModal({ isOpen, onClose, onGuardar }) {
           <button className="btn-secondary" style={{ backgroundColor: "#e2e8f0", color: "#475569", border: "none" }} onClick={onClose}>Cancelar</button>
           <button className="btn-primary" style={{ backgroundColor: "#2563eb" }} onClick={handleSubmit}>💾 Guardar</button>
         </div>
-      </div>
+      </section>
     </div>
   );
 }

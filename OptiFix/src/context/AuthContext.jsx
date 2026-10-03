@@ -8,14 +8,14 @@ const SESSION_KEY = "optifix_session";
 // Simulación académica: localStorage solo guarda identidad y permisos mínimos.
 // En producción esto debe reemplazarse por una sesión emitida por un backend.
 function crearSesionSegura(usuario = {}) {
-  const rol = usuario.rol === "admin" ? "admin" : "tecnico";
+  const rol = ["admin", "recepcion", "tecnico"].includes(usuario.rol) ? usuario.rol : "tecnico";
   return {
     id: usuario.id || null,
     nombre: usuario.nombre || "",
     usuario: usuario.usuario || "",
     email: usuario.email || "",
     rol,
-    roles: usuario.roles || (rol === "admin"
+    roles: usuario.roles || (rol === "admin" || rol === "recepcion"
       ? ["ver_ordenes", "crear_orden", "crear_cotizacion", "gestionar_usuarios"]
       : ["ver_ordenes", "crear_orden"]),
   };

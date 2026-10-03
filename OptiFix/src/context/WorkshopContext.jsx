@@ -23,6 +23,23 @@ const WorkshopContext = createContext(null);
 
 const STORAGE_KEY = "optifix_data_v1";
 const DEMO_CLIENTS_SEEDED_KEY = "optifix_deletable_clients_seeded_v1";
+const LEGACY_WORKSHOP_NAME = /T2K\s+SERVICIOS\s+ELECTR(?:ÓNICOS|ONICOS|Ã“NICOS)/gi;
+
+/**
+ * Migra datos históricos guardados en localStorage o recibidos desde JSON Server.
+ * Se recorre la estructura completa porque el nombre puede existir en órdenes,
+ * notas, comprobantes o líneas de tiempo creadas antes del cambio de marca.
+ */
+function migrateWorkshopName(value) {
+  if (typeof value === "string") return value.replace(LEGACY_WORKSHOP_NAME, WORKSHOP_NAME);
+  if (Array.isArray(value)) return value.map(migrateWorkshopName);
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, nestedValue]) => [key, migrateWorkshopName(nestedValue)])
+    );
+  }
+  return value;
+}
 const DELETABLE_DEMO_CLIENTS = [
   { id: "cli-demo-1", identificacion: "119990101", nombre: "Andrea Solano", email: "andrea.solano@correo.cr", telefono: "87001234", direccion: "San Ramón, Alajuela", notas: "Cliente de prueba sin órdenes activas." },
   { id: "cli-demo-2", identificacion: "208880202", nombre: "Diego Vargas", email: "diego.vargas@correo.cr", telefono: "88114567", direccion: "Tres Ríos, Cartago", notas: "Cliente de prueba sin órdenes activas." },
@@ -50,7 +67,7 @@ export function WorkshopProvider({ children }) {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
-        const parsed = JSON.parse(saved);
+        const parsed = migrateWorkshopName(JSON.parse(saved));
         // Asegurar que siempre existe el catálogo de marcas
         if (!parsed.marcas || parsed.marcas.length === 0) {
           parsed.marcas = MARCAS_SEED;
@@ -71,7 +88,7 @@ export function WorkshopProvider({ children }) {
       console.error("Error al cargar datos locales de OptiFix", e);
     }
     localStorage.setItem(DEMO_CLIENTS_SEEDED_KEY, "true");
-    return { ...initialData, marcas: MARCAS_SEED, usuarios: USUARIOS_SEED };
+    return migrateWorkshopName({ ...initialData, marcas: MARCAS_SEED, usuarios: USUARIOS_SEED });
   });
 
   const [theme, setTheme] = useState(() => {
@@ -90,6 +107,29 @@ export function WorkshopProvider({ children }) {
   const [activeStageFilter, setActiveStageFilter] = useState("TODOS");
   const [searchQuery, setSearchQuery] = useState("");
   const [isNotificationDrawerOpen, setIsNotificationDrawerOpen] = useState(false);
+
+  const markNotificationAsRead = (notificationId) => {
+    setData((prev) => ({
+      ...prev,
+      notificaciones: (prev.notificaciones || []).map((notification) =>
+        notification.id === notificationId ? { ...notification, leido: true } : notification
+      )
+    }));
+  };
+
+  const markAllNotificationsAsRead = () => {
+    setData((prev) => ({
+      ...prev,
+      notificaciones: (prev.notificaciones || []).map((notification) => ({ ...notification, leido: true }))
+    }));
+  };
+
+  const deleteNotification = (notificationId) => {
+    setData((prev) => ({
+      ...prev,
+      notificaciones: (prev.notificaciones || []).filter((notification) => notification.id !== notificationId)
+    }));
+  };
 
   useEffect(() => {
     try {
@@ -111,7 +151,7 @@ export function WorkshopProvider({ children }) {
       try {
         const ordenesRemotas = await listarOrdenes();
         if (!cancelled && Array.isArray(ordenesRemotas)) {
-          setData((prev) => ({ ...prev, ordenes: ordenesRemotas }));
+          setData((prev) => ({ ...prev, ordenes: migrateWorkshopName(ordenesRemotas) }));
         }
       } catch (error) {
         console.warn("JSON Server no está disponible; se utilizará el respaldo local.", error);
@@ -149,7 +189,9 @@ export function WorkshopProvider({ children }) {
       setData((prev) => {
         const siguiente = { ...prev };
         resultados.forEach((resultado, indice) => {
-          if (resultado.status === "fulfilled" && Array.isArray(resultado.value)) siguiente[recursos[indice][0]] = resultado.value;
+          if (resultado.status === "fulfilled" && Array.isArray(resultado.value)) {
+            siguiente[recursos[indice][0]] = migrateWorkshopName(resultado.value);
+          }
         });
         return siguiente;
       });
@@ -168,7 +210,7 @@ export function WorkshopProvider({ children }) {
       try {
         const usuariosRemotos = await listarUsuarios();
         if (!cancelled && Array.isArray(usuariosRemotos)) {
-          setData((prev) => ({ ...prev, usuarios: usuariosRemotos }));
+          setData((prev) => ({ ...prev, usuarios: migrateWorkshopName(usuariosRemotos) }));
         }
       } catch (error) {
         console.warn("JSON Server no está disponible; se utilizarán usuarios locales.", error);
@@ -352,10 +394,16 @@ export function WorkshopProvider({ children }) {
       fecha: nowStr,
       vigencia: cotizacionData.vigencia || 15,
       notas: cotizacionData.notas || "",
+      subtotal: Number(cotizacionData.subtotal) || 0,
+      iva: Number(cotizacionData.iva) || 0,
+      total: Number(cotizacionData.total) || 0,
       items: (cotizacionData.items || []).map((item) => ({
         descripcion: item.descripcion || "",
         cantidad: Number(item.cantidad) || 1,
-        precio: Number(item.precio) || 0
+        precio: Number(item.precio) || 0,
+        subtotal: Number(item.subtotal) || 0,
+        iva: Number(item.iva) || 0,
+        total: Number(item.total) || 0
       }))
     };
     const creada = await crearCotizacionEnServidor(nueva);
@@ -634,7 +682,7 @@ export function WorkshopProvider({ children }) {
   // ── RESET DEMO ────────────────────────────────────────────────────────────────
   const resetToSeedData = () => {
     localStorage.removeItem(STORAGE_KEY);
-    setData({ ...initialData, marcas: MARCAS_SEED, usuarios: USUARIOS_SEED });
+    setData(migrateWorkshopName({ ...initialData, marcas: MARCAS_SEED, usuarios: USUARIOS_SEED }));
   };
 
   // ── BÚSQUEDA GLOBAL ───────────────────────────────────────────────────────────
@@ -691,6 +739,9 @@ export function WorkshopProvider({ children }) {
     updateUsuario,
     deleteUsuario,
     notificaciones: data.notificaciones || [],
+    markNotificationAsRead,
+    markAllNotificationsAsRead,
+    deleteNotification,
     estadisticas: data.estadisticas || {},
     activeStageFilter,
     setActiveStageFilter,

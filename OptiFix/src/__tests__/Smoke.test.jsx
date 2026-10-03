@@ -25,7 +25,7 @@ describe("App smoke", () => {
     );
 
     expect(
-      await screen.findByRole("heading", { name: /consultá el .*estado de tu orden/i })
+      await screen.findByRole("heading", { name: /todo tu taller, organizado en un solo lugar/i })
     ).toBeInTheDocument();
     expect(screen.getAllByRole("img", { name: /logo optifix/i }).length).toBeGreaterThan(0);
   });

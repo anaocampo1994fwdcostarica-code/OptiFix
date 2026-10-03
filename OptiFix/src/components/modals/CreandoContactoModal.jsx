@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import { FaTrash, FaPlus, FaInfoCircle, FaCamera } from "react-icons/fa";
 import "./CreandoContactoModal.css";
+import { useFocusTrap } from "../../hooks/useFocusTrap.js";
 
 export default function CreandoContactoModal({ isOpen, onClose, onGuardar }) {
+  const dialogRef = useFocusTrap(isOpen, onClose);
   const [tipoCliente, setTipoCliente] = useState("Persona");
   const [ci, setCi] = useState("");
   const [nombre, setNombre] = useState("");
@@ -83,11 +85,11 @@ export default function CreandoContactoModal({ isOpen, onClose, onGuardar }) {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-box contact-modal" style={{ maxWidth: "800px", padding: 0, overflow: "hidden" }} onClick={e => e.stopPropagation()}>
+      <section ref={dialogRef} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="create-contact-title" className="modal-box contact-modal" style={{ maxWidth: "800px", padding: 0, overflow: "hidden" }} onClick={e => e.stopPropagation()}>
         {/* Header */}
         <div style={{ padding: "16px 24px", borderBottom: "1px solid var(--border-color)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <h2 style={{ fontSize: "20px", fontWeight: 600, color: "var(--text-color)" }}>Creando Contacto</h2>
-          <button className="modal-close-btn" onClick={onClose}>✕</button>
+          <h2 id="create-contact-title" style={{ fontSize: "20px", fontWeight: 600, color: "var(--text-color)" }}>Creando Contacto</h2>
+          <button type="button" aria-label="Cerrar creación de contacto" className="modal-close-btn" onClick={onClose}>✕</button>
         </div>
 
         <div className="contact-modal-body" style={{ padding: "24px", display: "flex", gap: "24px" }}>
@@ -101,7 +103,7 @@ export default function CreandoContactoModal({ isOpen, onClose, onGuardar }) {
             }}>
               <FaCamera size={48} />
             </div>
-            <button className="btn-outline-icon" style={{ padding: "6px 16px", borderRadius: "6px" }}>✎</button>
+            <button type="button" aria-label="Agregar fotografía del contacto" className="btn-outline-icon" style={{ padding: "6px 16px", borderRadius: "6px" }}>✎</button>
           </div>
 
           {/* Columna Derecha (Formulario) */}
@@ -166,7 +168,7 @@ export default function CreandoContactoModal({ isOpen, onClose, onGuardar }) {
                     <span style={{ fontSize: "12px", backgroundColor: "var(--bg-secondary)", padding: "2px 8px", borderRadius: "12px", border: "1px solid var(--border-color)" }}>
                       {correos.length}/4
                     </span>
-                    <button className="btn-outline-icon" style={{ padding: "4px" }} onClick={handleAddCorreo} disabled={correos.length >= 4}>
+                    <button type="button" aria-label="Agregar correo electrónico" className="btn-outline-icon" style={{ padding: "4px" }} onClick={handleAddCorreo} disabled={correos.length >= 4}>
                       <FaPlus size={12} />
                     </button>
                   </div>
@@ -181,7 +183,7 @@ export default function CreandoContactoModal({ isOpen, onClose, onGuardar }) {
                         value={c.valor} onChange={e => handleChangeCorreo(c.id, e.target.value)} 
                         style={{ borderRight: "none", borderTopRightRadius: 0, borderBottomRightRadius: 0 }}
                       />
-                      <button 
+                      <button type="button" aria-label="Eliminar correo electrónico"
                         style={{ padding: "0 12px", backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border-color)", color: "var(--text-color)", borderLeft: "1px solid var(--border-color)", borderTopRightRadius: "6px", borderBottomRightRadius: "6px", cursor: "pointer" }}
                         onClick={() => handleRemoveCorreo(c.id)}
                       >
@@ -202,7 +204,7 @@ export default function CreandoContactoModal({ isOpen, onClose, onGuardar }) {
                     <span style={{ fontSize: "12px", backgroundColor: "var(--bg-secondary)", padding: "2px 8px", borderRadius: "12px", border: "1px solid var(--border-color)" }}>
                       {telefonos.length}/4
                     </span>
-                    <button className="btn-outline-icon" style={{ padding: "4px" }} onClick={handleAddTelefono} disabled={telefonos.length >= 4}>
+                    <button type="button" aria-label="Agregar teléfono" className="btn-outline-icon" style={{ padding: "4px" }} onClick={handleAddTelefono} disabled={telefonos.length >= 4}>
                       <FaPlus size={12} />
                     </button>
                   </div>
@@ -212,7 +214,7 @@ export default function CreandoContactoModal({ isOpen, onClose, onGuardar }) {
                   {telefonos.map(t => (
                     <div key={t.id} style={{ display: "flex", gap: "0", alignItems: "stretch" }}>
                       <div style={{ padding: "0 12px", display: "flex", alignItems: "center", backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border-color)", borderRight: "none", borderTopLeftRadius: "6px", borderBottomLeftRadius: "6px" }}>
-                        <input type="radio" checked={t.isDefault} onChange={() => handleSetDefaultTelefono(t.id)} />
+                        <input type="radio" name="default-phone" aria-label="Usar como teléfono principal" checked={t.isDefault} onChange={() => handleSetDefaultTelefono(t.id)} />
                       </div>
                       <input 
                         className="form-input" 
@@ -220,7 +222,7 @@ export default function CreandoContactoModal({ isOpen, onClose, onGuardar }) {
                         value={t.valor} onChange={e => handleChangeTelefono(t.id, e.target.value)} 
                         style={{ borderRadius: 0, borderLeft: "1px solid var(--border-color)" }}
                       />
-                      <button 
+                      <button type="button" aria-label="Eliminar teléfono"
                         style={{ padding: "0 12px", backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border-color)", color: "var(--text-color)", borderLeft: "none", borderTopRightRadius: "6px", borderBottomRightRadius: "6px", cursor: "pointer" }}
                         onClick={() => handleRemoveTelefono(t.id)}
                       >
@@ -241,7 +243,7 @@ export default function CreandoContactoModal({ isOpen, onClose, onGuardar }) {
             💾 Guardar
           </button>
         </div>
-      </div>
+      </section>
     </div>
   );
 }

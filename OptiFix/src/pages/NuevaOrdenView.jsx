@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useWorkshop } from "../context/WorkshopContext.jsx";
-import AsistenteDiagnostico from "../components/ai/AsistenteDiagnostico.jsx";
 import Logo from "../components/Logo.jsx";
+import { useTranslation } from "react-i18next";
 
 export default function NuevaOrdenView({ onOrdenCreada }) {
   const { clientes, equipos, addCliente, addEquipo, addOrden } = useWorkshop();
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   // ── Tab / Stepper state ──────────────────────────────────────
@@ -16,6 +17,7 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
 
   const [newClient, setNewClient] = useState({ tipo_cliente: "Persona", nombre: "", identificacion: "", telefono: "", email: "" });
   const [newEquipo, setNewEquipo] = useState({ tipo: "Laptop / Portátil", marca: "", modelo: "", serie: "" });
+  const [accesoriosRecibidos, setAccesoriosRecibidos] = useState("");
 
   // ── Form state — General ─────────────────────────────────────
   const [clienteId, setClienteId] = useState("");
@@ -23,17 +25,13 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
   const [referenciaExterna, setReferenciaExterna] = useState("");
   const [prioridad, setPrioridad] = useState("Normal");
   const [area, setArea] = useState("Entrada");
-  const [estado, setEstado] = useState("RECEPCIÓN");
+  const [estado, setEstado] = useState("Entrada");
   const [responsable, setResponsable] = useState("Sin Asignar (Cola General)");
   const [trabajo, setTrabajo] = useState("");
   const [descripcion, setDescripcion] = useState("");
-  const [diagnosticoSeleccion, setDiagnosticoSeleccion] = useState("No");
   const [tieneGarantia, setTieneGarantia] = useState(false);
-  const [adelanto, setAdelanto] = useState("");
 
   // ── Form state — Tabs ────────────────────────────────────────
-  const [diagnosticoTexto, setDiagnosticoTexto] = useState("");
-  const [anotaciones, setAnotaciones] = useState("");
   const [guardandoOrden, setGuardandoOrden] = useState(false);
   const [errorOrden, setErrorOrden] = useState("");
 
@@ -51,7 +49,7 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
   const [clienteIdentificacion, setClienteIdentificacion] = useState("");
 
   // ── Computed ──────────────────────────────────────────────────
-  const adelantoNum = Number(String(adelanto).replace(/[^0-9.]/g, "")) || 0;
+  const estadoColor = { "Entrada": "bg-slate-400", "En trámite": "bg-amber-500", "En taller": "bg-blue-500", "Reparado / Sin reparar": "bg-emerald-500", "Salida / Entregado": "bg-green-600" }[estado] || "bg-slate-400";
 
   const clientesFiltrados = clientes.filter(c =>
     (c.nombre + " " + (c.apellido || "")).toLowerCase().includes(clienteQuery.toLowerCase()) ||
@@ -100,10 +98,11 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
       alert("Por favor complete marca, modelo y número de serie.");
       return;
     }
-    const eq = await addEquipo({ ...newEquipo, cliente_id: clienteId });
+    const eq = await addEquipo({ ...newEquipo, accesorios: accesoriosRecibidos, cliente_id: clienteId });
     handleSelectEquipo(eq);
     setShowEquipmentForm(false);
     setNewEquipo({ tipo: "Laptop / Portátil", marca: "", modelo: "", serie: "" });
+    setAccesoriosRecibidos("");
   };
 
   const handleSubmit = async () => {
@@ -126,10 +125,7 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
       responsable,
       trabajo_solicitado: trabajo,
       descripcion_estado: descripcion,
-      diagnostico: diagnosticoSeleccion === "Sí" ? diagnosticoTexto : "",
-      garantia: tieneGarantia,
-      adelanto: adelantoNum,
-      anotaciones
+      garantia: tieneGarantia
     });
 
     if (onOrdenCreada) onOrdenCreada(nuevaOrden);
@@ -157,7 +153,7 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
      ================================================================ */
   return (
     <div
-      className="nueva-orden-view min-h-screen flex flex-col pb-28 md:pb-24 bg-gray-50 dark:bg-gray-950"
+      className="nueva-orden-view nueva-orden-premium min-h-screen flex flex-col pb-28 md:pb-24 !bg-slate-50"
       style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}
       onClick={() => { setShowClienteDropdown(false); setShowEquipoDropdown(false); }}
     >
@@ -230,10 +226,10 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs">
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">Nueva Orden de Servicio Técnico</h1>
+              <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">{t("newOrder.title")}</h1>
               <span className="md:hidden px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200 font-mono">#NUEVA</span>
             </div>
-            <p className="text-xs sm:text-sm text-slate-500 mt-1">Recepción, verificación del cliente y diagnóstico preliminar en mostrador.</p>
+            <p className="text-xs sm:text-sm text-slate-500 mt-1">{t("newOrder.subtitle")}</p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <button type="button" className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-300/80 rounded-xl transition-colors">
@@ -244,10 +240,10 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
         </div>
 
         {/* ═══ GRID: CLIENTE (Left) & DISPOSITIVO (Right) ═══ */}
-        <div className="grid grid-cols-1 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
           {/* ─── CARD 1: CLIENTE SOLICITANTE ─── */}
-          <section className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-6 flex flex-col justify-between relative overflow-hidden">
+          <section className="!bg-white rounded-2xl shadow-xl shadow-slate-200/40 border border-slate-200 p-6 flex flex-col justify-between relative overflow-hidden">
             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-sky-500 to-sky-600"></div>
             <div>
               <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
@@ -255,7 +251,7 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
                   <span className="w-7 h-7 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center font-bold text-sm">
                     <i className="ph ph-user"></i>
                   </span>
-                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-100 dark:border-gray-800 pb-3 mb-5">1. Datos del Cliente</h2>
+                  <h2 className="font-bold text-lg text-slate-800 dark:text-white">1. {t("newOrder.client")}</h2>
                   <span className="text-rose-500 font-bold">*</span>
                 </div>
                 <button
@@ -264,7 +260,7 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
                   className="inline-flex items-center gap-1 text-xs font-bold text-sky-600 hover:text-sky-700 bg-sky-50 hover:bg-sky-100/70 px-2.5 py-1 rounded-lg transition-colors"
                 >
                   <i className="ph ph-user-plus"></i>
-                  <span>+ Nuevo Cliente</span>
+                  <span>+ {t("newOrder.newClient")}</span>
                 </button>
               </div>
 
@@ -273,7 +269,7 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
                 <i className="ph ph-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-base"></i>
                 <input
                   type="text"
-                  placeholder="Buscar por Nombre, Cédula / DNI o Teléfono..."
+                  placeholder={t("newOrder.searchClient")}
                   value={clienteQuery}
                   onChange={e => { setClienteQuery(e.target.value); setClienteId(""); setShowClienteDropdown(true); }}
                   onFocus={() => setShowClienteDropdown(true)}
@@ -404,7 +400,7 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
           </section>
 
           {/* ─── CARD 2: DISPOSITIVO / EQUIPO ─── */}
-          <section className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-6 flex flex-col justify-between relative overflow-hidden">
+          <section className="!bg-white rounded-2xl shadow-xl shadow-slate-200/40 border border-slate-200 p-6 flex flex-col justify-between relative overflow-hidden">
             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-sky-600 to-indigo-600"></div>
             <div>
               <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
@@ -412,7 +408,7 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
                   <span className="w-7 h-7 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center font-bold text-sm">
                     <i className="ph ph-laptop"></i>
                   </span>
-                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-100 dark:border-gray-800 pb-3 mb-5">2. Datos del Dispositivo</h2>
+                  <h2 className="font-bold text-lg text-slate-800 dark:text-white">2. {t("newOrder.equipment")}</h2>
                   <span className="text-rose-500 font-bold">*</span>
                 </div>
                 <button
@@ -421,7 +417,7 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
                   className="inline-flex items-center gap-1 text-xs font-bold text-sky-600 hover:text-sky-700 bg-sky-50 hover:bg-sky-100/70 px-2.5 py-1 rounded-lg transition-colors"
                 >
                   <i className="ph ph-plus-circle"></i>
-                  <span>+ Registrar Equipo</span>
+                  <span>+ {t("newOrder.registerEquipment")}</span>
                 </button>
               </div>
 
@@ -430,7 +426,7 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
                 <i className="ph ph-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-base"></i>
                 <input
                   type="text"
-                  placeholder="Buscar por N° Serie, Marca o Modelo..."
+                  placeholder={t("newOrder.searchEquipment")}
                   value={equipoQuery}
                   onChange={e => { setEquipoQuery(e.target.value); setEquipoId(""); setShowEquipoDropdown(true); }}
                   onFocus={() => setShowEquipoDropdown(true)}
@@ -543,7 +539,7 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
                     </div>
                     <div>
                       <label className="block text-[11px] font-semibold text-slate-600 mb-1">Accesorios Dejados</label>
-                      <input className="w-full text-xs rounded-lg border border-slate-300 py-1.5 px-2 bg-white" placeholder="Cargador original..." type="text" />
+                      <input value={accesoriosRecibidos} onChange={e => setAccesoriosRecibidos(e.target.value)} className="w-full text-xs rounded-lg border border-slate-300 py-1.5 px-2 bg-white" placeholder="Cargador original..." type="text" />
                     </div>
                   </div>
                   <button onClick={handleSaveQuickEquipment} className="w-full bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold py-2 rounded-lg mt-1 transition-colors" type="button">Guardar y Seleccionar Equipo</button>
@@ -578,8 +574,8 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
         </div>
 
         {/* ═══ CENTRAL SECTION: TABS + FORM ═══ */}
-        <section className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-6 space-y-6">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-100 dark:border-gray-800 pb-3 mb-5">3. Estado Inicial y Recepción</h2>
+        <section className="!bg-white rounded-2xl shadow-xl shadow-slate-200/40 border border-slate-200 p-6 space-y-6">
+          <h2 className="font-bold text-lg text-slate-800 dark:text-white flex items-center gap-2"><span className="w-7 h-7 rounded-lg bg-orange-50 text-orange-600 inline-flex items-center justify-center"><i className="ph ph-eye"></i></span>3. {t("newOrder.intake")}</h2>
           <div className="space-y-6">
             <div className="space-y-6">
               {/* Row 1: Priority, Area, Status, Technician */}
@@ -612,13 +608,15 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Estado Inicial</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">{t("newOrder.status")}</label>
                   <div className="relative">
-                    <select value={estado} onChange={e => setEstado(e.target.value)} className="w-full appearance-none bg-slate-50/80 border border-slate-200 rounded-xl px-3 py-2.5 text-xs sm:text-sm font-bold text-sky-700 bg-sky-50/40 focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all">
-                      <option value="RECEPCIÓN">RECEPCIÓN / POR REVISAR</option>
-                      <option value="DIAGNÓSTICO">EN DIAGNÓSTICO</option>
-                      <option value="PRESUPUESTO">PRESUPUESTO PENDIENTE</option>
-                      <option value="APROBADO">APROBADO / EN ESPERA REPUESTO</option>
+                    <span className={`absolute left-3 top-1/2 -translate-y-1/2 h-2.5 w-2.5 rounded-full ${estadoColor}`}></span>
+                    <select value={estado} onChange={e => setEstado(e.target.value)} className="w-full appearance-none bg-slate-50/80 border border-slate-200 rounded-xl pl-8 pr-8 py-2.5 text-xs sm:text-sm font-bold text-slate-800 focus:bg-white focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all">
+                      <option value="Entrada">{t("newOrder.entry")}</option>
+                      <option value="En trámite">{t("newOrder.inProgress")}</option>
+                      <option value="En taller">{t("newOrder.inWorkshop")}</option>
+                      <option value="Reparado / Sin reparar">{t("newOrder.repaired")}</option>
+                      <option value="Salida / Entregado">{t("newOrder.delivered")}</option>
                     </select>
                     <i className="ph ph-caret-down absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
                   </div>
@@ -642,7 +640,7 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
                     <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                      <span>Trabajo Solicitado / Motivo de Ingreso</span>
+                      <span>{t("newOrder.reportedIssue")}</span>
                       <span className="text-rose-500">*</span>
                     </label>
                     <div className="flex items-center gap-1 text-[11px] text-slate-400">
@@ -655,18 +653,18 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
                       </button>
                     </div>
                   </div>
-                  <textarea
-                    rows={3}
+                  <input
                     value={trabajo}
                     onChange={e => setTrabajo(e.target.value)}
-                    placeholder="Describa con precisión la falla reportada por el cliente..."
-                    className="w-full bg-slate-50/80 focus:bg-white border border-slate-200 rounded-xl p-3 text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all font-normal"
-                  ></textarea>
+                    placeholder={t("newOrder.issuePlaceholder")}
+                    className="w-full !bg-slate-50 !text-slate-900 !border-slate-300 focus:bg-white border rounded-xl p-3 text-xs sm:text-sm placeholder:text-slate-400 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all font-normal"
+                    style={{ backgroundColor: "#f8fafc", color: "#0f172a", borderColor: "#cbd5e1" }}
+                  />
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
                     <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                      <span>Inspección Visual & Accesorios Recibidos</span>
+                      <span>{t("newOrder.visualInspection")}</span>
                     </label>
                     <button type="button" className="text-[11px] font-semibold text-sky-600 hover:text-sky-700 flex items-center gap-1">
                       <i className="ph ph-list-plus"></i> Cargar Checklist
@@ -676,62 +674,20 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
                     rows={3}
                     value={descripcion}
                     onChange={e => setDescripcion(e.target.value)}
-                    placeholder="Indique rayones, golpes, cargadores, cables o accesorios incluidos..."
-                    className="w-full bg-slate-50/80 focus:bg-white border border-slate-200 rounded-xl p-3 text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all font-normal"
+                    placeholder={t("newOrder.inspectionPlaceholder")}
+                    className="w-full !bg-slate-50 !text-slate-900 !border-slate-300 focus:bg-white border rounded-xl p-3 text-xs sm:text-sm placeholder:text-slate-400 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all font-normal"
+                    style={{ backgroundColor: "#f8fafc", color: "#0f172a", borderColor: "#cbd5e1" }}
                   ></textarea>
                 </div>
               </div>
 
-              {/* Row 3: diagnóstico y adelanto inicial */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2 border-t border-slate-100">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Diagnóstico Previo</label>
-                  <div className="relative">
-                    <select value={diagnosticoSeleccion} onChange={e => setDiagnosticoSeleccion(e.target.value)} className="w-full appearance-none bg-slate-50/80 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all">
-                      <option value="No">No (Falla identificada)</option>
-                      <option value="Sí">Sí (Requiere laboratorio)</option>
-                      <option value="Aprobado">Aprobado en mesa</option>
-                    </select>
-                    <i className="ph ph-caret-down absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-xs font-bold text-slate-700">Adelanto / Revisión</label>
-                    <span className="text-[10px] text-emerald-600 font-semibold font-mono">CRC (₡)</span>
-                  </div>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-xs">₡</span>
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={adelanto}
-                      onChange={e => setAdelanto(e.target.value)}
-                      placeholder="0,00"
-                      className="w-full pl-7 pr-3 py-2 bg-emerald-50/50 border border-emerald-200/80 rounded-xl text-xs sm:text-sm font-bold text-emerald-700 font-mono focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
-                    />
-                  </div>
-                </div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-2">Diagnóstico inicial</label>
-                  <textarea value={diagnosticoTexto} onChange={e => setDiagnosticoTexto(e.target.value)} className="w-full min-h-32 rounded-lg border border-slate-200 bg-slate-50/80 p-3 text-sm text-slate-800 placeholder:text-slate-400" placeholder="Detalles del diagnóstico técnico de entrada..." />
-                  <AsistenteDiagnostico fallaReportada={trabajo || diagnosticoTexto} equipo={selectedEquipo} onAplicar={(resultado) => setDiagnosticoTexto(`${diagnosticoTexto}${diagnosticoTexto ? "\n\n" : ""}Sugerencia IA:\n${resultado.posiblesCausas?.join("\n") || ""}`)} />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-2">Notas de recepción</label>
-                  <textarea value={anotaciones} onChange={e => setAnotaciones(e.target.value)} className="w-full min-h-32 rounded-lg border border-slate-200 bg-slate-50/80 p-3 text-sm text-slate-800 placeholder:text-slate-400" placeholder="Anotaciones internas y checklist de recepción..." />
-                </div>
-              </div>
             </div>
           </div>
         </section>
       </main>
 
       {/* ═══════════════ STICKY FOOTER ═══════════════ */}
-      <footer className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-lg">
+      <footer className="fixed bottom-0 left-0 right-0 z-40 backdrop-blur-md bg-white/80 dark:bg-slate-900/80 border-t border-slate-200 dark:border-slate-700 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-3">
           {/* Live summary */}
           <div className="flex items-center justify-between sm:justify-start w-full sm:w-auto gap-4 text-xs">
@@ -754,7 +710,7 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
               onClick={() => navigate(-1)}
               className="flex-1 sm:flex-none px-4 py-2.5 text-xs sm:text-sm font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200/70 rounded-xl transition-colors"
             >
-              Cancelar
+              {t("newOrder.cancel")}
             </button>
             <button
               type="button"
@@ -767,10 +723,10 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
               type="button"
               onClick={handleSubmit}
               disabled={guardandoOrden}
-              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-2.5 text-xs sm:text-sm font-extrabold text-white bg-gradient-to-r from-sky-600 to-sky-700 hover:from-sky-700 hover:to-sky-800 active:scale-[0.98] rounded-xl shadow-md shadow-sky-600/20 transition-all"
+              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-2.5 text-xs sm:text-sm font-extrabold text-white bg-orange-500 hover:bg-orange-600 active:scale-95 rounded-xl shadow-md shadow-orange-500/25 transition-transform"
             >
               <i className="ph ph-printer text-base"></i>
-              <span>{guardandoOrden ? "Guardando en JSON Server..." : "Crear Orden & Imprimir Boleta"}</span>
+              <span>{guardandoOrden ? "Guardando en JSON Server..." : t("newOrder.create")}</span>
             </button>
           </div>
         </div>
