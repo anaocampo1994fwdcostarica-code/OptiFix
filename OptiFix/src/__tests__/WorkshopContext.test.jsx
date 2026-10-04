@@ -27,6 +27,19 @@ function CrudHarness() {
   </div>;
 }
 
+function OrderMutationHarness() {
+  const { ordenes, updateOrden } = useWorkshop();
+  const order = ordenes[0];
+  const [error, setError] = useState("");
+  return <div>
+    <span data-testid="order-number">{order?.numero || "sin orden"}</span>
+    <span data-testid="order-warranty">{String(Boolean(order?.garantia))}</span>
+    <span data-testid="order-status">{order?.estado_actual || "sin estado"}</span>
+    <button onClick={() => updateOrden(order.id, { garantia: true }).catch((requestError) => setError(requestError.message))}>Activar garantía</button>
+    <span data-testid="order-error">{error}</span>
+  </div>;
+}
+
 beforeEach(() => localStorage.clear());
 
 describe("WorkshopContext", () => {
@@ -63,5 +76,33 @@ describe("WorkshopContext", () => {
     render(<WorkshopProvider><CrudHarness /></WorkshopProvider>);
     fireEvent.click(screen.getByText("Actualizar usuario inexistente"));
     await waitFor(() => expect(screen.getByTestId("crud-result")).toHaveTextContent(/no encontrado/i));
+  });
+
+  it("mantiene la orden visible y aplica el cambio antes de terminar el PATCH", async () => {
+    let resolvePatch;
+    global.fetch = jest.fn((_, options = {}) => options.method === "PATCH"
+      ? new Promise((resolve) => { resolvePatch = resolve; })
+      : new Promise(() => {}));
+    render(<WorkshopProvider><OrderMutationHarness /></WorkshopProvider>);
+    const number = screen.getByTestId("order-number").textContent;
+    fireEvent.click(screen.getByText("Activar garantía"));
+    expect(screen.getByTestId("order-number")).toHaveTextContent(number);
+    expect(screen.getByTestId("order-warranty")).toHaveTextContent("true");
+    resolvePatch({ ok: true, status: 200, json: () => Promise.resolve({ garantia: true }) });
+    await waitFor(() => expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining("/ordenes/"), expect.objectContaining({ method: "PATCH" })));
+    expect(screen.getByTestId("order-number")).toHaveTextContent(number);
+  });
+
+  it("revierte el campo si el PATCH falla sin retirar la orden de la pantalla", async () => {
+    global.fetch = jest.fn((_, options = {}) => options.method === "PATCH"
+      ? Promise.resolve({ ok: false, status: 500, text: () => Promise.resolve("Error de prueba") })
+      : new Promise(() => {}));
+    render(<WorkshopProvider><OrderMutationHarness /></WorkshopProvider>);
+    const number = screen.getByTestId("order-number").textContent;
+    fireEvent.click(screen.getByText("Activar garantía"));
+    expect(screen.getByTestId("order-warranty")).toHaveTextContent("true");
+    await waitFor(() => expect(screen.getByTestId("order-error")).toHaveTextContent("Error de prueba"));
+    expect(screen.getByTestId("order-warranty")).toHaveTextContent("false");
+    expect(screen.getByTestId("order-number")).toHaveTextContent(number);
   });
 });

@@ -1,22 +1,28 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useReactToPrint } from "react-to-print";
 import Icono from "../components/icons.jsx";
 import { useWorkshop } from "../context/WorkshopContext.jsx";
 import { getEstadoBadge } from "../utils/estadoColors.js";
-import ItemProductoModal from "../components/modals/ItemProductoModal.jsx";
 import CambiarEstadoModal from "../components/modals/CambiarEstadoModal.jsx";
 import { VistaPreviaReporteOrden } from "../components/ReporteOrdenPDF.jsx";
 import { WORKSHOP_NAME } from "../config/workshop.js";
+import { useAuth } from "../hooks/useAuth.js";
+import { normalizeOrderStatus } from "../utils/estadoColors.js";
+import { CustomerCard, EquipmentCard, EditOrderFieldModal, getRelatedHistoryCount, OrderSummary, RelatedHistoryDrawer, formatColones } from "../components/order/OrderDetailComponents.jsx";
+import { BudgetDecisionEditModal, BudgetTab, createBudgetDecisionChanges, createBudgetDecisionRevisionChanges, EntityEditModal, getBudgetTotals } from "../components/order/OrderManagementPanels.jsx";
+import "./OrdenDetalle.css";
+import "./OrdenDetallePolish.css";
+import "./BudgetDecision.css";
 
 export default function OrdenDetalle() {
   const { numero } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const {
     ordenes,
     clientes,
     equipos,
-    toggleGarantia,
     addProductService,
     removeProductService,
     toggleTarea,
@@ -25,21 +31,57 @@ export default function OrdenDetalle() {
     addArchivo,
     deleteArchivo,
     changeOrdenStatus,
-    deleteOrden
+    deleteOrden,
+    updateOrden,
+    updateCliente,
+    updateEquipo,
+    usuarios
   } = useWorkshop();
 
-  const [activeTab, setActiveTab] = useState("productos");
-  const [isItemModalOpen, setIsItemModalOpen] = useState(false);
+  const tabStorageKey = `optifix_order_tab_${numero}`;
+  const [activeTab, setActiveTab] = useState(() => {
+    const savedTab = sessionStorage.getItem(tabStorageKey);
+    return savedTab === "presupuesto" ? "productos" : savedTab || "productos";
+  });
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
   const [nuevaTareaTexto, setNuevaTareaTexto] = useState("");
   const [nuevaNotaTexto, setNuevaNotaTexto] = useState("");
   const [archivosPendientes, setArchivosPendientes] = useState([]);
   const [archivoVistaPrevia, setArchivoVistaPrevia] = useState(null);
   const [mostrarVistaPreviaReporte, setMostrarVistaPreviaReporte] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [editField, setEditField] = useState(null);
+  const [detailToast, setDetailToast] = useState("");
+  const [entityEditor, setEntityEditor] = useState(null);
+  const [isUpdatingWarranty, setIsUpdatingWarranty] = useState(false);
+  const [isBudgetDecisionEditOpen, setIsBudgetDecisionEditOpen] = useState(false);
   const componenteImprimirRef = useRef(null);
   const fileInputRef = useRef(null);
 
   const orden = ordenes.find((o) => String(o.numero) === String(numero) || o.id === numero);
+
+  // Los hooks deben ejecutarse siempre en el mismo orden. Antes este hook estaba
+  // debajo del retorno de "orden no encontrada": si la colección remota quedaba
+  // momentáneamente sin la orden y luego regresaba, React detectaba un hook nuevo
+  // y desmontaba la vista con un error de render.
+  const reactToPrint = useReactToPrint({
+    contentRef: componenteImprimirRef,
+    documentTitle: `Orden_Servicio_${orden?.numero || numero}`,
+    pageStyle: `
+      @page { size: auto; margin: 12mm; }
+      html, body { background: #ffffff !important; color: #111827 !important; }
+      .print-order-template { display: block !important; visibility: visible !important; background: #ffffff !important; color: #111827 !important; }
+      .print-order-template * { visibility: visible !important; }
+    `
+  });
+
+  useEffect(() => {
+    if (!detailToast) return undefined;
+    const timer = window.setTimeout(() => setDetailToast(""), 3000);
+    return () => window.clearTimeout(timer);
+  }, [detailToast]);
+
+  useEffect(() => { sessionStorage.setItem(tabStorageKey, activeTab); }, [activeTab, tabStorageKey]);
 
   if (!orden) {
     return (
@@ -57,57 +99,82 @@ export default function OrdenDetalle() {
 
   const cliente = clientes.find((c) => c.id === orden.cliente_id) || {};
   const equipo = equipos.find((e) => e.id === orden.equipo_id) || {};
+  const relatedHistoryCount = getRelatedHistoryCount(orden, equipo, ordenes, equipos);
+  const technicianOptions = usuarios.filter((registeredUser) => registeredUser.rol === "tecnico" && registeredUser.nombre !== "Técnico Principal").map((registeredUser) => ({ value: registeredUser.nombre, label: registeredUser.especialidad ? `${registeredUser.nombre} · ${registeredUser.especialidad}` : `${registeredUser.nombre} · Técnico` }));
+  if (orden.responsable && !["OptiFix", "Técnico Principal"].includes(orden.responsable) && !technicianOptions.some((option) => option.value === orden.responsable)) technicianOptions.unshift({ value: orden.responsable, label: orden.responsable });
 
   // Cálculos de productos y servicios
-  const items = orden.productos_servicios || [];
+  const items = (orden.presupuesto_conceptos || []).map((item) => ({ ...item, importe: Number(item.precio_unitario) || 0 }));
   const subtotal = items.reduce((acc, curr) => acc + (Number(curr.cantidad) || 1) * (Number(curr.importe) || 0), 0);
   const adelanto = Number(orden.adelanto) || 0;
-  const total = Math.max(0, subtotal - adelanto);
+  const budgetTotals = getBudgetTotals(orden);
+  const total = budgetTotals.balance;
 
-  const isEntregado = orden.estado_actual === "ENTREGADO" || (orden.etapa_categoria === "SALIDA" && orden.fecha_entrega);
-  const reactToPrint = useReactToPrint({
-    contentRef: componenteImprimirRef,
-    documentTitle: `Orden_Servicio_${orden.numero}`,
-    pageStyle: `
-      @page { size: auto; margin: 12mm; }
-      html, body { background: #ffffff !important; color: #111827 !important; }
-      .print-order-template { display: block !important; visibility: visible !important; background: #ffffff !important; color: #111827 !important; }
-      .print-order-template * { visibility: visible !important; }
-    `
-  });
-
+  const isEntregado = normalizeOrderStatus(orden.estado_actual, orden.etapa_categoria, orden.fecha_entrega) === "ENTREGADO";
   const handlePrint = () => {
     // Permite que React termine de pintar la orden antes de invocar el diálogo.
     reactToPrint();
   };
 
   const handleDeleteOrden = async () => {
+    if (user?.rol !== "admin") return;
     if (!window.confirm(`¿Eliminar permanentemente la orden N° ${orden.numero}?`)) return;
     try { await deleteOrden(orden.id); navigate("/ordenes"); } catch (error) { window.alert(error.message || "No se pudo eliminar la orden."); }
   };
 
-  const handleWhatsApp = () => {
-    const telefono = (cliente.telefono || "").replace(/\D/g, "");
-    if (!telefono) {
-      alert("Esta orden no tiene un teléfono de cliente registrado.");
-      return;
+  const saveOrderField = async (field, value) => {
+    const changes = field.startsWith("archivo:")
+      ? { archivos: (orden.archivos || []).map((archivo) => archivo.id === field.slice(8) ? { ...archivo, nombre: value } : archivo) }
+      : field.startsWith("nota:")
+        ? { notas: (orden.notas || []).map((nota) => nota.id === field.slice(5) ? { ...nota, texto: value } : nota) }
+        : { [field]: value };
+    if (field === "responsable" && value !== orden.responsable) {
+      const now = new Date().toLocaleString("es-CR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }) + " hs";
+      changes.linea_tiempo = [...(orden.linea_tiempo || []), { fecha: now, estado: orden.estado_actual, realizado_por: user?.nombre || "OptiFix", detalle: `Responsable reasignado a ${value}` }];
     }
-    const mensaje = `Hola ${cliente.nombre || ""}, adjuntamos los detalles de su orden N°${orden.numero} en OptiFix. Estado actual: ${orden.estado_actual}.`;
-    window.open(`https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`, "_blank", "noopener,noreferrer");
+    try {
+      await updateOrden(orden.id, changes);
+      setEditField(null);
+      setDetailToast("Cambios guardados correctamente.");
+    } catch (error) {
+      setDetailToast(error.message || "No se pudieron guardar los cambios.");
+      throw error;
+    }
   };
 
-  const handleAddTareaSubmit = (e) => {
+  const toggleOrderWarranty = async () => {
+    if (isUpdatingWarranty) return;
+    setIsUpdatingWarranty(true);
+    try {
+      await updateOrden(orden.id, { garantia: !orden.garantia });
+      setDetailToast("Garantía actualizada correctamente.");
+    } catch (error) {
+      setDetailToast(error.message || "No se pudo guardar el cambio. Inténtalo nuevamente.");
+    } finally {
+      setIsUpdatingWarranty(false);
+    }
+  };
+
+  const handleAddTareaSubmit = async (e) => {
     e.preventDefault();
     if (!nuevaTareaTexto.trim()) return;
-    addTarea(orden.id, nuevaTareaTexto);
-    setNuevaTareaTexto("");
+    const now = new Date().toLocaleString("es-CR");
+    try {
+      await updateOrden(orden.id, { tareas: [...(orden.tareas || []), { id: `t-${Date.now()}`, texto: nuevaTareaTexto.trim(), asignado_a: orden.responsable && orden.responsable !== "OptiFix" ? orden.responsable : "Sin asignar", fecha: now, prioridad: "Normal", estado: "Pendiente", completada: false }] });
+      setNuevaTareaTexto("");
+      setDetailToast("Tarea agregada correctamente.");
+    } catch (error) { setDetailToast(error.message || "No se pudo guardar el cambio. Inténtalo nuevamente."); }
   };
 
-  const handleAddNotaSubmit = (e) => {
+  const handleAddNotaSubmit = async (e) => {
     e.preventDefault();
     if (!nuevaNotaTexto.trim()) return;
-    addNota(orden.id, nuevaNotaTexto, orden.responsable);
-    setNuevaNotaTexto("");
+    const now = new Date().toLocaleString("es-CR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }) + " hs";
+    try {
+      await updateOrden(orden.id, { notas: [...(orden.notas || []), { id: `n-${Date.now()}`, autor: user?.nombre || "OptiFix", fecha: now, texto: nuevaNotaTexto.trim() }] });
+      setNuevaNotaTexto("");
+      setDetailToast("Nota agregada correctamente.");
+    } catch (error) { setDetailToast(error.message || "No se pudo guardar el cambio. Inténtalo nuevamente."); }
   };
 
   const handleFileChange = async (event) => {
@@ -125,12 +192,51 @@ export default function OrdenDetalle() {
     event.target.value = "";
   };
 
-  const guardarArchivosPendientes = () => {
-    archivosPendientes.forEach(({ nombre, tipo, tamano, preview, vistaPrevia }) => {
-      addArchivo(orden.id, { nombre, tipo, tamano, vistaPrevia });
-      if (preview) URL.revokeObjectURL(preview);
-    });
-    setArchivosPendientes([]);
+  const guardarArchivosPendientes = async () => {
+    const nuevos = archivosPendientes.map(({ nombre, tipo, tamano, vistaPrevia }, index) => ({ id: `arc-${Date.now()}-${index}`, nombre, tipo, tamano, vistaPrevia, fecha: new Date().toLocaleDateString("es-CR") }));
+    try {
+      await updateOrden(orden.id, { archivos: [...(orden.archivos || []), ...nuevos] });
+      archivosPendientes.forEach(({ preview }) => { if (preview) URL.revokeObjectURL(preview); });
+      setArchivosPendientes([]);
+      setDetailToast("Archivos guardados correctamente.");
+    } catch (error) { setDetailToast(error.message || "No se pudo guardar el cambio. Inténtalo nuevamente."); }
+  };
+
+  const saveEntity = async (changes) => {
+    if (entityEditor === "customer") await updateCliente(cliente.id, changes);
+    else await updateEquipo(equipo.id, changes);
+    setEntityEditor(null);
+    setDetailToast(entityEditor === "customer" ? "Cliente actualizado correctamente." : "Equipo actualizado correctamente.");
+  };
+
+  const toggleTaskPersisted = async (task) => {
+    const completed = !task.completada;
+    try {
+      await updateOrden(orden.id, { tareas: (orden.tareas || []).map((item) => item.id === task.id ? { ...item, completada: completed, estado: completed ? "Completada" : "Pendiente" } : item) });
+    } catch (error) { setDetailToast(error.message || "No se pudo guardar el cambio. Inténtalo nuevamente."); }
+  };
+
+  const removeOrderFile = async (fileId) => {
+    if (!window.confirm("¿Eliminar este archivo de la orden?")) return;
+    try {
+      await updateOrden(orden.id, { archivos: (orden.archivos || []).filter((file) => file.id !== fileId) });
+      setDetailToast("Archivo eliminado correctamente.");
+    } catch (error) { setDetailToast(error.message || "No se pudo guardar el cambio. Inténtalo nuevamente."); }
+  };
+
+  const handleBudgetDecision = async (decision, comment) => {
+    const now = new Date().toLocaleString("es-CR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }) + " hs";
+    const changes = createBudgetDecisionChanges(orden, decision, comment, user?.nombre, now);
+    await updateOrden(orden.id, changes);
+    setDetailToast(decision === "APROBADO" ? "Presupuesto aprobado correctamente." : "Presupuesto rechazado correctamente.");
+  };
+
+  const handleBudgetDecisionRevision = async (decision, comment, moveState) => {
+    const now = new Date().toLocaleString("es-CR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }) + " hs";
+    const changes = createBudgetDecisionRevisionChanges(orden, decision, comment, user?.nombre, now, moveState);
+    await updateOrden(orden.id, changes);
+    setIsBudgetDecisionEditOpen(false);
+    setDetailToast("Decisión del presupuesto modificada correctamente.");
   };
 
   const quitarArchivoPendiente = (id) => setArchivosPendientes((actuales) => {
@@ -144,7 +250,7 @@ export default function OrdenDetalle() {
       <input ref={fileInputRef} type="file" multiple accept="image/*,.pdf" onChange={handleFileChange} style={{ display: "none" }} />
       {/* Debe estar montada para react-to-print, pero no puede usar display:none. */}
       <div className="print-source" aria-hidden="true">
-        <PlantillaImpresion ref={componenteImprimirRef} datosOrden={{ orden, cliente, equipo, items, subtotal, adelanto, total, archivos: orden.archivos || [] }} />
+        <PlantillaImpresion ref={componenteImprimirRef} datosOrden={{ orden, cliente, equipo, items, budgetTotals, archivos: orden.archivos || [] }} />
       </div>
       {mostrarVistaPreviaReporte && (
         <VistaPreviaReporteOrden
@@ -162,7 +268,7 @@ export default function OrdenDetalle() {
       {/* Breadcrumb idéntico a Captura 2 */}
       <div className="breadcrumb-nav">
         <span style={{ cursor: "pointer" }} onClick={() => navigate("/ordenes")}>
-          🏠 Principal
+          Principal
         </span>
         <span>&gt;</span>
         <span style={{ cursor: "pointer" }} onClick={() => navigate("/ordenes")}>
@@ -186,49 +292,58 @@ export default function OrdenDetalle() {
           >
             <Icono nombre="arrow-left" size={16} />
           </button>
-          <h1 className="order-title-main">Orden N° {orden.numero}</h1>
+          <h1 className="order-title-main">Orden N.º {orden.numero}</h1>
         </div>
 
         <div className="order-actions-bar">
-          <button className="btn-outline-icon" onClick={() => setMostrarVistaPreviaReporte(true)} title="Vista previa e impresión de orden">
+          <button className="btn-outline-icon" onClick={() => setMostrarVistaPreviaReporte(true)} title="Imprimir orden" aria-label="Imprimir orden">
             <Icono nombre="printer" size={16} />
           </button>
           <button
             className="btn-outline-icon"
-            onClick={handleWhatsApp}
-            title="Enviar detalles por WhatsApp"
+            onClick={() => setActiveTab("notas")}
+            title="Comentarios / comunicación"
+            aria-label="Comentarios / comunicación"
           >
-            <Icono nombre="whatsapp" size={16} />
+            <Icono nombre="message" size={16} />
           </button>
           <button
-            className="btn-outline-icon"
-            onClick={() => setActiveTab("linea_tiempo")}
-            title="Historial"
+            className="btn-outline-icon order-history-button"
+            onClick={() => setHistoryOpen(true)}
+            title="Ver historial"
+            aria-label={`Ver historial relacionado. ${relatedHistoryCount} antecedentes`}
           >
             <Icono nombre="history" size={16} />
+            {relatedHistoryCount > 0 && <span>{relatedHistoryCount}</span>}
           </button>
-          <button className="btn-outline-icon" onClick={handleDeleteOrden} title="Eliminar orden" aria-label={`Eliminar orden ${orden.numero}`}>
+          {user?.rol === "admin" && <button className="btn-outline-icon" onClick={handleDeleteOrden} title="Eliminar orden" aria-label={`Eliminar orden ${orden.numero}`}>
             <Icono nombre="trash" size={16} />
-          </button>
+          </button>}
           <button
             className="btn-green-delivery"
             onClick={() => setIsStatusModalOpen(true)}
+            title="Cambiar estado"
           >
             <Icono nombre="check-circle" size={15} />
-            <span>{isEntregado ? "Ver Entrega" : "Gestionar Estado"}</span>
+            <span>{isEntregado ? "Ver Entrega" : "Cambiar estado"}</span>
           </button>
         </div>
       </div>
 
       {/* Banner de Entrega si está entregado (Captura 2) */}
       {isEntregado && (
-        <div className="alert-banner-red">
+        <div className="alert-banner-delivered">
           <Icono nombre="check-circle" size={20} />
           <span>¡Atención! Este equipo ya fue entregado.</span>
         </div>
       )}
 
       {/* Grilla Superior de 2 Tarjetas: Cliente & Equipo (Capturas 1 y 2) */}
+      <div className="order-entity-grid">
+        <CustomerCard customer={cliente} whatsappMessage={`Hola ${cliente.nombre || ""}, compartimos información de su orden N.º ${orden.numero} en OptiFix. Estado actual: ${orden.estado_actual}.`} onOpenRecord={() => setEntityEditor("customer")} />
+        <EquipmentCard equipment={equipo} onOpenRecord={() => setEntityEditor("equipment")} />
+      </div>
+      {false && <>
       <div className="order-two-cards-grid">
         {/* Tarjeta de Cliente */}
         <div className="entity-info-card">
@@ -237,10 +352,10 @@ export default function OrdenDetalle() {
           </div>
           <div className="entity-details">
             <div className="entity-label-sub">
-              Persona {cliente.identificacion || "111120342"}
+              Cédula {cliente.identificacion || "No cargado"}
             </div>
             <div className="entity-name-title" title={cliente.nombre}>
-              {cliente.nombre || "VIANNEY SABORIO HERNANDEZ"}
+              {cliente.nombre || "No cargado"}
             </div>
             <div className="entity-meta-line">
               <Icono nombre="mail" size={13} />
@@ -248,7 +363,7 @@ export default function OrdenDetalle() {
             </div>
             <div className="entity-meta-line">
               <Icono nombre="phone" size={13} />
-              <span>{cliente.telefono || "88386357"}</span>
+              <span>{cliente.telefono || "No cargado"}</span>
             </div>
           </div>
           <div className="entity-quick-actions">
@@ -279,13 +394,13 @@ export default function OrdenDetalle() {
             <Icono nombre="camera-off" size={32} />
           </div>
           <div className="entity-details">
-            <div className="entity-label-sub">{equipo.tipo || "Pantalla"}</div>
+            <div className="entity-label-sub">{equipo.tipo || "No cargado"}</div>
             <div className="entity-name-title">
-              {equipo.marca || "Sony"}, {equipo.modelo || "XBR-55X930D"}
+              {equipo.marca || "No cargado"}, {equipo.modelo || "No cargado"}
             </div>
             <div className="entity-meta-line">
               <Icono nombre="laptop" size={13} />
-              <span style={{ fontFamily: "monospace" }}>{equipo.serie || "5027152"}</span>
+              <span style={{ fontFamily: "monospace" }}>{equipo.serie || "No cargado"}</span>
             </div>
             <div className="entity-meta-line">
               <Icono nombre="lock" size={13} />
@@ -303,8 +418,18 @@ export default function OrdenDetalle() {
           </div>
         </div>
       </div>
+      </>}
 
       {/* Tarjeta Principal de Información de la Orden (Capturas 1 y 2) */}
+      <OrderSummary
+        order={orden}
+        onEditExternal={() => setEditField({ field: "referencia_externa", title: "Referencia externa", label: "Número externo", value: orden.referencia_externa || "" })}
+        onEditResponsible={() => setEditField({ field: "responsable", title: "Asignar técnico responsable", label: "Técnico", value: ["OptiFix", "Técnico Principal"].includes(orden.responsable) ? "" : orden.responsable || "", options: technicianOptions })}
+        onToggleWarranty={toggleOrderWarranty}
+        onEditBudgetDecision={() => setIsBudgetDecisionEditOpen(true)}
+        isUpdatingWarranty={isUpdatingWarranty}
+      />
+      {false && <>
       <div className="work-order-meta-card">
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
           <h2 style={{ fontSize: "16px", color: "#ffffff", fontWeight: 700 }}>
@@ -433,6 +558,7 @@ export default function OrdenDetalle() {
           </div>
         </div>
       </div>
+      </>}
 
       {/* Pestañas de la Orden (Captura 1 y 2 + Alcance) */}
       <div className="order-tabs-bar">
@@ -441,12 +567,6 @@ export default function OrdenDetalle() {
           onClick={() => setActiveTab("productos")}
         >
           Productos/Servicios ({items.length})
-        </button>
-        <button
-          className={`order-tab-btn ${activeTab === "tareas" ? "active" : ""}`}
-          onClick={() => setActiveTab("tareas")}
-        >
-          Tareas ({(orden.tareas || []).length})
         </button>
         <button
           className={`order-tab-btn ${activeTab === "notas" ? "active" : ""}`}
@@ -458,13 +578,19 @@ export default function OrdenDetalle() {
           className={`order-tab-btn ${activeTab === "archivos" ? "active" : ""}`}
           onClick={() => setActiveTab("archivos")}
         >
-          Orden digital / Archivos ({(orden.archivos || []).length})
+          Archivos ({(orden.archivos || []).length})
+        </button>
+        <button
+          className={`order-tab-btn ${activeTab === "tareas" ? "active" : ""}`}
+          onClick={() => setActiveTab("tareas")}
+        >
+          Tareas ({(orden.tareas || []).length})
         </button>
         <button
           className={`order-tab-btn ${activeTab === "linea_tiempo" ? "active" : ""}`}
           onClick={() => setActiveTab("linea_tiempo")}
         >
-          Línea de Tiempo ({(orden.linea_tiempo || []).length})
+          Línea de tiempo ({(orden.linea_tiempo || []).length})
         </button>
       </div>
 
@@ -472,79 +598,7 @@ export default function OrdenDetalle() {
 
       {/* TAB 1: PRODUCTOS Y SERVICIOS (Captura 1) */}
       {activeTab === "productos" && (
-        <div className="table-card">
-          <div style={{ padding: "14px 18px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--border-color)" }}>
-            <h3 style={{ fontSize: "14px", color: "#ffffff" }}>
-              Desglose de Mano de Obra y Repuestos
-            </h3>
-            <button className="btn-primary" onClick={() => setIsItemModalOpen(true)}>
-              <Icono nombre="plus" size={14} />
-              <span>Agregar Item</span>
-            </button>
-          </div>
-
-          <table className="gestioo-table">
-            <thead>
-              <tr>
-                <th>Descripción</th>
-                <th style={{ width: "100px", textAlign: "right" }}>Cant.</th>
-                <th style={{ width: "160px", textAlign: "right" }}>Importe</th>
-                <th style={{ width: "60px" }}></th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.length === 0 ? (
-                <tr>
-                  <td colSpan="4" style={{ textAlign: "center", padding: "30px", color: "var(--text-dim)" }}>
-                    No se han cargado productos ni servicios en esta orden.
-                  </td>
-                </tr>
-              ) : (
-                items.map((item) => (
-                  <tr key={item.id}>
-                    <td style={{ fontWeight: 600, color: "#ffffff" }}>{item.descripcion}</td>
-                    <td style={{ textAlign: "right" }}>{Number(item.cantidad).toFixed(2)}</td>
-                    <td style={{ textAlign: "right", fontFamily: "monospace", color: "#ffffff" }}>
-                      ₡ {Number(item.importe).toFixed(2)}
-                    </td>
-                    <td style={{ textAlign: "center" }}>
-                      <button
-                        className="btn-outline-icon"
-                        style={{ width: "26px", height: "26px" }}
-                        onClick={() => removeProductService(orden.id, item.id)}
-                        title="Eliminar item"
-                      >
-                        <Icono nombre="trash" size={12} style={{ color: "var(--accent-red)" }} />
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-
-          {/* Cuadro de Totales Calculados (Captura 1) */}
-          <div className="totals-summary-box">
-            <div className="totals-row">
-              <span>Subtotal</span>
-              <strong style={{ color: "#ffffff" }}>
-                ₡ {subtotal.toFixed(2)}
-              </strong>
-            </div>
-            <div className="totals-row">
-              <span>Adelanto</span>
-              <strong style={{ color: "var(--accent-cyan)" }}>
-                - ₡ {adelanto.toFixed(2)}
-              </strong>
-            </div>
-            <div className="totals-row final-total">
-              <span>Total</span>
-              <span style={{ color: "var(--accent-cyan)" }}>
-                ₡ {total.toFixed(2)}
-              </span>
-            </div>
-          </div>
-        </div>
+        <BudgetTab order={orden} onSave={(changes) => updateOrden(orden.id, changes)} onDecision={handleBudgetDecision} onEditDecision={() => setIsBudgetDecisionEditOpen(true)} currentUser={user} toast={setDetailToast} />
       )}
 
       {/* TAB 2: TAREAS TÉCNICAS */}
@@ -554,7 +608,7 @@ export default function OrdenDetalle() {
             Checklist de Procedimientos Técnicos
           </h3>
 
-          <form onSubmit={handleAddTareaSubmit} style={{ display: "flex", gap: "10px", marginBottom: "16px" }}>
+          {user?.rol === "admin" && <form onSubmit={handleAddTareaSubmit} style={{ display: "flex", gap: "10px", marginBottom: "16px" }}>
             <input
               type="text"
               className="form-input"
@@ -566,14 +620,14 @@ export default function OrdenDetalle() {
               <Icono nombre="plus" size={14} />
               <span>Agregar Tarea</span>
             </button>
-          </form>
+          </form>}
 
           <div style={{ display: "flex", flexDirection: "column" }}>
             {(orden.tareas || []).map((t) => (
               <div
                 key={t.id}
                 className={`task-item-row ${t.completada ? "completed" : ""}`}
-                onClick={() => toggleTarea(orden.id, t.id)}
+                onClick={() => toggleTaskPersisted(t)}
                 style={{ cursor: "pointer" }}
               >
                 <input
@@ -585,11 +639,7 @@ export default function OrdenDetalle() {
                 <span style={{ flex: 1, color: t.completada ? "var(--text-dim)" : "#ffffff" }}>
                   {t.texto}
                 </span>
-                {t.completada && (
-                  <span style={{ fontSize: "11px", color: "var(--accent-green)", fontWeight: 700 }}>
-                    COMPLETADA
-                  </span>
-                )}
+                <div className="task-detail-meta"><small>{t.asignado_a || "Sin asignar"} · {t.fecha || "Sin fecha"} · {t.prioridad || "Normal"}</small><span className={`task-status-badge ${t.completada ? "completed" : "pending"}`}>{t.estado || (t.completada ? "Completada" : "Pendiente")}</span></div>
               </div>
             ))}
           </div>
@@ -634,6 +684,7 @@ export default function OrdenDetalle() {
                   <span>📅 {n.fecha}</span>
                 </div>
                 <p style={{ color: "#ffffff", fontSize: "13px" }}>{n.texto}</p>
+                <div className="note-actions"><button type="button" onClick={() => setEditField({ field: `nota:${n.id}`, title: "Editar nota", label: "Contenido de la nota", value: n.texto || "" })} aria-label="Editar nota" title="Editar nota"><Icono nombre="edit" size={14} /></button><button type="button" onClick={() => updateOrden(orden.id, { notas: (orden.notas || []).filter((nota) => nota.id !== n.id) })} aria-label="Eliminar nota" title="Eliminar nota"><Icono nombre="trash" size={14} /></button></div>
               </div>
             ))}
           </div>
@@ -680,8 +731,6 @@ export default function OrdenDetalle() {
                   gap: "8px"
                 }}
               >
-                <button type="button" onClick={() => deleteArchivo(orden.id, arc.id)} aria-label={`Eliminar ${arc.nombre}`} style={{ position: "absolute", top: "7px", right: "7px", width: "25px", height: "25px", border: 0, borderRadius: "50%", background: "var(--accent-red)", color: "#fff", cursor: "pointer", zIndex: 1 }}>×</button>
-                {arc.vistaPrevia && <button type="button" onClick={() => setArchivoVistaPrevia({ nombre: arc.nombre, src: arc.vistaPrevia })} aria-label={`Ver ${arc.nombre}`} style={{ position: "absolute", top: "7px", right: "39px", width: "25px", height: "25px", border: 0, borderRadius: "50%", background: "#fff", color: "#0b1f38", cursor: "pointer", zIndex: 1 }}><Icono nombre="eye" size={15} /></button>}
                 <div style={{ height: "90px", background: "#0c1f33", borderRadius: "6px", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--accent-cyan)" }}>
                   {arc.vistaPrevia ? <img src={arc.vistaPrevia} alt={arc.nombre} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <Icono nombre={arc.tipo.includes("pdf") ? "file-text" : "camera"} size={36} />}
                 </div>
@@ -691,6 +740,11 @@ export default function OrdenDetalle() {
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "var(--text-dim)" }}>
                   <span>{arc.tamano}</span>
                   <span>{arc.fecha}</span>
+                </div>
+                <div className="file-card-actions">
+                  <button type="button" disabled={!arc.vistaPrevia} onClick={() => arc.vistaPrevia && setArchivoVistaPrevia({ nombre: arc.nombre, src: arc.vistaPrevia })} aria-label={`Ver ${arc.nombre}`} title="Ver archivo"><Icono nombre="eye" size={15} /></button>
+                  <button type="button" onClick={() => setEditField({ field: `archivo:${arc.id}`, title: "Editar archivo", label: "Nombre del archivo", value: arc.nombre || "" })} aria-label={`Editar nombre de ${arc.nombre}`} title="Editar nombre"><Icono nombre="edit" size={14} /></button>
+                  <button type="button" onClick={() => removeOrderFile(arc.id)} aria-label={`Eliminar ${arc.nombre}`} title="Eliminar archivo"><Icono nombre="trash" size={15} /></button>
                 </div>
               </div>
             ))}
@@ -725,12 +779,11 @@ export default function OrdenDetalle() {
         </div>
       )}
 
-      {/* Modales Interactivos */}
-      <ItemProductoModal
-        isOpen={isItemModalOpen}
-        onClose={() => setIsItemModalOpen(false)}
-        onAdd={(item) => addProductService(orden.id, item)}
-      />
+      {historyOpen && <RelatedHistoryDrawer currentOrder={orden} customer={cliente} currentEquipment={equipo} orders={ordenes} equipment={equipos} onClose={() => setHistoryOpen(false)} onOpenOrder={(orderNumber) => { setHistoryOpen(false); navigate(`/ordenes/${orderNumber}`); }} />}
+      {entityEditor && <EntityEditModal kind={entityEditor} entity={entityEditor === "customer" ? cliente : equipo} onClose={() => setEntityEditor(null)} onSave={saveEntity} />}
+      {editField && <EditOrderFieldModal title={editField.title} label={editField.label} value={editField.value} type={editField.type} options={editField.options} onClose={() => setEditField(null)} onSave={(value) => saveOrderField(editField.field, value)} />}
+      {isBudgetDecisionEditOpen && <BudgetDecisionEditModal order={orden} onClose={() => setIsBudgetDecisionEditOpen(false)} onSave={handleBudgetDecisionRevision} />}
+      {detailToast && <div className="order-detail-toast" role="status" aria-live="polite"><span aria-hidden="true">✓</span>{detailToast}</div>}
 
       <CambiarEstadoModal
         isOpen={isStatusModalOpen}
@@ -738,6 +791,9 @@ export default function OrdenDetalle() {
         orden={orden}
         cliente={cliente}
         equipo={equipo}
+        technicians={technicianOptions}
+        currentUser={user}
+        onGoToBudget={() => { setIsStatusModalOpen(false); setActiveTab("productos"); }}
         onConfirmChange={changeOrdenStatus}
       />
     </div>
@@ -745,12 +801,12 @@ export default function OrdenDetalle() {
 }
 
 const PlantillaImpresion = React.forwardRef(function PlantillaImpresion({ datosOrden }, ref) {
-  const { orden, cliente, equipo, items, subtotal, adelanto, total, archivos = [] } = datosOrden || {};
+  const { orden, cliente, equipo, items, budgetTotals = {}, archivos = [] } = datosOrden || {};
   const fotosAdjuntas = archivos.filter((archivo) => typeof archivo?.vistaPrevia === "string" && archivo.vistaPrevia.trim().length > 0);
   return <div ref={ref} className="print-order-template" style={{ display: "block", minHeight: "100vh", padding: "32px", backgroundColor: "#ffffff", color: "#111827", fontFamily: "Arial, sans-serif" }}>
-    <header className="print-order-header"><div><strong>{WORKSHOP_NAME}</strong><span>Centro de servicios técnicos</span></div><div><h1>Orden de Servicio N° {orden?.numero || "Nueva"}</h1><span>Fecha: {orden?.fecha_ingreso || "—"}</span></div></header>
+    <header className="print-order-header"><div><strong>OptiFix</strong><span>{WORKSHOP_NAME}</span></div><div><h1>Orden de Servicio N° {orden?.numero || "Nueva"}</h1><span>Ext. # {orden?.referencia_externa || "Sin asignar"} · Fecha: {orden?.fecha_ingreso || "—"}</span></div></header>
     <section className="print-order-grid"><div><h2>Datos del cliente</h2><p><b>Nombre:</b> {cliente?.nombre || "—"}</p><p><b>Contacto:</b> {cliente?.telefono || "—"}</p><p><b>Email:</b> {cliente?.email || "—"}</p></div><div><h2>Datos del equipo</h2><p><b>Equipo:</b> {equipo?.tipo || "—"}</p><p><b>Modelo:</b> {[equipo?.marca, equipo?.modelo].filter(Boolean).join(" ") || "—"}</p><p><b>Serie:</b> {equipo?.serie || "—"}</p></div></section>
-    <section className="print-order-work"><h2>Trabajo solicitado</h2><p>{orden?.trabajo_solicitado || "Sin detalle"}</p><p><b>Estado actual:</b> {orden?.estado_actual || "—"}</p></section>
+    <section className="print-order-work"><h2>Trabajo solicitado</h2><p>{orden?.trabajo_solicitado || "Sin detalle"}</p><p><b>Estado actual:</b> {orden?.estado_actual || "—"}</p><p><b>Responsable:</b> {orden?.responsable && orden.responsable !== "OptiFix" ? orden.responsable : "Sin asignar"}</p><p><b>Garantía:</b> {orden?.garantia ? "Con garantía" : "Sin garantía"}</p></section>
     <table className="print-order-table"><thead><tr><th>Descripción</th><th>Cant.</th><th>Importe</th></tr></thead><tbody>{items?.length ? items.map((item) => <tr key={item.id}><td>{item.descripcion}</td><td>{item.cantidad}</td><td>₡ {Number(item.importe || 0).toFixed(2)}</td></tr>) : <tr><td colSpan="3">Sin productos o servicios registrados.</td></tr>}</tbody></table>
     <section className="print-order-attachments">
       <h2>Fotografías adjuntas del equipo</h2>
@@ -765,6 +821,6 @@ const PlantillaImpresion = React.forwardRef(function PlantillaImpresion({ datosO
         </div>
       ) : <p>No hay fotografías adjuntas en esta orden.</p>}
     </section>
-    <section className="print-order-totals"><p>Subtotal <b>₡ {Number(subtotal || 0).toFixed(2)}</b></p><p>Adelanto <b>- ₡ {Number(adelanto || 0).toFixed(2)}</b></p><p className="print-order-total">Total pendiente <b>₡ {Number(total || 0).toFixed(2)}</b></p></section>
+    <section className="print-order-totals"><p>Subtotal <b>{formatColones(budgetTotals.subtotal)}</b></p><p>IVA (13%) <b>{formatColones(budgetTotals.tax)}</b></p><p>Total <b>{formatColones(budgetTotals.total)}</b></p><p>Adelanto <b>- {formatColones(budgetTotals.advance)}</b></p><p className="print-order-total">Saldo pendiente <b>{formatColones(budgetTotals.balance)}</b></p></section>
   </div>;
 });

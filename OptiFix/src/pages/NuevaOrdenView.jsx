@@ -30,6 +30,7 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
   const [trabajo, setTrabajo] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [tieneGarantia, setTieneGarantia] = useState(false);
+  const [adelanto, setAdelanto] = useState(0);
 
   // ── Form state — Tabs ────────────────────────────────────────
   const [guardandoOrden, setGuardandoOrden] = useState(false);
@@ -51,16 +52,25 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
   // ── Computed ──────────────────────────────────────────────────
   const estadoColor = { "Entrada": "bg-slate-400", "En trámite": "bg-amber-500", "En taller": "bg-blue-500", "Reparado / Sin reparar": "bg-emerald-500", "Salida / Entregado": "bg-green-600" }[estado] || "bg-slate-400";
 
-  const clientesFiltrados = clientes.filter(c =>
-    (c.nombre + " " + (c.apellido || "")).toLowerCase().includes(clienteQuery.toLowerCase()) ||
-    (c.identificacion && c.identificacion.includes(clienteQuery))
-  );
+  const clientesFiltrados = clientes.filter((c) => {
+    const q = clienteQuery.trim().toLowerCase();
+    if (!q) return true;
+    const nombreCompleto = `${c.nombre || ""} ${c.apellido || ""}`.toLowerCase();
+    const identificacion = (c.identificacion || "").toLowerCase();
+    const telefono = (c.telefono || "").toLowerCase();
+    return nombreCompleto.includes(q) || identificacion.includes(q) || telefono.includes(q);
+  });
 
-  const equiposFiltrados = equipos.filter(e =>
-    (e.serie && e.serie.toLowerCase().includes(equipoQuery.toLowerCase())) ||
-    (e.marca && e.marca.toLowerCase().includes(equipoQuery.toLowerCase())) ||
-    (e.modelo && e.modelo.toLowerCase().includes(equipoQuery.toLowerCase()))
-  );
+  const equiposFiltrados = equipos.filter((e) => {
+    const q = equipoQuery.trim().toLowerCase();
+    if (!q) return true;
+    const marca = (e.marca || "").toLowerCase();
+    const modelo = (e.modelo || "").toLowerCase();
+    const serie = (e.serie || "").toLowerCase();
+    const cliente = clientes.find((c) => c.id === e.cliente_id) || {};
+    const nombreCliente = `${cliente.nombre || ""} ${cliente.apellido || ""}`.toLowerCase();
+    return serie.includes(q) || modelo.includes(q) || marca.includes(q) || nombreCliente.includes(q);
+  });
 
   const selectedEquipo = equipoId ? equipos.find(e => e.id === equipoId) : null;
 
@@ -125,7 +135,8 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
       responsable,
       trabajo_solicitado: trabajo,
       descripcion_estado: descripcion,
-      garantia: tieneGarantia
+      garantia: tieneGarantia,
+      adelanto: Math.max(0, Number(adelanto) || 0)
     });
 
     if (onOrdenCreada) onOrdenCreada(nuevaOrden);
@@ -152,11 +163,36 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
      RENDER
      ================================================================ */
   return (
-    <div
-      className="nueva-orden-view nueva-orden-premium min-h-screen flex flex-col pb-28 md:pb-24 !bg-slate-50"
-      style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}
-      onClick={() => { setShowClienteDropdown(false); setShowEquipoDropdown(false); }}
-    >
+    <>
+      <style>{`
+        .nueva-orden-view .search-field { min-height: 42px; }
+        .nueva-orden-view .compact-card { border-radius: 1rem; }
+        .nueva-orden-view .compact-card .card-header { border-bottom: 1px solid rgba(148, 163, 184, 0.2); }
+        .nueva-orden-view .compact-input, .nueva-orden-view .compact-select, .nueva-orden-view .compact-textarea {
+          min-height: 42px;
+          border-radius: 0.8rem;
+          border: 1px solid #dbe3ef;
+          background: #f8fafc;
+          color: #0f172a;
+          transition: border-color 0.18s ease, box-shadow 0.18s ease;
+        }
+        .nueva-orden-view .compact-input:focus, .nueva-orden-view .compact-select:focus, .nueva-orden-view .compact-textarea:focus {
+          border-color: #0ea5e9;
+          box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.12);
+          background: #ffffff;
+        }
+        .nueva-orden-view .section-divider {
+          border-top: 1px solid rgba(148, 163, 184, 0.24);
+        }
+        @media (max-width: 768px) {
+          .nueva-orden-view main { padding-bottom: 6rem; }
+        }
+      `}</style>
+      <div
+        className="nueva-orden-view nueva-orden-premium min-h-screen flex flex-col pb-28 md:pb-24 !bg-slate-50"
+        style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}
+        onClick={() => { setShowClienteDropdown(false); setShowEquipoDropdown(false); }}
+      >
       {/* ═══════════════ HEADER / TOPBAR ═══════════════ */}
       <header className="hidden sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-sm transition-all">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-18 flex items-center justify-between gap-4">
@@ -273,7 +309,7 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
                   value={clienteQuery}
                   onChange={e => { setClienteQuery(e.target.value); setClienteId(""); setShowClienteDropdown(true); }}
                   onFocus={() => setShowClienteDropdown(true)}
-                  className="w-full pl-10 pr-10 py-2.5 text-sm bg-slate-50/70 focus:bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all font-medium text-slate-800"
+                  className="search-field w-full pl-10 pr-10 py-2.5 text-sm bg-slate-50/70 focus:bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all font-medium text-slate-800"
                 />
                 {clienteQuery && (
                   <button
@@ -430,7 +466,7 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
                   value={equipoQuery}
                   onChange={e => { setEquipoQuery(e.target.value); setEquipoId(""); setShowEquipoDropdown(true); }}
                   onFocus={() => setShowEquipoDropdown(true)}
-                  className="w-full pl-10 pr-10 py-2.5 text-sm bg-slate-50/70 focus:bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all font-medium text-slate-800"
+                  className="search-field w-full pl-10 pr-10 py-2.5 text-sm bg-slate-50/70 focus:bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all font-medium text-slate-800"
                 />
                 {equipoQuery && (
                   <button
@@ -558,6 +594,11 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
                 <span>El artículo tiene garantía activa</span>
               </label>
               <p className="self-center text-[11px] text-slate-500 sm:text-right">Se registrará en los datos de la orden.</p>
+            </div>
+            <div className="mt-3 rounded-xl border border-slate-200 bg-white p-4">
+              <label htmlFor="order-advance" className="block text-xs font-bold text-slate-700 mb-1.5">Costo de revisión / Adelanto recibido</label>
+              <div className="relative max-w-xs"><span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-500">₡</span><input id="order-advance" type="number" min="0" step="1" value={adelanto} onChange={(event) => setAdelanto(event.target.value)} className="w-full rounded-xl border border-slate-300 bg-slate-50 py-2.5 pl-8 pr-3 text-sm font-semibold text-slate-900 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10" /></div>
+              <p className="mt-2 text-[11px] text-slate-500">Monto recibido por revisión/diagnóstico. Se aplicará al costo de reparación si el cliente aprueba el trabajo.</p>
             </div>
 
             {/* History link */}
@@ -731,6 +772,7 @@ export default function NuevaOrdenView({ onOrdenCreada }) {
           </div>
         </div>
       </footer>
-    </div>
+      </div>
+    </>
   );
 }

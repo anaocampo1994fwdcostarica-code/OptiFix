@@ -4,6 +4,7 @@ import EquipoModal from "../components/modals/EquipoModal.jsx";
 import Icono from "../components/icons.jsx";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import "./EquiposView.css";
 
 const PAGE_SIZE = 6;
 
@@ -15,19 +16,41 @@ function categoriaDe(tipo = "") {
   return "Otros";
 }
 
-function condicionEstilo(estado = "") {
-  const e = estado.toUpperCase();
-  if (e.includes("OXIDADO") || e.includes("ROTO") || e.includes("QUEBRADO")) {
-    return "bg-red-50 text-red-700 ring-red-600/20";
+function normalizeText(value = "") {
+  return String(value ?? "").trim().toLowerCase();
+}
+
+function formatFechaCorta(value) {
+  if (!value) return "Sin fecha";
+  const raw = String(value).trim();
+  const clean = raw.replace(/\s+hs/i, "");
+  const date = new Date(clean);
+  if (!Number.isNaN(date.getTime())) {
+    return date.toLocaleDateString("es-CR", { day: "2-digit", month: "2-digit", year: "numeric" });
   }
-  if (e.includes("BUEN ESTADO") || e.includes("EXCELENTE") || e.includes("INTACT")) {
-    return "bg-emerald-50 text-emerald-700 ring-emerald-600/20";
+  return raw;
+}
+
+function getEquipoHistory(equipo, equipos, ordenes) {
+  if (!equipo) return [];
+  const serial = normalizeText(equipo.serie);
+  const relatedIds = new Set([equipo.id]);
+
+  if (serial) {
+    equipos.forEach((item) => {
+      if (item.id !== equipo.id && normalizeText(item.serie) === serial) {
+        relatedIds.add(item.id);
+      }
+    });
   }
-  if (e.includes("REGULAR")) {
-    return "bg-slate-100 text-slate-700 ring-slate-500/20";
-  }
-  // Sucio, rayas, manchas, etc. → advertencia leve
-  return "bg-amber-50 text-amber-700 ring-amber-600/20";
+
+  return ordenes
+    .filter((orden) => relatedIds.has(orden.equipo_id))
+    .sort((a, b) => {
+      const dateA = Date.parse(String(a.fecha_ingreso || "").replace(/\s+hs/i, "")) || 0;
+      const dateB = Date.parse(String(b.fecha_ingreso || "").replace(/\s+hs/i, "")) || 0;
+      return dateB - dateA;
+    });
 }
 
 export default function EquiposView({ onOpenNewOrderModal }) {
@@ -39,6 +62,8 @@ export default function EquiposView({ onOpenNewOrderModal }) {
   const [page, setPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [equipoToEdit, setEquipoToEdit] = useState(null);
+  const [selectedHistory, setSelectedHistory] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
   const [toast, setToast] = useState("");
 
   useEffect(() => {
@@ -47,7 +72,6 @@ export default function EquiposView({ onOpenNewOrderModal }) {
     return () => window.clearTimeout(timer);
   }, [toast]);
 
-  // Generate tab counts
   const counts = {
     TODOS: equipos.length,
     PANTALLAS: 0,
@@ -56,52 +80,58 @@ export default function EquiposView({ onOpenNewOrderModal }) {
     OTROS: 0
   };
 
-  equipos.forEach(eq => {
+  equipos.forEach((eq) => {
     const cat = categoriaDe(eq.tipo).toUpperCase();
     if (cat === "PANTALLAS") counts.PANTALLAS++;
     else if (cat === "AUDIO") counts.AUDIO++;
-    else if (cat === "ELECTRODOMÉSTICOS" || cat === "ELECTRODOMESTICOS") counts.ELECTRODOMESTICOS++;
+    else if (cat === "ELECTRODOMESTICOS") counts.ELECTRODOMESTICOS++;
     else counts.OTROS++;
   });
 
   const filteredEquipos = useMemo(() => {
-    return equipos.filter((e) => {
-      const matchSearch =
-        e.serie.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        e.marca.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (e.modelo && e.modelo.toLowerCase().includes(searchTerm.toLowerCase()));
-      
-      let matchTab = true;
+    return equipos.filter((equipo) => {
+      const cliente = clientes.find((item) => item.id === equipo.cliente_id) || {};
+      const searchValue = normalizeText(searchTerm);
+      const matchingSearch =
+        !searchValue ||
+        normalizeText(equipo.serie).includes(searchValue) ||
+        normalizeText(equipo.marca).includes(searchValue) ||
+        normalizeText(equipo.modelo).includes(searchValue) ||
+        normalizeText(cliente.nombre).includes(searchValue) ||
+        normalizeText(cliente.telefono).includes(searchValue);
+
+      let matchingTab = true;
       if (activeTab !== "TODOS") {
-        const cat = categoriaDe(e.tipo).toUpperCase();
-        if (activeTab === "ELECTRODOMESTICOS" && (cat === "ELECTRODOMÉSTICOS" || cat === "ELECTRODOMESTICOS")) {
-            matchTab = true;
-        } else {
-            matchTab = cat === activeTab;
-        }
+        const category = categoriaDe(equipo.tipo).toUpperCase();
+        matchingTab = category === activeTab;
       }
 
-      return matchSearch && matchTab;
+      return matchingSearch && matchingTab;
     });
-  }, [equipos, searchTerm, activeTab]);
+  }, [equipos, clientes, searchTerm, activeTab]);
 
   const totalPages = Math.ceil(filteredEquipos.length / PAGE_SIZE) || 1;
   const paginatedEquipos = filteredEquipos.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  const historyOrders = useMemo(() => {
+    if (!selectedHistory) return [];
+    return getEquipoHistory(selectedHistory, equipos, ordenes);
+  }, [selectedHistory, equipos, ordenes]);
 
   const handleExport = () => {
     const headers = ["Tipo de Equipo", "Marca", "Modelo", "Número de Serie", "Nombre del Cliente", "Contacto del Cliente"];
     const escapeCsvValue = (value) => {
       let safeValue = String(value ?? "").replace(/\r?\n|\r/g, " ").trim();
-      // Evita que Excel interprete datos importados como fórmulas.
       if (/^[=+\-@]/.test(safeValue)) safeValue = `'${safeValue}`;
       return `"${safeValue.replace(/"/g, '""')}"`;
     };
+
     const rows = filteredEquipos.map((equipo) => {
       const cliente = clientes.find((item) => item.id === equipo.cliente_id) || {};
       const contacto = [cliente.telefono, cliente.correo || cliente.email].filter(Boolean).join(" / ");
       return [equipo.tipo, equipo.marca, equipo.modelo, equipo.serie, cliente.nombre, contacto];
     });
-    // Excel con configuración regional en español usa punto y coma como separador.
+
     const csv = [headers, ...rows].map((row) => row.map(escapeCsvValue).join(";")).join("\r\n");
     const now = new Date();
     const date = [now.getFullYear(), String(now.getMonth() + 1).padStart(2, "0"), String(now.getDate()).padStart(2, "0")].join("-");
@@ -118,8 +148,8 @@ export default function EquiposView({ onOpenNewOrderModal }) {
     setToast(t("equipment.exportSuccess"));
   };
 
-  const handleOpenEdit = (e) => {
-    setEquipoToEdit(e);
+  const handleOpenEdit = (equipo) => {
+    setEquipoToEdit(equipo);
     setIsModalOpen(true);
   };
 
@@ -132,169 +162,187 @@ export default function EquiposView({ onOpenNewOrderModal }) {
   };
 
   const handleDeleteEquipo = async (equipo) => {
+    const relatedOrders = getEquipoHistory(equipo, equipos, ordenes);
+    if (relatedOrders.length > 0) {
+      setDeleteTarget({ equipo, relatedOrders, blocked: true });
+      return;
+    }
+
     if (!window.confirm(t("equipment.deleteConfirm", { name: `${equipo.marca} ${equipo.modelo}` }))) return;
-    try { await deleteEquipo(equipo.id); } catch (error) { window.alert(error.message || t("equipment.deleteError")); }
+
+    try {
+      await deleteEquipo(equipo.id);
+      setToast(t("equipment.deleted"));
+    } catch (error) {
+      window.alert(error.message || t("equipment.deleteError"));
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget || deleteTarget.blocked) return;
+
+    try {
+      await deleteEquipo(deleteTarget.equipo.id);
+      setDeleteTarget(null);
+      setToast("Equipo eliminado");
+    } catch (error) {
+      setDeleteTarget(null);
+      window.alert(error.message || t("equipment.deleteError"));
+    }
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6 animate-fade-in">
-      {/* Encabezado */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="equipment-view-page">
+      <div className="equipment-view-header">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">{t("equipment.title")}</h1>
-          <p className="text-sm text-slate-500 mt-1">{t("equipment.subtitle")}</p>
+          <h1>{t("equipment.title")}</h1>
+          <p>{t("equipment.subtitle")}</p>
         </div>
-        <div className="flex gap-3">
-          <button 
-            type="button"
-            onClick={handleExport}
-            className="inline-flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-700 px-4 py-2.5 rounded-xl font-medium transition-colors border border-slate-200 shadow-sm"
-          >
-            <Icono nombre="download" size={18} />
+        <div className="equipment-view-actions">
+          <button type="button" onClick={handleExport} className="compact-secondary-button">
+            <Icono nombre="download" size={16} />
             {t("common.export")}
           </button>
-          <button 
-            onClick={() => { setEquipoToEdit(null); setIsModalOpen(true); }}
-            className="inline-flex items-center gap-2 bg-optifix-600 hover:bg-optifix-700 text-white px-4 py-2.5 rounded-xl font-medium transition-colors shadow-sm shadow-optifix-500/20"
+          <button
+            type="button"
+            onClick={() => {
+              setEquipoToEdit(null);
+              setIsModalOpen(true);
+            }}
+            className="compact-primary-button"
           >
-            <Icono nombre="plus" size={18} />
+            <Icono nombre="plus" size={16} />
             {t("equipment.register")}
           </button>
         </div>
       </div>
 
-      {/* Controles y Tabla */}
-      <div className="bg-white border border-slate-200 rounded-lg overflow-hidden flex flex-col erp-directory-card">
-        {/* Filtros */}
-        <div className="border-b border-slate-100 p-4 flex flex-col lg:flex-row gap-4 justify-between bg-slate-50/50 erp-directory-toolbar">
-          <div
-            className="flex flex-wrap items-center gap-2 erp-directory-tabs"
-            role="tablist"
-            aria-label={t("equipment.title")}
-          >
+      <div className="equipment-table-shell">
+        <div className="equipment-toolbar">
+          <div className="equipment-tabs" role="tablist" aria-label={t("equipment.title")}>
             {[
-              { id: "TODOS", label: `${t("common.all")} (${counts.TODOS})` },
-              { id: "PANTALLAS", label: `${t("equipment.screens")} (${counts.PANTALLAS})` },
-              { id: "AUDIO", label: `${t("equipment.audio")} (${counts.AUDIO})` },
-              { id: "ELECTRODOMESTICOS", label: `${t("equipment.appliances")} (${counts.ELECTRODOMESTICOS})` },
-              { id: "OTROS", label: `${t("equipment.others")} (${counts.OTROS})` }
-            ].map(tab => (
-              <button 
+              { id: "TODOS", label: `Todos (${counts.TODOS})` },
+              { id: "PANTALLAS", label: `Pantallas (${counts.PANTALLAS})` },
+              { id: "AUDIO", label: `Audio (${counts.AUDIO})` },
+              { id: "ELECTRODOMESTICOS", label: `Electrodomésticos (${counts.ELECTRODOMESTICOS})` },
+              { id: "OTROS", label: `Otros (${counts.OTROS})` }
+            ].map((tab) => (
+              <button
                 key={tab.id}
                 type="button"
                 role="tab"
                 aria-selected={activeTab === tab.id}
-                onClick={() => { setActiveTab(tab.id); setPage(1); }}
-                className={`rounded-md px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/30 focus-visible:ring-offset-2 ${
-                  activeTab === tab.id
-                    ? "bg-blue-500 text-white"
-                    : "text-slate-500 hover:text-slate-700"
-                }`}
+                onClick={() => {
+                  setActiveTab(tab.id);
+                  setPage(1);
+                }}
+                className={activeTab === tab.id ? "active" : ""}
               >
                 {tab.label}
               </button>
             ))}
           </div>
 
-          <div className="relative">
-            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
-              <Icono nombre="search" size={16} />
-            </span>
+          <div className="equipment-search">
+            <span className="equipment-search-icon"><Icono nombre="search" size={15} /></span>
             <input
               type="text"
-              placeholder={t("equipment.search")}
               value={searchTerm}
-              onChange={(e) => { setSearchTerm(e.target.value); setPage(1); }}
-              className="pl-9 pr-4 py-2 rounded-xl border-slate-200 text-sm focus:ring-optifix-500 focus:border-optifix-500 w-full sm:w-72 shadow-sm"
+              onChange={(event) => {
+                setSearchTerm(event.target.value);
+                setPage(1);
+              }}
+              placeholder={t("equipment.search")}
             />
           </div>
         </div>
 
-        {/* Tabla */}
-        <div className="overflow-x-auto">
-          <table className="equipment-history-table w-full min-w-[920px] table-fixed text-left text-sm text-slate-600 erp-directory-table">
-            <colgroup>
-              <col className="w-[14%]" />
-              <col className="w-[14%]" />
-              <col className="w-[16%]" />
-              <col className="w-[16%]" />
-              <col className="w-[23%]" />
-              <col className="w-[17%]" />
-            </colgroup>
-            <thead className="bg-slate-50/80 dark:bg-slate-800/70">
+        <div className="equipment-table-wrap">
+          <table className="equipment-table">
+            <thead>
               <tr>
-                <th className="px-5 py-3 text-left uppercase text-xs font-semibold text-slate-500 dark:text-slate-400">{t("common.equipment")}</th>
-                <th className="px-5 py-3 text-left uppercase text-xs font-semibold text-slate-500 dark:text-slate-400">{t("equipment.brand")}</th>
-                <th className="px-5 py-3 text-left uppercase text-xs font-semibold text-slate-500 dark:text-slate-400">{t("equipment.modelField")}</th>
-                <th className="px-5 py-3 text-left uppercase text-xs font-semibold text-slate-500 dark:text-slate-400">{t("equipment.serial")}</th>
-                <th className="px-5 py-3 text-left uppercase text-xs font-semibold text-slate-500 dark:text-slate-400">{t("common.client")}</th>
-                <th className="px-5 py-3 text-right uppercase text-xs font-semibold text-slate-500 dark:text-slate-400">{t("equipment.orders")}</th>
+                <th>{t("common.equipment")}</th>
+                <th>{t("equipment.brand")}</th>
+                <th>{t("equipment.modelField")}</th>
+                <th>{t("equipment.serial")}</th>
+                <th>{t("common.client")}</th>
+                <th className="actions-column">{t("common.actions")}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+            <tbody>
               {paginatedEquipos.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="px-6 py-12 text-center text-slate-500 dark:text-slate-400">
-                    <div className="flex flex-col items-center justify-center">
-                      <Icono nombre="laptop" size={32} className="text-slate-300 mb-3" />
-                      <p>{t("equipment.empty")}</p>
+                  <td colSpan="6" className="empty-state-cell">
+                    <div className="empty-state-content">
+                      <Icono nombre="laptop" size={26} />
+                      <span>{t("equipment.empty")}</span>
                     </div>
                   </td>
                 </tr>
               ) : (
-                paginatedEquipos.map((e) => {
-                  const cli = clientes.find((c) => c.id === e.cliente_id) || {};
-                  const eqOrdenes = ordenes.filter((o) => o.equipo_id === e.id);
-                  const lastOrder = eqOrdenes.length > 0 ? eqOrdenes[eqOrdenes.length - 1] : null;
+                paginatedEquipos.map((equipo) => {
+                  const cliente = clientes.find((item) => item.id === equipo.cliente_id) || {};
+                  const relatedOrders = getEquipoHistory(equipo, equipos, ordenes);
+                  const lastOrder = relatedOrders[0];
 
                   return (
-                    <tr key={e.id} className="equipment-history-row border-b border-slate-100 hover:bg-slate-50/80 transition-colors group erp-directory-row">
-                      <td className="px-5 py-4">
-                        <span className="inline-flex max-w-full items-center truncate rounded-md bg-slate-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-slate-600 dark:bg-slate-700 dark:text-slate-300">
-                          {e.tipo || t("equipment.generic")}
-                        </span>
-                      </td>
-                      <td className="px-5 py-4">
-                        <span className="block truncate font-semibold text-slate-900 dark:text-white">{e.marca || "—"}</span>
-                      </td>
-                      <td className="px-5 py-4">
-                        <span className="block truncate text-slate-500 dark:text-slate-400">{e.modelo || t("equipment.noModel")}</span>
-                      </td>
-                      <td className="px-5 py-4">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200 font-mono">
-                          {e.serie}
-                        </span>
-                      </td>
-                      <td className="px-5 py-4">
-                        <div className="min-w-0">
-                          <div className="truncate text-sm font-medium text-slate-900 dark:text-white">{cli.nombre || "—"}</div>
-                          <div className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{cli.telefono || "—"}</div>
+                    <tr key={equipo.id} className="equipment-row">
+                      <td>
+                        <div className="equipment-cell">
+                          <span className="equipment-type-badge">{equipo.tipo || t("equipment.generic")}</span>
                         </div>
                       </td>
-                      <td className="px-5 py-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
+                      <td>
+                        <div className="equipment-cell strong">{equipo.marca || "—"}</div>
+                      </td>
+                      <td>
+                        <div className="equipment-cell muted">{equipo.modelo || t("equipment.noModel")}</div>
+                      </td>
+                      <td>
+                        <span className="equipment-serial-badge">{equipo.serie || "—"}</span>
+                      </td>
+                      <td>
+                        <div className="equipment-client-cell">
+                          <strong>{cliente.nombre || "—"}</strong>
+                          <small>{cliente.telefono || "—"}</small>
+                        </div>
+                      </td>
+                      <td className="actions-cell">
+                        <div className="equipment-actions">
                           <button
-                            className="rounded-md bg-blue-100 p-2 text-blue-700 transition-colors hover:bg-blue-200 opacity-0 group-hover:opacity-100"
-                            onClick={() => handleOpenEdit(e)}
-                            title={t("equipment.edit")}
-                            aria-label={`${t("equipment.edit")}: ${e.marca} ${e.modelo || ""}`}
+                            type="button"
+                            className="action-button history"
+                            onClick={() => setSelectedHistory(equipo)}
+                            title="Ver historial del equipo"
+                            aria-label={`Ver historial del equipo ${equipo.serie}`}
                           >
-                            <Icono nombre="pencil" size={18} />
+                            <Icono nombre="history" size={14} />
+                            <span>Historial</span>
                           </button>
-                          <button className="rounded-md bg-blue-100 p-2 text-blue-700 transition-colors hover:bg-blue-200 opacity-0 group-hover:opacity-100" onClick={() => handleDeleteEquipo(e)} title={t("equipment.delete")} aria-label={`${t("equipment.delete")} ${e.marca} ${e.modelo}`}>
-                            <Icono nombre="trash" size={18} />
+                          <button
+                            type="button"
+                            className="action-button"
+                            onClick={() => handleOpenEdit(equipo)}
+                            title="Editar equipo"
+                            aria-label={`Editar equipo ${equipo.marca}`}
+                          >
+                            <Icono nombre="edit" size={14} />
                           </button>
-                          {lastOrder ? (
-                            <button
-                              onClick={() => navigate(`/ordenes/${lastOrder.numero}`)}
-                              className="rounded-md bg-blue-100 px-4 py-1.5 text-sm font-medium text-blue-700 transition-colors hover:bg-blue-200"
-                            >
-                              {t("equipment.viewOrder", { number: lastOrder.numero })}
-                            </button>
-                          ) : (
-                            <span className="text-xs text-slate-400 px-3">{t("equipment.noOrders")}</span>
-                          )}
+                          <button
+                            type="button"
+                            className="action-button danger"
+                            onClick={() => handleDeleteEquipo(equipo)}
+                            title="Eliminar equipo"
+                            aria-label={`Eliminar equipo ${equipo.marca}`}
+                          >
+                            <Icono nombre="trash" size={14} />
+                          </button>
                         </div>
+                        {lastOrder ? (
+                          <div className="last-order-pill" onClick={() => navigate(`/ordenes/${lastOrder.numero}`)}>
+                            Orden #{lastOrder.numero}
+                          </div>
+                        ) : null}
                       </td>
                     </tr>
                   );
@@ -303,28 +351,28 @@ export default function EquiposView({ onOpenNewOrderModal }) {
             </tbody>
           </table>
         </div>
-        
-        {/* Paginación */}
+
         {totalPages > 1 && (
-          <div className="border-t border-slate-100 p-4 flex items-center justify-between bg-slate-50/50 erp-directory-pagination">
-            <span className="text-sm text-slate-500">
-              {t("common.pageOf", { page, total: totalPages })}
+          <div className="equipment-pagination">
+            <span>
+              Página {page} de {totalPages}
             </span>
-            <div className="flex gap-2">
-              <button 
-                disabled={page === 1} 
-                onClick={() => setPage(p => p - 1)}
-                className="px-3 py-1.5 rounded-lg text-sm font-medium border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {t("common.previous")}
-              </button>
-              <button 
-                disabled={page === totalPages} 
-                onClick={() => setPage(p => p + 1)}
-                className="px-3 py-1.5 rounded-lg text-sm font-medium border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {t("common.next")}
-              </button>
+            <div className="equipment-pagination-controls">
+              <button type="button" disabled={page === 1} onClick={() => setPage((current) => Math.max(1, current - 1))}>‹</button>
+              {[...Array(totalPages)].map((_, index) => {
+                const pageNumber = index + 1;
+                return (
+                  <button
+                    key={pageNumber}
+                    type="button"
+                    className={page === pageNumber ? "current" : ""}
+                    onClick={() => setPage(pageNumber)}
+                  >
+                    {pageNumber}
+                  </button>
+                );
+              })}
+              <button type="button" disabled={page === totalPages} onClick={() => setPage((current) => Math.min(totalPages, current + 1))}>›</button>
             </div>
           </div>
         )}
@@ -336,14 +384,77 @@ export default function EquiposView({ onOpenNewOrderModal }) {
         onSave={handleSaveEquipo}
         equipoToEdit={equipoToEdit}
       />
+
+      {selectedHistory && (
+        <div className="history-overlay" onMouseDown={() => setSelectedHistory(null)}>
+          <aside className="history-panel" onMouseDown={(event) => event.stopPropagation()} role="dialog" aria-modal="true">
+            <div className="history-header">
+              <div>
+                <span>Serie</span>
+                <h2>Historial del equipo</h2>
+              </div>
+              <button type="button" className="close-button" onClick={() => setSelectedHistory(null)} aria-label="Cerrar historial">
+                <Icono nombre="x" size={18} />
+              </button>
+            </div>
+
+            <div className="history-summary">
+              <strong>{selectedHistory.serie || "Sin serie"}</strong>
+              <small>
+                {selectedHistory.tipo || "Equipo"} · {selectedHistory.marca || "Marca no registrada"} · {selectedHistory.modelo || "Sin modelo"}
+              </small>
+            </div>
+
+            <div className="history-list">
+              {historyOrders.length === 0 ? (
+                <div className="history-empty-state">
+                  <Icono nombre="history" size={22} />
+                  <strong>No hay historial</strong>
+                  <p>No se encontraron órdenes anteriores relacionadas con esta serie.</p>
+                </div>
+              ) : (
+                historyOrders.map((orden) => (
+                  <article key={orden.id || orden.numero} className="history-item" onClick={() => navigate(`/ordenes/${orden.numero}`)}>
+                    <div className="history-item-top">
+                      <span>Orden #{orden.numero}</span>
+                      <em>{orden.estado_actual || "Sin estado"}</em>
+                    </div>
+                    <div className="history-item-meta">
+                      <small>Fecha: {formatFechaCorta(orden.fecha_ingreso)}</small>
+                    </div>
+                  </article>
+                ))
+              )}
+            </div>
+          </aside>
+        </div>
+      )}
+
+      {deleteTarget && (
+        <div className="history-overlay" onMouseDown={() => setDeleteTarget(null)}>
+          <div className="delete-confirmation" onMouseDown={(event) => event.stopPropagation()} role="dialog" aria-modal="true">
+            <h3>{deleteTarget.blocked ? "No se puede eliminar el equipo" : "Eliminar equipo"}</h3>
+            <p>{deleteTarget.blocked ? "Este equipo tiene historial asociado y no puede borrarse para no perder información del taller." : "¿Seguro que deseas eliminar este equipo?"}</p>
+            <p className="delete-serial">Serie: {deleteTarget.equipo.serie || "Sin serie"}</p>
+            <div className="delete-warning">
+              {deleteTarget.blocked
+                ? "Se encontró historial u órdenes relacionadas con esta serie. Revisa el historial antes de eliminarlo."
+                : "El equipo tiene historial y órdenes asociadas. Para proteger la información del taller, esta eliminación está bloqueada."}
+            </div>
+            <div className="delete-actions">
+              <button type="button" className="compact-secondary-button" onClick={() => setDeleteTarget(null)}>
+                {deleteTarget.blocked ? "Entendido" : "Cancelar"}
+              </button>
+              {!deleteTarget.blocked && (
+                <button type="button" className="compact-danger-button" onClick={confirmDelete}>Eliminar</button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {toast && (
-        <div
-          role="status"
-          aria-live="polite"
-          aria-atomic="true"
-          className="fixed bottom-5 right-5 z-[100] rounded-xl border-2 border-emerald-900 bg-emerald-700 px-4 py-3 text-sm font-semibold text-white shadow-lg"
-        >
-          <span aria-hidden="true" className="mr-2">✓</span>
+        <div className="equipment-toast" role="status" aria-live="polite">
           {toast}
         </div>
       )}

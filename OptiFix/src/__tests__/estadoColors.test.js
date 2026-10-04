@@ -1,23 +1,38 @@
-import { getEstadoBadge, ESTADOS_OFICIALES } from "../utils/estadoColors.js";
+import { ESTADOS_OFICIALES, getEstadoBadge, getOrderStage, isOrderActive, normalizeOrderStatus, ORDER_FLOW } from "../utils/estadoColors.js";
 
-describe("getEstadoBadge", () => {
-  it("clasifica RECEPCIÓN", () => {
-    expect(getEstadoBadge({ estado_actual: "RECEPCIÓN", etapa_categoria: "ENTRADA" })).toEqual(ESTADOS_OFICIALES.RECEPCION);
+describe("flujo oficial de estados", () => {
+  test("expone los estados en el orden operativo acordado", () => {
+    expect(ORDER_FLOW).toEqual(["RECEPCIÓN", "ANÁLISIS TÉCNICO", "EN TALLER", "COMUNICANDO PRESUPUESTO", "REPARADO", "SIN REPARAR", "ENTREGADO"]);
   });
-  it("clasifica ENTREGADO", () => {
-    expect(getEstadoBadge({ estado_actual: "ENTREGADO", etapa_categoria: "SALIDA" })).toEqual(ESTADOS_OFICIALES.ENTREGADO);
+
+  test.each([
+    [{ estado_actual: "ENTRADA", etapa_categoria: "ENTRADA" }, "RECEPCIÓN"],
+    [{ estado_actual: "EN TRÁMITE", etapa_categoria: "TRAMITE" }, "ANÁLISIS TÉCNICO"],
+    [{ estado_actual: "TALLER", etapa_categoria: "TALLER" }, "EN TALLER"],
+    [{ estado_actual: "COMUNICANDO PRESUPUESTO", etapa_categoria: "BODEGA" }, "COMUNICANDO PRESUPUESTO"],
+    [{ estado_actual: "REPARADO", etapa_categoria: "TALLER" }, "REPARADO"],
+    [{ estado_actual: "SIN REPARAR", etapa_categoria: "TALLER" }, "SIN REPARAR"],
+    [{ estado_actual: "ENTREGADO", etapa_categoria: "SALIDA" }, "ENTREGADO"]
+  ])("normaliza estados históricos sin modificar datos", (order, expected) => expect(getOrderStage(order)).toBe(expected));
+
+  test("no interpreta SALIDA como entrega sin evidencia", () => {
+    expect(normalizeOrderStatus("SALIDA", "SALIDA", null)).toBe("REPARADO");
+    expect(normalizeOrderStatus("SALIDA", "SALIDA", "20/09/2026")).toBe("ENTREGADO");
   });
-  it("clasifica las variantes de presupuesto", () => {
-    expect(getEstadoBadge({ estado_actual: "COMUNICANDO PRESUPUESTO", etapa_categoria: "BODEGA" })).toEqual(ESTADOS_OFICIALES.PRESUPUESTO);
+
+  test("solo Entregado deja de ser una orden activa", () => {
+    expect(isOrderActive({ estado_actual: "REPARADO" })).toBe(true);
+    expect(isOrderActive({ estado_actual: "SIN REPARAR" })).toBe(true);
+    expect(isOrderActive({ estado_actual: "ENTREGADO" })).toBe(false);
   });
-  it("clasifica estados rechazados sin importar mayúsculas", () => {
-    expect(getEstadoBadge({ estado_actual: "rechazado por cliente" })).toEqual(ESTADOS_OFICIALES.RECHAZADO);
-  });
-  it("usa En trámite como categoría predeterminada", () => {
-    expect(getEstadoBadge({ estado_actual: "DIAGNÓSTICO", etapa_categoria: "BODEGA" })).toEqual(ESTADOS_OFICIALES.TRAMITE);
-  });
-  it("soporta órdenes sin campos", () => {
-    expect(getEstadoBadge({})).toEqual(ESTADOS_OFICIALES.TRAMITE);
-    expect(getEstadoBadge()).toEqual(ESTADOS_OFICIALES.TRAMITE);
+
+  test("cada estado tiene texto, icono y contraste semántico", () => {
+    ORDER_FLOW.forEach((status) => {
+      const badge = getEstadoBadge({ estado_actual: status });
+      expect(badge).toEqual(ESTADOS_OFICIALES[status]);
+      expect(badge.label).toBeTruthy();
+      expect(badge.icon).toBeTruthy();
+      expect(badge.border).toBeTruthy();
+    });
   });
 });

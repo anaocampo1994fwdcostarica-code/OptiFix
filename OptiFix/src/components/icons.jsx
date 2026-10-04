@@ -89,6 +89,18 @@ const ICON_PATHS = {
       <line x1="21" y1="21" x2="16.65" y2="16.65" />
     </>
   ),
+  filter: (
+    <>
+      <path d="M4 5h16l-6.5 7.5V19l-3 1.5v-8z" />
+    </>
+  ),
+  "more-vertical": (
+    <>
+      <circle cx="12" cy="5" r="1" fill="currentColor" />
+      <circle cx="12" cy="12" r="1" fill="currentColor" />
+      <circle cx="12" cy="19" r="1" fill="currentColor" />
+    </>
+  ),
   bell: (
     <>
       <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />

@@ -5,7 +5,7 @@ import { useFocusTrap } from "../hooks/useFocusTrap.js";
 
 pdfMake.addVirtualFileSystem(pdfFonts);
 
-export function descargarReportePDF({ orden, cliente, equipo, archivos = [] }) {
+export function descargarReportePDF({ orden, cliente, equipo, archivos = [], print = false }) {
     const fotos = archivos.filter((archivo) => archivo.vistaPrevia).map((archivo) => ({ image: archivo.vistaPrevia, width: 180, margin: [0, 8, 8, 8] }));
     const definicionDocumento = {
       content: [
@@ -20,7 +20,9 @@ export function descargarReportePDF({ orden, cliente, equipo, archivos = [] }) {
       ],
       defaultStyle: { fontSize: 10 }
     };
-    pdfMake.createPdf(definicionDocumento).download(`Orden_${orden.numero}_Reporte.pdf`);
+    const documento = pdfMake.createPdf(definicionDocumento);
+    if (print) documento.print();
+    else documento.download(`Orden_${orden.numero}_Reporte.pdf`);
 }
 
 export function VistaPreviaReporteOrden({ orden, cliente, equipo, archivos = [], onClose, onPrint }) {

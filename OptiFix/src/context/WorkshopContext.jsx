@@ -21,6 +21,13 @@ import { WORKSHOP_NAME } from "../config/workshop.js";
 
 const WorkshopContext = createContext(null);
 
+const confirmedPatch = (requestedFields, response) => Object.fromEntries(
+  Object.keys(requestedFields).map((key) => [
+    key,
+    response && Object.prototype.hasOwnProperty.call(response, key) ? response[key] : requestedFields[key]
+  ])
+);
+
 const STORAGE_KEY = "optifix_data_v1";
 const DEMO_CLIENTS_SEEDED_KEY = "optifix_deletable_clients_seeded_v1";
 const LEGACY_WORKSHOP_NAME = /T2K\s+SERVICIOS\s+ELECTR(?:ÓNICOS|ONICOS|Ã“NICOS)/gi;
@@ -60,6 +67,9 @@ const USUARIOS_SEED = [
   { id: "user-1", nombre: "Administrador", usuario: "admin", email: "admin@optifix.local", telefono: "7000-0001", password: "admin123", rol: "admin", roles: ["ver_ordenes", "crear_orden", "crear_cotizacion", "gestionar_usuarios"] },
   { id: "user-2", nombre: "Técnico Principal", usuario: "tecnico", email: "tecnico@optifix.local", telefono: "7000-0002", password: "tec123", rol: "tecnico", roles: ["ver_ordenes", "crear_orden"] },
   { id: "user-3", nombre: "Usuario Demo", usuario: "demo", email: "demo@optifix.local", telefono: "7000-0003", password: "demo", rol: "admin", roles: ["ver_ordenes", "crear_orden", "crear_cotizacion", "gestionar_usuarios"] },
+  { id: "user-tech-daniel", nombre: "Daniel Rojas Vargas", usuario: "daniel.rojas", email: "daniel.rojas@optifix.local", telefono: "7000-0101", password: "demo-tecnico", rol: "tecnico", especialidad: "Electrónica / Reparaciones", roles: ["ver_ordenes", "crear_orden"] },
+  { id: "user-tech-andres", nombre: "Andrés Jiménez Mora", usuario: "andres.jimenez", email: "andres.jimenez@optifix.local", telefono: "7000-0102", password: "demo-tecnico", rol: "tecnico", especialidad: "Diagnóstico técnico", roles: ["ver_ordenes", "crear_orden"] },
+  { id: "user-tech-sofia", nombre: "Sofía Hernández Solano", usuario: "sofia.hernandez", email: "sofia.hernandez@optifix.local", telefono: "7000-0103", password: "demo-tecnico", rol: "tecnico", especialidad: "Electrónica y equipos", roles: ["ver_ordenes", "crear_orden"] },
 ];
 
 export function WorkshopProvider({ children }) {
@@ -470,7 +480,7 @@ export function WorkshopProvider({ children }) {
       referencia_externa: ordenData.referencia_externa || "",
       prioridad: ordenData.prioridad || "Normal",
       area: ordenData.area || "Entrada",
-      responsable: WORKSHOP_NAME,
+      responsable: "",
       fecha_ingreso: nowStr,
       fecha_entrega: null,
       fecha_prometida: ordenData.fecha_prometida || null,
@@ -483,6 +493,9 @@ export function WorkshopProvider({ children }) {
       garantia: !!ordenData.garantia,
       presupuesto: Number(ordenData.presupuesto) || 0,
       adelanto: Number(ordenData.adelanto) || 0,
+      presupuesto_conceptos: [],
+      presupuesto_aplica_iva: false,
+      presupuesto_estado: "BORRADOR",
       productos_servicios: [],
       tareas: [
         { id: `t-${Date.now()}-1`, texto: "Inspección visual inicial", completada: false }
@@ -517,16 +530,38 @@ export function WorkshopProvider({ children }) {
   const updateOrden = async (id, fields) => {
     const ordenActual = (data.ordenes || []).find((orden) => orden.id === id || orden.numero === Number(id));
     if (!ordenActual) throw new Error("No se encontró la orden que se desea actualizar.");
-
-    const actualizadaEnServidor = await actualizarOrdenEnServidor(ordenActual.id, fields);
-    setData((prev) => ({
-      ...prev,
-      ordenes: prev.ordenes.map((orden) => orden.id === ordenActual.id ? actualizadaEnServidor : orden)
-    }));
-    return actualizadaEnServidor;
+    const optimista = { ...ordenActual, ...fields };
+    // Mantiene la orden montada y visible mientras se realiza el PATCH.
+    setData((prev) => ({ ...prev, ordenes: prev.ordenes.map((orden) => orden.id === ordenActual.id ? optimista : orden) }));
+    try {
+      const respuesta = await actualizarOrdenEnServidor(ordenActual.id, fields);
+      // Algunos backends devuelven solo los campos modificados. Nunca sustituir
+      // la orden completa por una respuesta parcial.
+      const confirmada = confirmedPatch(fields, respuesta);
+      // Solo confirma las claves solicitadas. Una respuesta completa y tardía no
+      // puede sobrescribir otro switch o edición que se guardó en paralelo.
+      setData((prev) => ({ ...prev, ordenes: prev.ordenes.map((orden) => orden.id === ordenActual.id ? { ...orden, ...confirmada, id: ordenActual.id } : orden) }));
+      return { ...optimista, ...confirmada, id: ordenActual.id };
+    } catch (error) {
+      // Revierte solamente los campos de esta operación. Restaurar el objeto
+      // completo podía borrar otro cambio optimista realizado mientras este PATCH
+      // seguía pendiente (por ejemplo IVA y garantía casi simultáneamente).
+      setData((prev) => ({
+        ...prev,
+        ordenes: prev.ordenes.map((orden) => {
+          if (orden.id !== ordenActual.id) return orden;
+          const rollback = { ...orden };
+          Object.keys(fields).forEach((key) => {
+            if (Object.is(orden[key], fields[key])) rollback[key] = ordenActual[key];
+          });
+          return rollback;
+        })
+      }));
+      throw error;
+    }
   };
 
-  const changeOrdenStatus = async (ordenId, nuevoEstado, nuevaEtapa, detalle) => {
+  const changeOrdenStatus = async (ordenId, nuevoEstado, nuevaEtapa, detalle, metadata = {}) => {
     const nowStr = new Date().toLocaleString("es-CR", {
       day: "2-digit", month: "2-digit", year: "numeric",
       hour: "2-digit", minute: "2-digit"
@@ -540,17 +575,36 @@ export function WorkshopProvider({ children }) {
       estado_actual: nuevoEstado,
       etapa_categoria: nuevaEtapa || ordenActual.etapa_categoria,
       fecha_entrega: isEntregado ? nowStr : ordenActual.fecha_entrega,
+      finalizada: isEntregado ? true : Boolean(metadata.finalizada),
+      responsable: metadata.responsable ?? ordenActual.responsable,
+      motivo_sin_reparar: metadata.motivo_sin_reparar || (nuevoEstado === "SIN REPARAR" ? detalle : ordenActual.motivo_sin_reparar || ""),
+      presupuesto_estado: nuevoEstado === "COMUNICANDO PRESUPUESTO" ? "ENVIADO" : ordenActual.presupuesto_estado || "BORRADOR",
       linea_tiempo: [
         ...(ordenActual.linea_tiempo || []),
-        { fecha: nowStr, estado: nuevoEstado, realizado_por: "OptiFix", detalle: detalle || `Cambio de estado a ${nuevoEstado}` }
+        { fecha: nowStr, estado_anterior: metadata.estado_anterior || ordenActual.estado_actual, estado: nuevoEstado, nuevo_estado: nuevoEstado, realizado_por: metadata.realizado_por || "OptiFix", responsable: metadata.responsable ?? ordenActual.responsable ?? "", observacion: detalle || "", motivo: metadata.motivo_sin_reparar || "", detalle: detalle || `Cambio de estado a ${nuevoEstado}` }
       ]
     };
-    const actualizadaEnServidor = await actualizarOrdenEnServidor(ordenActual.id, cambios);
-    setData((prev) => ({
-      ...prev,
-      ordenes: prev.ordenes.map((orden) => orden.id === ordenActual.id ? actualizadaEnServidor : orden)
-    }));
-    return actualizadaEnServidor;
+    const optimista = { ...ordenActual, ...cambios };
+    setData((prev) => ({ ...prev, ordenes: prev.ordenes.map((orden) => orden.id === ordenActual.id ? optimista : orden) }));
+    try {
+      const respuesta = await actualizarOrdenEnServidor(ordenActual.id, cambios);
+      const confirmada = confirmedPatch(cambios, respuesta);
+      setData((prev) => ({ ...prev, ordenes: prev.ordenes.map((orden) => orden.id === ordenActual.id ? { ...orden, ...confirmada, id: ordenActual.id } : orden) }));
+      return { ...optimista, ...confirmada, id: ordenActual.id };
+    } catch (error) {
+      setData((prev) => ({
+        ...prev,
+        ordenes: prev.ordenes.map((orden) => {
+          if (orden.id !== ordenActual.id) return orden;
+          const rollback = { ...orden };
+          Object.keys(cambios).forEach((key) => {
+            if (Object.is(orden[key], cambios[key])) rollback[key] = ordenActual[key];
+          });
+          return rollback;
+        })
+      }));
+      throw error;
+    }
   };
 
   const deleteOrden = async (id) => {
@@ -559,6 +613,15 @@ export function WorkshopProvider({ children }) {
 
     await eliminarOrdenEnServidor(ordenActual.id);
     setData((prev) => ({ ...prev, ordenes: prev.ordenes.filter((orden) => orden.id !== ordenActual.id) }));
+  };
+
+  /** Recarga únicamente las órdenes desde la misma fuente remota ya usada al iniciar. */
+  const refreshOrdenes = async () => {
+    const ordenesRemotas = await listarOrdenes();
+    if (!Array.isArray(ordenesRemotas)) throw new Error("No se pudieron actualizar las órdenes.");
+    const ordenesActualizadas = migrateWorkshopName(ordenesRemotas);
+    setData((prev) => ({ ...prev, ordenes: ordenesActualizadas }));
+    return ordenesActualizadas;
   };
 
   const toggleGarantia = (ordenId) => {
@@ -708,14 +771,26 @@ export function WorkshopProvider({ children }) {
 
     const matchedOrdenes = (data.ordenes || []).filter((o) => {
       const numStr = String(o.numero);
+      const referenciaExterna = String(o.referencia_externa || "").toLowerCase();
       const eq = data.equipos.find((e) => e.id === o.equipo_id);
       const cli = data.clientes.find((c) => c.id === o.cliente_id);
       return (
         numStr.includes(q) ||
+        referenciaExterna.includes(q) ||
         (o.trabajo_solicitado && o.trabajo_solicitado.toLowerCase().includes(q)) ||
         (eq && ((eq.marca || "").toLowerCase().includes(q) || (eq.modelo || "").toLowerCase().includes(q) || (eq.serie || "").toLowerCase().includes(q))) ||
         (cli && ((cli.nombre || "").toLowerCase().includes(q) || (cli.identificacion || "").includes(q)))
       );
+    }).sort((a, b) => {
+      const equipoA = data.equipos.find((equipo) => equipo.id === a.equipo_id);
+      const equipoB = data.equipos.find((equipo) => equipo.id === b.equipo_id);
+      const puntuacion = (orden, equipo) => {
+        if (String(orden.numero) === q) return 3;
+        if (String(orden.referencia_externa || "").toLowerCase() === q) return 2;
+        if (String(equipo?.serie || "").toLowerCase() === q) return 1;
+        return 0;
+      };
+      return puntuacion(b, equipoB) - puntuacion(a, equipoA);
     });
 
     return {
@@ -773,6 +848,7 @@ export function WorkshopProvider({ children }) {
     updateOrden,
     changeOrdenStatus,
     deleteOrden,
+    refreshOrdenes,
     toggleGarantia,
     addProductService,
     removeProductService,

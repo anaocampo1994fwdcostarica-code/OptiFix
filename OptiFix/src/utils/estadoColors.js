@@ -1,33 +1,30 @@
-// src/utils/estadoColors.js
-// Paleta oficial de estados — Anteproyecto OptiFix, sección "Sistema de color":
-// Recepción #00873A · En trámite #565E74 · Presupuesto #007B89 · Entregado #006B2C · Rechazado #BA1A1A
+export const ORDER_FLOW = ["RECEPCIÓN", "ANÁLISIS TÉCNICO", "EN TALLER", "COMUNICANDO PRESUPUESTO", "REPARADO", "SIN REPARAR", "ENTREGADO"];
+
+export function normalizeOrderStatus(status, stage = "", deliveredAt = null) {
+  const value = String(status || "").trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const category = String(stage || "").trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  if (value.includes("ENTREGAD") || deliveredAt) return "ENTREGADO";
+  if (value.includes("SIN REPAR")) return "SIN REPARAR";
+  if (value === "REPARADO") return "REPARADO";
+  if (value.includes("PRESUPUESTO")) return "COMUNICANDO PRESUPUESTO";
+  if (value.includes("TALLER") || value === "BODEGA" || category === "TALLER" || category === "BODEGA") return "EN TALLER";
+  if (value.includes("ANALISIS") || value.includes("TRAMITE") || value.includes("DIAGNOST") || category === "TRAMITE") return "ANÁLISIS TÉCNICO";
+  if (value.includes("RECEPCI") || value === "ENTRADA" || category === "ENTRADA") return "RECEPCIÓN";
+  // SALIDA sin fecha de entrega no constituye evidencia de entrega.
+  if (value === "SALIDA" || category === "SALIDA") return "REPARADO";
+  return "RECEPCIÓN";
+}
 
 export const ESTADOS_OFICIALES = {
-  RECEPCION:   { label: "Recepción",   bg: "#00873A", color: "#ffffff" },
-  TRAMITE:     { label: "En trámite",  bg: "#565E74", color: "#ffffff" },
-  PRESUPUESTO: { label: "Presupuesto", bg: "#007B89", color: "#ffffff" },
-  ENTREGADO:   { label: "Entregado",   bg: "#006B2C", color: "#ffffff" },
-  RECHAZADO:   { label: "Rechazado",   bg: "#BA1A1A", color: "#ffffff" },
+  "RECEPCIÓN": { label: "Recepción", bg: "#e0f2fe", color: "#075985", border: "#7dd3fc", icon: "↓" },
+  "ANÁLISIS TÉCNICO": { label: "Análisis técnico", bg: "#dbeafe", color: "#1e40af", border: "#93c5fd", icon: "◉" },
+  "EN TALLER": { label: "En taller", bg: "#ede9fe", color: "#5b21b6", border: "#c4b5fd", icon: "◆" },
+  "COMUNICANDO PRESUPUESTO": { label: "Comunicando presupuesto", bg: "#ffedd5", color: "#9a3412", border: "#fdba74", icon: "$" },
+  REPARADO: { label: "Reparado", bg: "#dcfce7", color: "#166534", border: "#86efac", icon: "✓" },
+  "SIN REPARAR": { label: "Sin reparar", bg: "#fee2e2", color: "#991b1b", border: "#fca5a5", icon: "!" },
+  ENTREGADO: { label: "Entregado", bg: "#d1fae5", color: "#065f46", border: "#6ee7b7", icon: "✓" }
 };
 
-/**
- * Devuelve { label, bg, color } para una orden, usando SIEMPRE
- * los 5 colores oficiales del anteproyecto (nunca un color suelto
- * inventado por pantalla).
- *
- * Acepta la orden completa para poder mirar tanto estado_actual
- * como etapa_categoria y clasificar bien casos como "DIAGNÓSTICO"
- * o "BODEGA", que según el anteproyecto caen bajo "En trámite".
- */
-export function getEstadoBadge(orden = {}) {
-  const estado = (orden.estado_actual || "").toUpperCase();
-  const etapa = (orden.etapa_categoria || "").toUpperCase();
-
-  if (estado.includes("RECHAZ")) return ESTADOS_OFICIALES.RECHAZADO;
-  if (estado === "ENTREGADO" || etapa === "SALIDA") return ESTADOS_OFICIALES.ENTREGADO;
-  if (estado.includes("PRESUPUESTO")) return ESTADOS_OFICIALES.PRESUPUESTO;
-  if (estado === "RECEPCIÓN" || etapa === "ENTRADA") return ESTADOS_OFICIALES.RECEPCION;
-
-  // Diagnóstico en banco, espera de repuestos, taller, reparado, bodega, etc.
-  return ESTADOS_OFICIALES.TRAMITE;
-}
+export function getEstadoBadge(order = {}) { return ESTADOS_OFICIALES[normalizeOrderStatus(order.estado_actual, order.etapa_categoria, order.fecha_entrega)]; }
+export function getOrderStage(order = {}) { return normalizeOrderStatus(order.estado_actual, order.etapa_categoria, order.fecha_entrega); }
+export const isOrderActive = (order = {}) => normalizeOrderStatus(order.estado_actual, order.etapa_categoria, order.fecha_entrega) !== "ENTREGADO";

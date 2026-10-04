@@ -16,7 +16,7 @@ export default function OptiBotFloating() {
 
   return (
     <div className="fixed bottom-5 right-5 z-[90] flex flex-col items-end gap-3 sm:bottom-6 sm:right-6">
-      <div className={`${isOpen ? "block" : "hidden"} w-[calc(100vw-2.5rem)] max-w-md sm:w-[430px]`}>
+      <div id="optibot-floating-panel" className={`${isOpen ? "block" : "hidden"} w-[calc(100vw-2.5rem)] max-w-md sm:w-[430px]`}>
         <OptiBot usuario={user} className="h-[min(70vh,560px)] max-w-none" />
       </div>
       <button
@@ -25,9 +25,10 @@ export default function OptiBotFloating() {
         aria-label={isOpen ? "Cerrar OptiBot" : "Abrir OptiBot"}
         aria-expanded={isOpen}
         aria-controls="optibot-floating-panel"
-        className="grid h-14 w-14 place-items-center rounded-full bg-sky-600 text-2xl shadow-lg shadow-sky-900/30 transition hover:scale-105 hover:bg-sky-700 focus:outline-none focus:ring-4 focus:ring-sky-300 dark:focus:ring-sky-900"
+        className="group relative grid h-14 w-14 place-items-center rounded-full bg-sky-600 text-2xl shadow-lg shadow-sky-900/30 transition hover:scale-105 hover:bg-sky-700 focus:outline-none focus:ring-4 focus:ring-sky-300 dark:focus:ring-sky-900"
       >
         <span aria-hidden="true">🤖</span>
+        <span aria-hidden="true" className="pointer-events-none absolute right-full mr-3 whitespace-nowrap rounded-md bg-slate-900 px-2.5 py-1.5 text-xs font-semibold text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">OptiBot</span>
       </button>
     </div>
   );

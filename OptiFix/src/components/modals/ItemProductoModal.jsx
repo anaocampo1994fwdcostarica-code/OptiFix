@@ -7,16 +7,20 @@ export default function ItemProductoModal({ isOpen, onClose, onAdd }) {
   const [descripcion, setDescripcion] = useState("");
   const [cantidad, setCantidad] = useState(1);
   const [importe, setImporte] = useState(0);
+  const [error, setError] = useState("");
 
   if (!isOpen) return null;
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!descripcion.trim() || importe <= 0) return;
+    const quantity = Number(cantidad), unitPrice = Number(importe);
+    if (!descripcion.trim()) return setError("Ingrese la descripción del producto o servicio.");
+    if (!Number.isFinite(quantity) || quantity <= 0) return setError("La cantidad debe ser mayor que cero.");
+    if (!Number.isFinite(unitPrice) || unitPrice < 0) return setError("El importe debe ser igual o mayor que cero.");
     onAdd({
       descripcion: descripcion.toUpperCase(),
-      cantidad: Number(cantidad) || 1,
-      importe: Number(importe) || 0
+      cantidad: quantity,
+      importe: unitPrice
     });
     setDescripcion("");
     setCantidad(1);
@@ -26,7 +30,7 @@ export default function ItemProductoModal({ isOpen, onClose, onAdd }) {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <section ref={dialogRef} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="item-product-title" className="modal-content" onClick={(e) => e.stopPropagation()}>
+      <section ref={dialogRef} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="item-product-title" className="modal-content item-product-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h3 id="item-product-title">Agregar Producto / Servicio a la Orden</h3>
           <button type="button" aria-label="Cerrar formulario de producto o servicio" className="modal-close-btn" onClick={onClose}>
@@ -80,6 +84,7 @@ export default function ItemProductoModal({ isOpen, onClose, onAdd }) {
                 ₡ {((Number(cantidad) || 0) * (Number(importe) || 0)).toLocaleString("es-CR", { minimumFractionDigits: 2 })}
               </strong>
             </div>
+            {error && <p className="modal-form-error" role="alert"><Icono nombre="alert-triangle" size={15} />{error}</p>}
           </div>
 
           <div className="modal-footer">

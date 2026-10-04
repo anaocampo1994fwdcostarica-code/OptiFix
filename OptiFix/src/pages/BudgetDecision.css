@@ -1,0 +1,19 @@
+.order-state-badges { display: flex; align-items: flex-end; flex-direction: column; gap: 6px; }
+.budget-decision-badge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 9px; border: 1px solid #fdba74; border-radius: 999px; background: #fff7ed; color: #9a3412; font-size: 10px; font-weight: 800; white-space: nowrap; }
+.budget-decision-badge.aprobado { border-color: #86efac; background: #f0fdf4; color: #166534; }
+.budget-decision-badge.rechazado { border-color: #fca5a5; background: #fef2f2; color: #991b1b; }
+.budget-decision-badge button, .budget-decision-edit { display: inline-grid !important; place-items: center; width: 22px !important; height: 22px !important; padding: 0 !important; border: 0 !important; border-radius: 50% !important; background: transparent !important; color: inherit !important; cursor: pointer; }
+.budget-decision-badge button:hover, .budget-decision-edit:hover { background: rgba(15, 23, 42, .08) !important; }
+.current-budget-decision { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; padding: 12px; border: 1px solid #dbe5ef; border-radius: 10px; background: #f8fafc; }
+.current-budget-decision span { color: #64748b; font-size: 11px; }
+.current-budget-decision strong { color: #0f172a; }
+.budget-decision-modal form { display: grid; gap: 14px; }
+.budget-decision-modal label { display: grid; gap: 6px; color: #475569; font-size: 12px; font-weight: 700; }
+.budget-decision-modal select { width: 100%; border: 1px solid #cbd5e1; border-radius: 9px; background: #f8fafc; color: #0f172a; padding: 10px; }
+.budget-decision-confirm > p { padding: 14px; border: 1px solid #bfdbfe; border-radius: 10px; background: #eff6ff; color: #334155; line-height: 1.55; }
+.budget-decision-confirm footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+.budget-decision-confirm footer button { border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; color: #334155; padding: 9px 12px; font-size: 12px; font-weight: 700; }
+.budget-decision-confirm footer .primary { border-color: #0284c7; background: #0284c7; color: #fff; }
+html:not(.light-mode) .current-budget-decision, html:not(.light-mode) .budget-decision-modal select { background: #0f172a; border-color: #475569; color: #f8fafc; }
+html:not(.light-mode) .current-budget-decision strong { color: #f8fafc; }
+@media (max-width: 720px) { .order-state-badges { align-items: flex-start; } .order-summary-card > header { flex-direction: column; } .budget-decision-confirm footer { flex-direction: column-reverse; } .budget-decision-confirm footer button { width: 100%; } }

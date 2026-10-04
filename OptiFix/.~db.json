@@ -385,7 +385,7 @@
       "trabajo_solicitado": "REVISIÓN POR CORTOCIRCUITO EN ENTRADA",
       "descripcion_estado": "BUEN ESTADO",
       "accesorios": "SIN ACCESORIOS",
-      "garantia": true,
+      "garantia": false,
       "presupuesto": 0,
       "adelanto": 5000,
       "productos_servicios": [
