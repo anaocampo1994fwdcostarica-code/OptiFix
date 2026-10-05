@@ -5,6 +5,7 @@ import { useFocusTrap } from "../../hooks/useFocusTrap.js";
 import { formatColones } from "../order/OrderDetailComponents.jsx";
 import { getBudgetTotals } from "../order/OrderManagementPanels.jsx";
 import { ORDER_FLOW, normalizeOrderStatus } from "../../utils/estadoColors.js";
+import { WORKSHOP_NAME } from "../../config/workshop.js";
 
 const REASONS = ["Sin reparación posible", "Repuesto no disponible", "Presupuesto rechazado", "Costo de reparación no conveniente", "Daño irreparable", "Otro"];
 const NEXT = { "RECEPCIÓN": ["ANÁLISIS TÉCNICO"], "ANÁLISIS TÉCNICO": ["EN TALLER"], "EN TALLER": ["COMUNICANDO PRESUPUESTO"], "COMUNICANDO PRESUPUESTO": ["REPARADO", "SIN REPARAR"], REPARADO: ["ENTREGADO"], "SIN REPARAR": ["ENTREGADO"], ENTREGADO: [] };
@@ -38,12 +39,12 @@ export default function CambiarEstadoModal({ isOpen, onClose, orden, cliente = {
     if (selectedEstado === "COMUNICANDO PRESUPUESTO" && !hasBudget) return setError("No existe un presupuesto registrado para esta orden. Registra los productos y servicios necesarios antes de comunicar el presupuesto al cliente.");
     if (selectedEstado === "SIN REPARAR" && (!reason || (reason === "Otro" && !otherReason.trim()))) return setError("Seleccione y especifique el motivo por el que el equipo queda sin reparar.");
     const finalReason = reason === "Otro" ? otherReason.trim() : reason;
-    const observation = [detalle.trim(), finalReason && `Motivo: ${finalReason}`, needsTechnician && `Asignada a ${technician}`].filter(Boolean).join(" · ") || `Cambio de ${current} a ${selectedEstado}`;
+    const observation = [detalle.trim(), finalReason && `Motivo: ${finalReason}`, needsTechnician && `Asignada a ${technician}`].filter(Boolean).join(" · ");
     try {
       setLoading(true);
       const remote = await actualizarEstadoOrden({ ordenId: orden.id, estado: selectedEstado, comentarioTecnico: observation, cliente, equipo, seguimientoUrl: `${window.location.origin}/seguimiento/${orden.token_seguimiento}` });
       if (!remote.ok && !remote.demo) throw new Error(remote.error || "No fue posible actualizar la orden en n8n.");
-      await onConfirmChange(orden.id, selectedEstado, stageFor(selectedEstado), observation, { estado_anterior: current, responsable: technician || orden.responsable || "", motivo_sin_reparar: finalReason || "", finalizada: selectedEstado === "ENTREGADO", realizado_por: currentUser?.nombre || "OptiFix" });
+      await onConfirmChange(orden.id, selectedEstado, stageFor(selectedEstado), observation, { estado_anterior: current, responsable: technician || orden.responsable || "", motivo_sin_reparar: finalReason || "", finalizada: selectedEstado === "ENTREGADO", realizado_por: currentUser?.nombre || WORKSHOP_NAME });
       onClose();
     } catch (requestError) { setError(requestError.message || "No se pudo actualizar el estado. Inténtalo nuevamente."); }
     finally { setLoading(false); }

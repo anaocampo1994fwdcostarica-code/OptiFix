@@ -203,6 +203,18 @@
   font-weight: 700;
 }
 
+html:not(.light-mode) .equipment-view-page{color:#e2edf7}
+html:not(.light-mode) .equipment-view-header h1{color:#f8fafc}
+html:not(.light-mode) .equipment-view-header p{color:#b8c9da}
+html:not(.light-mode) .equipment-table-shell{background:#0b2239;border-color:#1a3c5b;box-shadow:none}
+html:not(.light-mode) .equipment-toolbar,html:not(.light-mode) .equipment-table thead th{background:#091d31;border-color:#1a3c5b;color:#a9c4db}
+html:not(.light-mode) .equipment-tabs button,html:not(.light-mode) .compact-secondary-button,html:not(.light-mode) .equipment-search input{background:#102d49;border-color:#24506f;color:#dbeafe}
+html:not(.light-mode) .equipment-table tbody tr td{border-color:#153653}
+html:not(.light-mode) .equipment-table tbody tr:hover{background:#102d49}
+html:not(.light-mode) .equipment-cell.strong,html:not(.light-mode) .equipment-serial-badge{color:#f8fafc}
+html:not(.light-mode) .equipment-cell.muted{color:#b8c9da}
+html:not(.light-mode) .equipment-serial-badge{background:#091d31;border-color:#24506f}
+
 .equipment-cell.muted {
   color: #475569;
 }

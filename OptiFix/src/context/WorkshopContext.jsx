@@ -17,6 +17,9 @@ import { listarEquipos, crearEquipo as crearEquipoEnServidor, actualizarEquipo a
 import { listarProductos, crearProducto as crearProductoEnServidor, actualizarProducto as actualizarProductoEnServidor, eliminarProducto as eliminarProductoEnServidor } from "../services/productosService.js";
 import { listarServicios, crearServicio as crearServicioEnServidor, actualizarServicio as actualizarServicioEnServidor, eliminarServicio as eliminarServicioEnServidor } from "../services/serviciosService.js";
 import { listarCotizaciones, crearCotizacion as crearCotizacionEnServidor, actualizarCotizacion as actualizarCotizacionEnServidor, eliminarCotizacion as eliminarCotizacionEnServidor } from "../services/cotizacionesService.js";
+import { listarMarcas, crearMarca as crearMarcaEnServidor } from "../services/marcasService.js";
+import { listarModelos, crearModelo as crearModeloEnServidor } from "../services/modelosService.js";
+import { listarAccesorios, crearAccesorio as crearAccesorioEnServidor } from "../services/accesoriosService.js";
 import { WORKSHOP_NAME } from "../config/workshop.js";
 
 const WorkshopContext = createContext(null);
@@ -72,6 +75,11 @@ const USUARIOS_SEED = [
   { id: "user-tech-sofia", nombre: "Sofía Hernández Solano", usuario: "sofia.hernandez", email: "sofia.hernandez@optifix.local", telefono: "7000-0103", password: "demo-tecnico", rol: "tecnico", especialidad: "Electrónica y equipos", roles: ["ver_ordenes", "crear_orden"] },
 ];
 
+const normalizeCatalogValue = (value) => String(value ?? "").trim().replace(/\s+/g, " ");
+const normalizeCatalogKey = (value) => normalizeCatalogValue(value).toLowerCase();
+const catalogNameFromEntry = (entry) => typeof entry === "string" ? entry : (entry && entry.nombre ? entry.nombre : "");
+const catalogMatch = (entry, value) => normalizeCatalogKey(catalogNameFromEntry(entry)) === normalizeCatalogKey(value);
+
 export function WorkshopProvider({ children }) {
   const [data, setData] = useState(() => {
     try {
@@ -81,6 +89,12 @@ export function WorkshopProvider({ children }) {
         // Asegurar que siempre existe el catálogo de marcas
         if (!parsed.marcas || parsed.marcas.length === 0) {
           parsed.marcas = MARCAS_SEED;
+        }
+        if (!parsed.modelos) {
+          parsed.modelos = [];
+        }
+        if (!parsed.accesorios) {
+          parsed.accesorios = [];
         }
         // Asegurar que siempre existen usuarios para poder iniciar sesión
         if (!parsed.usuarios || parsed.usuarios.length === 0) {
@@ -98,7 +112,7 @@ export function WorkshopProvider({ children }) {
       console.error("Error al cargar datos locales de OptiFix", e);
     }
     localStorage.setItem(DEMO_CLIENTS_SEEDED_KEY, "true");
-    return migrateWorkshopName({ ...initialData, marcas: MARCAS_SEED, usuarios: USUARIOS_SEED });
+    return migrateWorkshopName({ ...initialData, marcas: MARCAS_SEED, modelos: [], accesorios: [], usuarios: USUARIOS_SEED });
   });
 
   const [theme, setTheme] = useState(() => {
@@ -141,6 +155,12 @@ export function WorkshopProvider({ children }) {
     }));
   };
 
+  const addNotification = ({ ordenNumero, titulo, descripcion = "" }) => {
+    const notification = { id: `not-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, ordenNumero, titulo, descripcion, fecha: new Date().toISOString(), leido: false };
+    setData((prev) => ({ ...prev, notificaciones: [notification, ...(prev.notificaciones || [])] }));
+    return notification;
+  };
+
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
@@ -179,7 +199,8 @@ export function WorkshopProvider({ children }) {
       if (typeof fetch !== "function") return;
       const recursos = [
         ["clientes", listarClientes], ["equipos", listarEquipos], ["productos", listarProductos],
-        ["servicios", listarServicios], ["cotizaciones", listarCotizaciones],
+        ["servicios", listarServicios], ["cotizaciones", listarCotizaciones], ["marcas", listarMarcas],
+        ["modelos", listarModelos], ["accesorios", listarAccesorios],
       ];
       const resultados = await Promise.allSettled(recursos.map(([, listar]) => listar()));
       if (cancelled) return;
@@ -231,17 +252,75 @@ export function WorkshopProvider({ children }) {
     return () => { cancelled = true; };
   }, []);
 
-  // ── MARCAS ───────────────────────────────────────────────────────────────────
-  const addMarca = (nombre) => {
-    const normalizado = nombre.trim();
-    if (!normalizado) return;
-    setData((prev) => {
-      const ya_existe = (prev.marcas || []).some(
-        (m) => m.toLowerCase() === normalizado.toLowerCase()
-      );
-      if (ya_existe) return prev;
-      return { ...prev, marcas: [...(prev.marcas || []), normalizado].sort() };
+  // ── MARCAS / MODELOS / ACCESORIOS ───────────────────────────────────────────
+  const addMarca = async (nombre) => {
+    const normalizado = normalizeCatalogValue(nombre);
+    if (!normalizado) return null;
+
+    const yaExiste = (data.marcas || []).some((m) => catalogMatch(m, normalizado));
+    if (yaExiste) {
+      const existente = (data.marcas || []).find((m) => catalogMatch(m, normalizado));
+      return existente;
+    }
+
+    const nuevaMarca = { id: `marca-${Date.now()}`, nombre: normalizado };
+    try {
+      const remota = await crearMarcaEnServidor(nuevaMarca);
+      setData((prev) => ({ ...prev, marcas: [remota, ...(prev.marcas || []).filter((m) => catalogNameFromEntry(m) !== normalizeCatalogValue(remota.nombre))] }));
+      return remota;
+    } catch (error) {
+      setData((prev) => ({ ...prev, marcas: [nuevaMarca, ...(prev.marcas || []).filter((m) => catalogNameFromEntry(m) !== normalizado)] }));
+      return nuevaMarca;
+    }
+  };
+
+  const addModelo = async (modeloData) => {
+    const nombre = normalizeCatalogValue(modeloData?.nombre || modeloData || "");
+    const marcaNombre = normalizeCatalogValue(modeloData?.marcaNombre || modeloData?.marca || "");
+    if (!nombre || !marcaNombre) return null;
+
+    const compact = (data.modelos || []).find((modelo) => {
+      if (!modelo || !modelo.nombre) return false;
+      return normalizeCatalogKey(modelo.nombre) === normalizeCatalogKey(nombre) && normalizeCatalogKey(modelo.marcaNombre || "") === normalizeCatalogKey(marcaNombre);
     });
+    if (compact) return compact;
+
+    const nueva = {
+      id: `modelo-${Date.now()}`,
+      nombre,
+      marcaNombre,
+      marcaId: (data.marcas || []).find((marca) => catalogMatch(marca, marcaNombre))?.id || `marca-${Date.now()}`
+    };
+
+    try {
+      const remoto = await crearModeloEnServidor(nueva);
+      setData((prev) => ({ ...prev, modelos: [remoto, ...(prev.modelos || []).filter((modelo) => !(modelo?.nombre === remoto.nombre && normalizeCatalogKey(modelo?.marcaNombre || "") === normalizeCatalogKey(remoto.marcaNombre || "")))] }));
+      return remoto;
+    } catch (error) {
+      setData((prev) => ({ ...prev, modelos: [nueva, ...(prev.modelos || []).filter((modelo) => !(modelo?.nombre === nombre && normalizeCatalogKey(modelo?.marcaNombre || "") === normalizeCatalogKey(marcaNombre)))] }));
+      return nueva;
+    }
+  };
+
+  const addAccesorio = async (nombre) => {
+    const normalizado = normalizeCatalogValue(nombre);
+    if (!normalizado) return null;
+
+    const yaExiste = (data.accesorios || []).some((item) => normalizeCatalogKey(item?.nombre || item || "") === normalizeCatalogKey(normalizado));
+    if (yaExiste) {
+      const existente = (data.accesorios || []).find((item) => normalizeCatalogKey(item?.nombre || item || "") === normalizeCatalogKey(normalizado));
+      return existente;
+    }
+
+    const nuevo = { id: `acc-${Date.now()}`, nombre: normalizado };
+    try {
+      const remoto = await crearAccesorioEnServidor(nuevo);
+      setData((prev) => ({ ...prev, accesorios: [remoto, ...(prev.accesorios || []).filter((item) => normalizeCatalogKey(item?.nombre || item || "") !== normalizeCatalogKey(remoto.nombre))] }));
+      return remoto;
+    } catch (error) {
+      setData((prev) => ({ ...prev, accesorios: [nuevo, ...(prev.accesorios || []).filter((item) => normalizeCatalogKey(item?.nombre || item || "") !== normalizeCatalogKey(normalizado))] }));
+      return nuevo;
+    }
   };
 
   // ── USUARIOS (autenticación) ──────────────────────────────────────────────────
@@ -500,21 +579,15 @@ export function WorkshopProvider({ children }) {
       tareas: [
         { id: `t-${Date.now()}-1`, texto: "Inspección visual inicial", completada: false }
       ],
-      notas: [
-        {
-          id: `n-${Date.now()}`,
-          autor: "OptiFix",
-          fecha: nowStr,
-          texto: "Ingreso de la orden de trabajo al sistema OptiFix."
-        }
-      ],
-      archivos: [],
+      // Los trabajos realizados se agregan únicamente por una intervención técnica.
+      notas: [],
+      archivos: Array.isArray(ordenData.archivos) ? ordenData.archivos : [],
       linea_tiempo: [
         {
           fecha: nowStr,
           estado: ordenData.estado_actual || "RECEPCIÓN",
-          realizado_por: "OptiFix",
-          detalle: "Creación de la orden e ingreso al taller."
+          realizado_por: WORKSHOP_NAME,
+          detalle: ""
         }
       ]
     };
@@ -524,6 +597,7 @@ export function WorkshopProvider({ children }) {
       ...prev,
       ordenes: [creadaEnServidor, ...prev.ordenes.filter((orden) => orden.id !== creadaEnServidor.id)]
     }));
+    addNotification({ ordenNumero: creadaEnServidor.numero, titulo: "Nueva orden creada", descripcion: `Orden #${creadaEnServidor.numero} registrada correctamente.` });
     return creadaEnServidor;
   };
 
@@ -581,7 +655,7 @@ export function WorkshopProvider({ children }) {
       presupuesto_estado: nuevoEstado === "COMUNICANDO PRESUPUESTO" ? "ENVIADO" : ordenActual.presupuesto_estado || "BORRADOR",
       linea_tiempo: [
         ...(ordenActual.linea_tiempo || []),
-        { fecha: nowStr, estado_anterior: metadata.estado_anterior || ordenActual.estado_actual, estado: nuevoEstado, nuevo_estado: nuevoEstado, realizado_por: metadata.realizado_por || "OptiFix", responsable: metadata.responsable ?? ordenActual.responsable ?? "", observacion: detalle || "", motivo: metadata.motivo_sin_reparar || "", detalle: detalle || `Cambio de estado a ${nuevoEstado}` }
+        { fecha: nowStr, estado_anterior: metadata.estado_anterior || ordenActual.estado_actual, estado: nuevoEstado, nuevo_estado: nuevoEstado, realizado_por: metadata.realizado_por || WORKSHOP_NAME, responsable: metadata.responsable ?? ordenActual.responsable ?? "", observacion: detalle || "", motivo: metadata.motivo_sin_reparar || "", detalle: detalle || "" }
       ]
     };
     const optimista = { ...ordenActual, ...cambios };
@@ -590,6 +664,7 @@ export function WorkshopProvider({ children }) {
       const respuesta = await actualizarOrdenEnServidor(ordenActual.id, cambios);
       const confirmada = confirmedPatch(cambios, respuesta);
       setData((prev) => ({ ...prev, ordenes: prev.ordenes.map((orden) => orden.id === ordenActual.id ? { ...orden, ...confirmada, id: ordenActual.id } : orden) }));
+      addNotification({ ordenNumero: ordenActual.numero, titulo: "Cambio de estado de orden", descripcion: `${ordenActual.estado_actual} → ${nuevoEstado}` });
       return { ...optimista, ...confirmada, id: ordenActual.id };
     } catch (error) {
       setData((prev) => ({
@@ -699,7 +774,7 @@ export function WorkshopProvider({ children }) {
   };
 
   // ── NOTAS ─────────────────────────────────────────────────────────────────────
-  const addNota = (ordenId, texto, autor = "OptiFix") => {
+  const addNota = (ordenId, texto, autor = WORKSHOP_NAME) => {
     const nowStr = new Date().toLocaleString("es-CR", {
       day: "2-digit", month: "2-digit", year: "numeric",
       hour: "2-digit", minute: "2-digit"
@@ -817,6 +892,7 @@ export function WorkshopProvider({ children }) {
     markNotificationAsRead,
     markAllNotificationsAsRead,
     deleteNotification,
+    addNotification,
     estadisticas: data.estadisticas || {},
     activeStageFilter,
     setActiveStageFilter,

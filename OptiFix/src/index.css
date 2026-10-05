@@ -1670,3 +1670,28 @@ html:not(.light-mode) .nueva-orden-view select option{background:#030712;color:#
 .accessibility-widget-panel .text-slate-500{color:#64748b!important}
 .accessibility-widget-panel .bg-slate-100{background:#f1f5f9!important}
 .accessibility-widget-panel .border-slate-200{border-color:#e2e8f0!important}
+
+/* Superficies de Agenda y estadísticas: el tema aplica sin recargar la ruta. */
+html:not(.light-mode) .agenda-view .bg-white,html:not(.light-mode) .agenda-view .\!bg-white{background:#0b2239!important}
+html:not(.light-mode) .agenda-view .border-slate-200,html:not(.light-mode) .agenda-view .border-slate-100{border-color:#1a3c5b!important}
+html:not(.light-mode) .agenda-view .\!text-slate-950,html:not(.light-mode) .agenda-view .\!text-slate-900,html:not(.light-mode) .agenda-view .\!text-slate-700{color:#f8fafc!important}
+html:not(.light-mode) .agenda-view .\!text-slate-600,html:not(.light-mode) .agenda-view .\!text-slate-500{color:#b8c9da!important}
+html:not(.light-mode) .agenda-view .bg-slate-100{background:#102d49!important}
+html:not(.light-mode) .agenda-view .hover\:bg-slate-100:hover{background:#173b5b!important}
+html:not(.light-mode) .agenda-view .divide-slate-100>*+*{border-color:#1a3c5b!important}
+html:not(.light-mode) .agenda-view .text-slate-900{color:#f8fafc!important}
+html:not(.light-mode) .agenda-view .text-slate-600,html:not(.light-mode) .agenda-view .text-slate-500{color:#b8c9da!important}
+html:not(.light-mode) .agenda-modal{background:#0b2239!important;color:#f8fafc!important;border-color:#1a3c5b!important}
+html:not(.light-mode) .agenda-modal h2,html:not(.light-mode) .agenda-modal label,html:not(.light-mode) .agenda-modal p{color:#f8fafc!important}
+html:not(.light-mode) .agenda-modal input,html:not(.light-mode) .agenda-modal select,html:not(.light-mode) .agenda-modal textarea{background:#091d31!important;color:#f8fafc!important;border-color:#1a3c5b!important}
+
+:root.light-mode .statistics-view .work-order-meta-card{background:#fff!important;border-color:#dbe7f1!important;box-shadow:0 3px 12px rgba(15,23,42,.05)}
+:root.light-mode .statistics-view .work-order-meta-card h3{color:#0f172a!important}
+html:not(.light-mode) .statistics-view .work-order-meta-card{background:#0b2239!important;border-color:#1a3c5b!important}
+html:not(.light-mode) .statistics-view .work-order-meta-card h3{color:#f8fafc!important}
+
+/* Drawers: el tema vive en <html>, por lo que también alcanza paneles fijos. */
+.internal-chat-backdrop{align-items:flex-start;padding-top:72px}.internal-chat-drawer{height:auto;max-height:70vh}.internal-chat-contacts{flex:none;max-height:calc(70vh - 92px);overflow-y:auto}.notifications-drawer{top:72px;height:auto;max-height:70vh}.drawer-body{flex:none;max-height:calc(70vh - 82px);overflow-y:auto}
+html:not(.light-mode) .internal-chat-drawer{background:#0b2239;color:#f8fafc;box-shadow:-18px 0 45px rgba(0,0,0,.38)}html:not(.light-mode) .internal-chat-drawer>header{background:#091d31;border-color:#1a3c5b}html:not(.light-mode) .internal-chat-drawer h2,html:not(.light-mode) .chat-contact-copy b{color:#f8fafc}html:not(.light-mode) .internal-chat-drawer header button{background:#17324f;color:#e2edf7}html:not(.light-mode) .internal-chat-contacts>button{border-color:#1a3c5b}html:not(.light-mode) .internal-chat-contacts>button:hover{background:#102d49}html:not(.light-mode) .chat-contact-copy small,html:not(.light-mode) .internal-chat-active-contact small{color:#b8c9da}html:not(.light-mode) .chat-contact-avatar{background:#123d61;color:#bae6fd}html:not(.light-mode) .internal-chat-contacts i{border-color:#0b2239;box-shadow:0 0 0 1px #31506f}html:not(.light-mode) .internal-chat-messages{background:#091d31}html:not(.light-mode) .internal-chat-messages>div,html:not(.light-mode) .internal-chat-messages>div.received{background:#17324f;border-color:#285070}html:not(.light-mode) .internal-chat-messages>div.mine{background:#0369a1;border-color:#38bdf8}html:not(.light-mode) .internal-chat-messages p,html:not(.light-mode) .internal-chat-messages>div small,html:not(.light-mode) .internal-chat-empty{color:#f8fafc!important}html:not(.light-mode) .internal-chat-drawer form{background:#0b2239;border-color:#1a3c5b}html:not(.light-mode) .internal-chat-drawer input{background:#091d31;border-color:#31506f;color:#f8fafc}html:not(.light-mode) .internal-chat-drawer input::placeholder{color:#9db4cb}html:not(.light-mode) .internal-chat-confirm>div{background:#0b2239;color:#f8fafc}html:not(.light-mode) .internal-chat-confirm strong{color:#f8fafc}html:not(.light-mode) .internal-chat-confirm p{color:#b8c9da}
+html:not(.light-mode) .notifications-drawer,html:not(.light-mode) .notifications-drawer .notification-read{background:#0b2239!important;color:#e2edf7!important;border-left-color:#1a3c5b!important}html:not(.light-mode) .notifications-drawer .notification-unread{background:#102d49!important}html:not(.light-mode) .notifications-drawer .notification-read:hover,html:not(.light-mode) .notifications-drawer .notification-unread:hover{background:#173b5b!important}html:not(.light-mode) .notifications-drawer .text-slate-900,html:not(.light-mode) .notifications-drawer .text-slate-800{color:#f8fafc!important}html:not(.light-mode) .notifications-drawer .text-slate-500{color:#b8c9da!important}html:not(.light-mode) .notifications-drawer .border-slate-100,html:not(.light-mode) .notifications-drawer .border-slate-200{border-color:#1a3c5b!important}
+html:not(.light-mode) .dashboard-exchange-rate{background:#0d2942!important;border-color:#1d4f72!important;color:#dbeafe!important}html:not(.light-mode) .dashboard-exchange-rate p,html:not(.light-mode) .dashboard-exchange-rate small{color:#b8c9da!important}html:not(.light-mode) .dashboard-exchange-rate strong{color:#f8fafc!important}

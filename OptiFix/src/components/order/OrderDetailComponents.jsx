@@ -67,7 +67,7 @@ export function OrderStatusFlow({ order }) {
 
 export function OrderSummary({ order, onEditExternal, onEditResponsible, onToggleWarranty, onEditBudgetDecision, isUpdatingWarranty = false }) {
   const budgetDecision = order.decisionPresupuesto || "PENDIENTE";
-  const hasBudgetDecisionContext = Boolean(order.decisionPresupuesto || (order.presupuesto_conceptos || []).length || normalizeOrderStatus(order.estado_actual, order.etapa_categoria, order.fecha_entrega) === "COMUNICANDO PRESUPUESTO");
+  const hasBudgetDecisionContext = Boolean(order.decisionPresupuesto || normalizeOrderStatus(order.estado_actual, order.etapa_categoria, order.fecha_entrega) === "COMUNICANDO PRESUPUESTO");
   return <article className="order-summary-card">
     <header>
       <h2>Orden #{order.numero} <span className="external-reference">/ Ext. # {safeValue(order.referencia_externa, "Sin asignar")} <button type="button" onClick={onEditExternal} aria-label="Editar referencia externa" title="Editar referencia externa"><Icono nombre="edit" size={14} /></button></span></h2>

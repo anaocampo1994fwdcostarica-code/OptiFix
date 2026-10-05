@@ -154,6 +154,102 @@
       "notas": "Luz roja parpadea 6 veces"
     }
   ],
+  "marcas": [
+    "Samsung",
+    "LG",
+    "Sony",
+    "Panasonic",
+    "Philips",
+    "Toshiba",
+    "TCL",
+    "Hisense",
+    "Daewoo",
+    "Oster",
+    "Black & Decker",
+    "Whirlpool",
+    "Mabe",
+    "Acer",
+    "HP",
+    "Dell",
+    "Lenovo",
+    "Apple",
+    "Huawei",
+    "Xiaomi",
+    "Sharp",
+    "JVC",
+    "Pioneer",
+    "Haier",
+    "Midea",
+    "Electrolux",
+    "Bosch",
+    "Siemens"
+  ],
+  "modelos": [
+    {
+      "id": "modelo-sony-kd50x77l",
+      "nombre": "KD-50X77L",
+      "marcaNombre": "Sony",
+      "marcaId": "marca-sony"
+    },
+    {
+      "id": "modelo-sony-kd55x75k",
+      "nombre": "KD-55X75K",
+      "marcaNombre": "Sony",
+      "marcaId": "marca-sony"
+    },
+    {
+      "id": "modelo-sony-kd65x80l",
+      "nombre": "KD-65X80L",
+      "marcaNombre": "Sony",
+      "marcaId": "marca-sony"
+    }
+  ],
+  "accesorios": [
+    {
+      "id": "acc-cable-ac",
+      "nombre": "Cable AC"
+    },
+    {
+      "id": "acc-cable-hdmi",
+      "nombre": "Cable HDMI"
+    },
+    {
+      "id": "acc-cable-usb",
+      "nombre": "Cable USB"
+    },
+    {
+      "id": "acc-cable-usb-c",
+      "nombre": "Cable USB-C"
+    },
+    {
+      "id": "acc-control-remoto",
+      "nombre": "Control remoto"
+    },
+    {
+      "id": "acc-cargador",
+      "nombre": "Cargador"
+    },
+    {
+      "id": "acc-bateria",
+      "nombre": "Batería"
+    },
+    {
+      "id": "acc-base-mesa",
+      "nombre": "Base de mesa"
+    },
+    {
+      "id": "acc-antena",
+      "nombre": "Antena"
+    },
+    {
+      "id": "acc-memoria-usb",
+      "nombre": "Memoria USB"
+    },
+    {
+      "id": "acc-audifonos",
+      "nombre": "Audífonos"
+    }
+  ],
   "ordenes": [
     {
       "id": "ord-8785",
@@ -619,6 +715,122 @@
           "estado": "RECEPCIÓN",
           "realizado_por": "OptiFix",
           "detalle": "Ingreso a recepción"
+        }
+      ]
+    },
+    {
+      "id": "ord-8826",
+      "numero": 8826,
+      "token_seguimiento": "001ba238-f2fe-4c95-b241-ddf9259b57d7",
+      "cliente_id": "cli-1",
+      "equipo_id": "eq-1",
+      "referencia_externa": "",
+      "prioridad": "Normal",
+      "area": "Entrada",
+      "responsable": "",
+      "fecha_ingreso": "04/10/2026, 09:33 p. m. hs",
+      "fecha_entrega": null,
+      "fecha_prometida": null,
+      "estado_actual": "RECEPCIÓN",
+      "etapa_categoria": "ENTRADA",
+      "trabajo_solicitado": "No enciende",
+      "descripcion_estado": "rayado, manchado",
+      "diagnostico": "",
+      "accesorios": "Cable AC",
+      "garantia": true,
+      "presupuesto": 0,
+      "adelanto": 5000,
+      "presupuesto_conceptos": [
+        {
+          "id": "budget-1791171460646-po9yc",
+          "tipo": "Producto",
+          "descripcion": "tarjeta main",
+          "cantidad": 1,
+          "precio_unitario": 150000
+        }
+      ],
+      "presupuesto_aplica_iva": true,
+      "presupuesto_estado": "BORRADOR",
+      "productos_servicios": [],
+      "tareas": [
+        {
+          "id": "t-1791171199552-1",
+          "texto": "Inspección visual inicial",
+          "completada": false
+        }
+      ],
+      "notas": [
+        {
+          "id": "n-1791171199552",
+          "autor": "OptiFix",
+          "fecha": "04/10/2026, 09:33 p. m. hs",
+          "texto": "Ingreso de la orden de trabajo al sistema OptiFix."
+        },
+        {
+          "id": "n-1791171825298",
+          "autor": "Administrador OptiFix",
+          "fecha": "04/10/2026, 09:43 p. m. hs",
+          "texto": "Cambio de tarjeta principal"
+        }
+      ],
+      "archivos": [],
+      "linea_tiempo": [
+        {
+          "fecha": "04/10/2026, 09:33 p. m. hs",
+          "estado": "RECEPCIÓN",
+          "realizado_por": "OptiFix",
+          "detalle": "Creación de la orden e ingreso al taller."
+        }
+      ]
+    },
+    {
+      "id": "ord-8827",
+      "numero": 8827,
+      "token_seguimiento": "a407f3b7-583f-4619-8209-c2aa12b29d42",
+      "cliente_id": "cli-3",
+      "equipo_id": "eq-4",
+      "referencia_externa": "",
+      "prioridad": "Normal",
+      "area": "Entrada",
+      "responsable": "",
+      "fecha_ingreso": "04/10/2026, 10:26 p. m. hs",
+      "fecha_entrega": null,
+      "fecha_prometida": null,
+      "estado_actual": "RECEPCIÓN",
+      "etapa_categoria": "ENTRADA",
+      "trabajo_solicitado": "no conecta bluetooth",
+      "descripcion_estado": "rayada desgaste de uso",
+      "diagnostico": "",
+      "accesorios": "Cable AC",
+      "garantia": false,
+      "presupuesto": 0,
+      "adelanto": 5000,
+      "presupuesto_conceptos": [],
+      "presupuesto_aplica_iva": false,
+      "presupuesto_estado": "BORRADOR",
+      "productos_servicios": [],
+      "tareas": [
+        {
+          "id": "t-1791174364075-1",
+          "texto": "Inspección visual inicial",
+          "completada": false
+        }
+      ],
+      "notas": [
+        {
+          "id": "n-1791174364075",
+          "autor": "OptiFix",
+          "fecha": "04/10/2026, 10:26 p. m. hs",
+          "texto": "Ingreso de la orden de trabajo al sistema OptiFix."
+        }
+      ],
+      "archivos": [],
+      "linea_tiempo": [
+        {
+          "fecha": "04/10/2026, 10:26 p. m. hs",
+          "estado": "RECEPCIÓN",
+          "realizado_por": "OptiFix",
+          "detalle": "Creación de la orden e ingreso al taller."
         }
       ]
     }

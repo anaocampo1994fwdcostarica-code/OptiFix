@@ -35,7 +35,8 @@ export default function OrdenDetalle() {
     updateOrden,
     updateCliente,
     updateEquipo,
-    usuarios
+    usuarios,
+    addNotification
   } = useWorkshop();
 
   const tabStorageKey = `optifix_order_tab_${numero}`;
@@ -130,10 +131,17 @@ export default function OrdenDetalle() {
         : { [field]: value };
     if (field === "responsable" && value !== orden.responsable) {
       const now = new Date().toLocaleString("es-CR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }) + " hs";
-      changes.linea_tiempo = [...(orden.linea_tiempo || []), { fecha: now, estado: orden.estado_actual, realizado_por: user?.nombre || "OptiFix", detalle: `Responsable reasignado a ${value}` }];
+      changes.linea_tiempo = [...(orden.linea_tiempo || []), { fecha: now, estado: orden.estado_actual, realizado_por: user?.nombre || WORKSHOP_NAME, detalle: `Responsable reasignado a ${value}` }];
     }
     try {
       await updateOrden(orden.id, changes);
+      if (field === "responsable" && value !== orden.responsable) {
+        addNotification?.({
+          ordenNumero: orden.numero,
+          titulo: "Orden asignada a técnico",
+          descripcion: `La orden #${orden.numero} fue asignada a ${value}.`
+        });
+      }
       setEditField(null);
       setDetailToast("Cambios guardados correctamente.");
     } catch (error) {
@@ -161,6 +169,13 @@ export default function OrdenDetalle() {
     const now = new Date().toLocaleString("es-CR");
     try {
       await updateOrden(orden.id, { tareas: [...(orden.tareas || []), { id: `t-${Date.now()}`, texto: nuevaTareaTexto.trim(), asignado_a: orden.responsable && orden.responsable !== "OptiFix" ? orden.responsable : "Sin asignar", fecha: now, prioridad: "Normal", estado: "Pendiente", completada: false }] });
+      if (orden.responsable && orden.responsable !== "OptiFix") {
+        addNotification?.({
+          ordenNumero: orden.numero,
+          titulo: "Nueva tarea asignada",
+          descripcion: `Se asignó una tarea a ${orden.responsable} en la orden #${orden.numero}.`
+        });
+      }
       setNuevaTareaTexto("");
       setDetailToast("Tarea agregada correctamente.");
     } catch (error) { setDetailToast(error.message || "No se pudo guardar el cambio. Inténtalo nuevamente."); }
@@ -171,9 +186,9 @@ export default function OrdenDetalle() {
     if (!nuevaNotaTexto.trim()) return;
     const now = new Date().toLocaleString("es-CR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }) + " hs";
     try {
-      await updateOrden(orden.id, { notas: [...(orden.notas || []), { id: `n-${Date.now()}`, autor: user?.nombre || "OptiFix", fecha: now, texto: nuevaNotaTexto.trim() }] });
+      await updateOrden(orden.id, { notas: [...(orden.notas || []), { id: `n-${Date.now()}`, autor: user?.nombre || WORKSHOP_NAME, rol: user?.rol === "tecnico" ? "Técnico" : "Administrador", fecha: now, texto: nuevaNotaTexto.trim() }] });
       setNuevaNotaTexto("");
-      setDetailToast("Nota agregada correctamente.");
+      setDetailToast("Trabajo registrado correctamente.");
     } catch (error) { setDetailToast(error.message || "No se pudo guardar el cambio. Inténtalo nuevamente."); }
   };
 
@@ -228,6 +243,7 @@ export default function OrdenDetalle() {
     const now = new Date().toLocaleString("es-CR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }) + " hs";
     const changes = createBudgetDecisionChanges(orden, decision, comment, user?.nombre, now);
     await updateOrden(orden.id, changes);
+    addNotification?.({ ordenNumero: orden.numero, titulo: decision === "APROBADO" ? "Presupuesto aprobado" : "Presupuesto rechazado", descripcion: comment });
     setDetailToast(decision === "APROBADO" ? "Presupuesto aprobado correctamente." : "Presupuesto rechazado correctamente.");
   };
 
@@ -539,7 +555,7 @@ export default function OrdenDetalle() {
             {orden.linea_tiempo && orden.linea_tiempo.length > 0 && (
               <div style={{ fontSize: "11px", color: "var(--text-dim)" }}>
                 Último cambio de estado: {orden.linea_tiempo[orden.linea_tiempo.length - 1].fecha}.
-                Realizado por: {orden.linea_tiempo[orden.linea_tiempo.length - 1].realizado_por}
+                Realizado por: {orden.linea_tiempo[orden.linea_tiempo.length - 1].realizado_por === "OptiFix" ? WORKSHOP_NAME : (orden.linea_tiempo[orden.linea_tiempo.length - 1].realizado_por || WORKSHOP_NAME)}
               </div>
             )}
           </div>
@@ -572,7 +588,7 @@ export default function OrdenDetalle() {
           className={`order-tab-btn ${activeTab === "notas" ? "active" : ""}`}
           onClick={() => setActiveTab("notas")}
         >
-          Notas ({(orden.notas || []).length})
+          Trabajo realizado ({(orden.notas || []).length})
         </button>
         <button
           className={`order-tab-btn ${activeTab === "archivos" ? "active" : ""}`}
@@ -646,24 +662,24 @@ export default function OrdenDetalle() {
         </div>
       )}
 
-      {/* TAB 3: NOTAS */}
+      {/* TAB 3: TRABAJO REALIZADO */}
       {activeTab === "notas" && (
         <div className="work-order-meta-card">
           <h3 style={{ fontSize: "15px", color: "#ffffff", marginBottom: "14px" }}>
-            Bitácora de Notas y Comunicación
+            Trabajo realizado
           </h3>
 
           <form onSubmit={handleAddNotaSubmit} style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "20px" }}>
             <textarea
               className="form-textarea"
               rows="2"
-              placeholder="Redactar una nueva nota técnica o reporte para el expediente..."
+              placeholder="Describa el trabajo realizado en el equipo..."
               value={nuevaNotaTexto}
               onChange={(e) => setNuevaNotaTexto(e.target.value)}
             />
             <div style={{ display: "flex", justifyContent: "flex-end" }}>
               <button type="submit" className="btn-primary">
-                Guardar Nota
+                + Registrar trabajo
               </button>
             </div>
           </form>
@@ -679,12 +695,9 @@ export default function OrdenDetalle() {
                   padding: "12px 16px"
                 }}
               >
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "var(--text-dim)", marginBottom: "4px" }}>
-                  <strong style={{ color: "var(--accent-cyan)" }}>{n.autor}</strong>
-                  <span>📅 {n.fecha}</span>
-                </div>
-                <p style={{ color: "#ffffff", fontSize: "13px" }}>{n.texto}</p>
-                <div className="note-actions"><button type="button" onClick={() => setEditField({ field: `nota:${n.id}`, title: "Editar nota", label: "Contenido de la nota", value: n.texto || "" })} aria-label="Editar nota" title="Editar nota"><Icono nombre="edit" size={14} /></button><button type="button" onClick={() => updateOrden(orden.id, { notas: (orden.notas || []).filter((nota) => nota.id !== n.id) })} aria-label="Eliminar nota" title="Eliminar nota"><Icono nombre="trash" size={14} /></button></div>
+                <p style={{ color: "var(--text-main)", fontSize: "13px", fontWeight: 600 }}>{n.texto}</p>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "var(--text-muted)", marginTop: "10px" }}><span>{n.autor || WORKSHOP_NAME} · {n.rol || "Administrador"}</span><span>{n.fecha}</span></div>
+                {(user?.rol === "admin" || n.autor === user?.nombre) && <div className="note-actions"><button type="button" onClick={() => setEditField({ field: `nota:${n.id}`, title: "Editar trabajo realizado", label: "Trabajo realizado", value: n.texto || "" })} aria-label="Editar trabajo" title="Editar trabajo"><Icono nombre="edit" size={14} /></button><button type="button" onClick={() => updateOrden(orden.id, { notas: (orden.notas || []).filter((nota) => nota.id !== n.id) })} aria-label="Eliminar trabajo" title="Eliminar trabajo"><Icono nombre="trash" size={14} /></button></div>}
               </div>
             ))}
           </div>
@@ -770,9 +783,9 @@ export default function OrdenDetalle() {
                   <span style={{ fontSize: "11px", color: "var(--text-dim)" }}>{item.fecha}</span>
                 </div>
                 <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "2px" }}>
-                  Por: <strong>{item.realizado_por}</strong>
+                  Por: <strong>{item.realizado_por === "OptiFix" ? WORKSHOP_NAME : (item.realizado_por || WORKSHOP_NAME)}</strong>
                 </div>
-                <p style={{ fontSize: "13px", color: "#ffffff" }}>{item.detalle}</p>
+                {item.detalle && <p style={{ fontSize: "13px", color: "var(--text-main)" }}>{item.detalle}</p>}
               </div>
             ))}
           </div>
@@ -807,6 +820,7 @@ const PlantillaImpresion = React.forwardRef(function PlantillaImpresion({ datosO
     <header className="print-order-header"><div><strong>OptiFix</strong><span>{WORKSHOP_NAME}</span></div><div><h1>Orden de Servicio N° {orden?.numero || "Nueva"}</h1><span>Ext. # {orden?.referencia_externa || "Sin asignar"} · Fecha: {orden?.fecha_ingreso || "—"}</span></div></header>
     <section className="print-order-grid"><div><h2>Datos del cliente</h2><p><b>Nombre:</b> {cliente?.nombre || "—"}</p><p><b>Contacto:</b> {cliente?.telefono || "—"}</p><p><b>Email:</b> {cliente?.email || "—"}</p></div><div><h2>Datos del equipo</h2><p><b>Equipo:</b> {equipo?.tipo || "—"}</p><p><b>Modelo:</b> {[equipo?.marca, equipo?.modelo].filter(Boolean).join(" ") || "—"}</p><p><b>Serie:</b> {equipo?.serie || "—"}</p></div></section>
     <section className="print-order-work"><h2>Trabajo solicitado</h2><p>{orden?.trabajo_solicitado || "Sin detalle"}</p><p><b>Estado actual:</b> {orden?.estado_actual || "—"}</p><p><b>Responsable:</b> {orden?.responsable && orden.responsable !== "OptiFix" ? orden.responsable : "Sin asignar"}</p><p><b>Garantía:</b> {orden?.garantia ? "Con garantía" : "Sin garantía"}</p></section>
+    <section className="print-order-work"><h2>Trabajo realizado</h2>{orden?.notas?.length ? <ul>{orden.notas.map((nota) => <li key={nota.id}>{nota.texto}</li>)}</ul> : <p>Sin trabajo técnico registrado.</p>}</section>
     <table className="print-order-table"><thead><tr><th>Descripción</th><th>Cant.</th><th>Importe</th></tr></thead><tbody>{items?.length ? items.map((item) => <tr key={item.id}><td>{item.descripcion}</td><td>{item.cantidad}</td><td>₡ {Number(item.importe || 0).toFixed(2)}</td></tr>) : <tr><td colSpan="3">Sin productos o servicios registrados.</td></tr>}</tbody></table>
     <section className="print-order-attachments">
       <h2>Fotografías adjuntas del equipo</h2>

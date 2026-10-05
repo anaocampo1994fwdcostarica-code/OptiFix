@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import Icono from "../icons.jsx";
 import { useFocusTrap } from "../../hooks/useFocusTrap.js";
 import { formatColones, safeValue } from "./OrderDetailComponents.jsx";
+import { WORKSHOP_NAME } from "../../config/workshop.js";
 
 const CUSTOMER_FIELDS = [
   ["identificacion", "Cédula"], ["nombre", "Nombre completo"], ["email", "Correo electrónico", "email"],
@@ -54,7 +55,7 @@ export function createBudgetDecisionChanges(order, decision, comment, actor, tim
   const nextStatus = approved ? "EN TALLER" : "SIN REPARAR";
   const decisionLabel = approved ? "Presupuesto aprobado" : "Presupuesto rechazado";
   const evidence = String(comment || "").trim();
-  const performedBy = actor || "OptiFix";
+  const performedBy = actor || WORKSHOP_NAME;
   const historyEvent = {
     fecha: timestamp,
     estado_anterior: order.estado_actual,
@@ -92,7 +93,7 @@ export function createBudgetDecisionRevisionChanges(order, decision, comment, ac
   const previousDecision = order.decisionPresupuesto;
   const targetStatus = decision === "APROBADO" ? "EN TALLER" : "SIN REPARAR";
   const evidence = String(comment || "").trim();
-  const performedBy = actor || "OptiFix";
+  const performedBy = actor || WORKSHOP_NAME;
   const history = [...(order.linea_tiempo || []), {
     fecha: timestamp,
     estado_anterior: order.estado_actual,

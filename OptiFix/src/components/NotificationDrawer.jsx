@@ -5,10 +5,21 @@ import { useFocusTrap } from "../hooks/useFocusTrap.js";
 import { useNavigate } from "react-router-dom";
 
 function formatNotification(notification) {
-  const orderNumber = String(notification.mensaje || "").match(/\d{3,}/)?.[0];
+  const orderNumber = notification.ordenNumero || String(notification.mensaje || "").match(/\d{3,}/)?.[0];
   const isStatusChange = String(notification.titulo || "").toLowerCase().includes("cambio de estado");
+  const description = notification.descripcion || notification.mensaje || "Hay una actualización pendiente en esta orden.";
+  const parsedDate = notification.fecha ? new Date(notification.fecha) : null;
 
-  if (isStatusChange) return { title: notification.titulo, description: notification.mensaje, orderNumber, time: notification.fecha };
+  if (isStatusChange || notification.ordenNumero) {
+    return {
+      title: notification.titulo || `Orden #${orderNumber}`,
+      description,
+      orderNumber,
+      time: parsedDate && !Number.isNaN(parsedDate.getTime())
+        ? new Intl.DateTimeFormat("es-CR", { dateStyle: "short", timeStyle: "short" }).format(parsedDate)
+        : notification.fecha || "Hoy"
+    };
+  }
   return {
     title: `Cambio de estado: Orden #${orderNumber || "—"}`,
     description: "El equipo asociado pasó de ‘Recepción’ a ‘En Taller’.",

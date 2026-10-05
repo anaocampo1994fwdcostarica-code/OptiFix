@@ -7,7 +7,9 @@ import {
 import { useWorkshop } from "../context/WorkshopContext.jsx";
 import { useTranslation } from "react-i18next";
 
-const COLORS_PIE = ["#a3e635", "#0ea5e9", "#eab308", "#22c55e", "#8b5cf6"];
+// Paleta semántica estable: azul información, naranja pendiente, morado operación,
+// rojo incidencia y verde finalización; también se distingue con borde/patrón.
+const COLORS_PIE = ["#2563eb", "#f97316", "#7c3aed", "#dc2626", "#16a34a"];
 
 const CustomTooltip = ({ active, payload, label }) => {
   const { t } = useTranslation();
@@ -76,7 +78,7 @@ export default function EstadisticasView() {
   const tipoBarData = Object.entries(tipoCounts).map(([name, value]) => ({ name, value }));
 
   return (
-    <div className="page-container">
+    <div className="page-container statistics-view">
       {/* Header */}
       <div className="breadcrumb-nav">
         <span>{t("common.home")}</span><span>/</span>

@@ -26,7 +26,7 @@ describe("CambiarEstadoModal", () => {
 
     await waitFor(() => expect(onConfirmChange).toHaveBeenCalled());
     expect(onConfirmChange.mock.calls[0][1]).toBe("EN TALLER");
-    expect(onConfirmChange.mock.calls[0][3]).toBe("Cambio de ANÁLISIS TÉCNICO a EN TALLER");
+    expect(onConfirmChange.mock.calls[0][3]).toBe("");
   });
 
   it("muestra que se debe esperar la decisión durante la comunicación del presupuesto", () => {

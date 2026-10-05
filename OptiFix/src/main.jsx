@@ -8,6 +8,7 @@ import i18n from "./i18n.js";
 import { I18nextProvider } from "react-i18next";
 import { LanguageProvider } from "./context/LanguageContext.jsx";
 import "./index.css";
+import "./DarkModeFixes.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
