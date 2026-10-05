@@ -56,6 +56,9 @@ export default function OrdenDetalle() {
   const [entityEditor, setEntityEditor] = useState(null);
   const [isUpdatingWarranty, setIsUpdatingWarranty] = useState(false);
   const [isBudgetDecisionEditOpen, setIsBudgetDecisionEditOpen] = useState(false);
+  const [isWhatsappDialogOpen, setIsWhatsappDialogOpen] = useState(false);
+  const [whatsappMode, setWhatsappMode] = useState("actions");
+  const [whatsappMessage, setWhatsappMessage] = useState("");
   const componenteImprimirRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -115,6 +118,28 @@ export default function OrdenDetalle() {
   const handlePrint = () => {
     // Permite que React termine de pintar la orden antes de invocar el diálogo.
     reactToPrint();
+  };
+  const normalizeWhatsapp = (phone) => {
+    const digits = String(phone || "").replace(/\D/g, "");
+    if (!digits) return "";
+    return digits.startsWith("506") && digits.length >= 11 ? digits : digits.length === 8 ? `506${digits}` : "";
+  };
+  const openWhatsappDialog = () => {
+    const phone = normalizeWhatsapp(cliente?.telefono);
+    if (!phone) return setDetailToast(cliente?.telefono ? "El número de WhatsApp del cliente no es válido." : "No hay un número de WhatsApp registrado para este cliente.");
+    setWhatsappMessage(`Hola, ${cliente?.nombre || ""}. 👋\n\nLe informamos que su equipo ha sido registrado correctamente en ${WORKSHOP_NAME} con la orden N.º ${orden.numero}.\n\nLe mantendremos informado(a) sobre el avance de su servicio.\n\nGracias por confiar en nosotros.`);
+    setWhatsappMode("actions");
+    setIsWhatsappDialogOpen(true);
+  };
+  const openWhatsapp = (withPdf = false) => {
+    const phone = normalizeWhatsapp(cliente?.telefono);
+    if (!phone) return;
+    const message = withPdf
+      ? `Hola, ${cliente?.nombre || ""}.\n\nLe compartiremos el comprobante de su orden N.º ${orden.numero} de ${WORKSHOP_NAME}.\n\nEl documento se abrirá para imprimir o guardar como PDF. Por favor, adjúntelo manualmente en este chat.\n\nGracias por confiar en nosotros.`
+      : whatsappMessage;
+    if (withPdf) handlePrint();
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, "_blank", "noopener,noreferrer");
+    setIsWhatsappDialogOpen(false);
   };
 
   const handleDeleteOrden = async () => {
@@ -317,11 +342,11 @@ export default function OrdenDetalle() {
           </button>
           <button
             className="btn-outline-icon"
-            onClick={() => setActiveTab("notas")}
-            title="Comentarios / comunicación"
-            aria-label="Comentarios / comunicación"
+            onClick={openWhatsappDialog}
+            title="Enviar mensaje por WhatsApp"
+            aria-label="Enviar mensaje por WhatsApp"
           >
-            <Icono nombre="message" size={16} />
+            <Icono nombre="whatsapp" size={16} />
           </button>
           <button
             className="btn-outline-icon order-history-button"
@@ -696,7 +721,7 @@ export default function OrdenDetalle() {
                 }}
               >
                 <p style={{ color: "var(--text-main)", fontSize: "13px", fontWeight: 600 }}>{n.texto}</p>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "var(--text-muted)", marginTop: "10px" }}><span>{n.autor || WORKSHOP_NAME} · {n.rol || "Administrador"}</span><span>{n.fecha}</span></div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "var(--text-muted)", marginTop: "10px" }}><span>{["OptiFix", "Administrador OptiFix", "OptiFix Administrador"].includes(n.autor) ? WORKSHOP_NAME : (n.autor || WORKSHOP_NAME)} · {["OptiFix", "Administrador OptiFix", "OptiFix Administrador"].includes(n.autor) ? "Sistema" : (n.rol || "Administrador")}</span><span>{n.fecha}</span></div>
                 {(user?.rol === "admin" || n.autor === user?.nombre) && <div className="note-actions"><button type="button" onClick={() => setEditField({ field: `nota:${n.id}`, title: "Editar trabajo realizado", label: "Trabajo realizado", value: n.texto || "" })} aria-label="Editar trabajo" title="Editar trabajo"><Icono nombre="edit" size={14} /></button><button type="button" onClick={() => updateOrden(orden.id, { notas: (orden.notas || []).filter((nota) => nota.id !== n.id) })} aria-label="Eliminar trabajo" title="Eliminar trabajo"><Icono nombre="trash" size={14} /></button></div>}
               </div>
             ))}
@@ -796,6 +821,33 @@ export default function OrdenDetalle() {
       {entityEditor && <EntityEditModal kind={entityEditor} entity={entityEditor === "customer" ? cliente : equipo} onClose={() => setEntityEditor(null)} onSave={saveEntity} />}
       {editField && <EditOrderFieldModal title={editField.title} label={editField.label} value={editField.value} type={editField.type} options={editField.options} onClose={() => setEditField(null)} onSave={(value) => saveOrderField(editField.field, value)} />}
       {isBudgetDecisionEditOpen && <BudgetDecisionEditModal order={orden} onClose={() => setIsBudgetDecisionEditOpen(false)} onSave={handleBudgetDecisionRevision} />}
+      {isWhatsappDialogOpen && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/50 p-4" onMouseDown={() => setIsWhatsappDialogOpen(false)}>
+          <section className="whatsapp-dialog w-full max-w-lg rounded-2xl p-6 shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="whatsapp-order-title" onMouseDown={(event) => event.stopPropagation()}>
+            <header className="flex items-start justify-between gap-4">
+              <div>
+                <h2 id="whatsapp-order-title" className="text-lg font-bold">Enviar por WhatsApp</h2>
+                <p className="mt-1 text-sm">{cliente?.nombre || "Cliente"} · +{normalizeWhatsapp(cliente?.telefono)}</p>
+              </div>
+              <button type="button" onClick={() => setIsWhatsappDialogOpen(false)} aria-label="Cerrar">×</button>
+            </header>
+            <div className="whatsapp-order-summary mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm">
+              <p><strong>Orden:</strong> N.º {orden.numero}</p>
+              <p className="mt-1"><strong>Equipo:</strong> {equipo?.marca || equipo?.tipo || "Sin registrar"} {equipo?.modelo || ""}</p>
+            </div>
+            {whatsappMode === "actions" && <p className="mt-5 text-sm">Selecciona cómo deseas comunicarte con el cliente.</p>}
+            {whatsappMode === "message" && <label className="mt-5 grid gap-1 text-sm font-semibold">Mensaje a enviar<textarea rows="7" value={whatsappMessage} onChange={(event) => setWhatsappMessage(event.target.value)} /></label>}
+            {whatsappMode === "pdf" && <p className="mt-5 text-sm">Se abrirá el comprobante para imprimir o guardar como PDF. WhatsApp no permite adjuntar automáticamente archivos locales; podrás adjuntarlo manualmente al abrir el chat.</p>}
+            <footer className="mt-6 flex flex-wrap justify-end gap-3">
+              <button type="button" onClick={() => setIsWhatsappDialogOpen(false)}>Cancelar</button>
+              {whatsappMode !== "actions" && <button type="button" onClick={() => setWhatsappMode("actions")}>Volver</button>}
+              {whatsappMode === "actions" && <><button type="button" onClick={() => setWhatsappMode("message")}>Enviar mensaje</button><button type="button" onClick={() => setWhatsappMode("pdf")}>Enviar orden en PDF</button></>}
+              {whatsappMode === "message" && <button type="button" disabled={!whatsappMessage.trim()} onClick={() => openWhatsapp(false)}>Abrir WhatsApp</button>}
+              {whatsappMode === "pdf" && <button type="button" onClick={() => openWhatsapp(true)}>Preparar PDF y abrir WhatsApp</button>}
+            </footer>
+          </section>
+        </div>
+      )}
       {detailToast && <div className="order-detail-toast" role="status" aria-live="polite"><span aria-hidden="true">✓</span>{detailToast}</div>}
 
       <CambiarEstadoModal
@@ -820,7 +872,7 @@ const PlantillaImpresion = React.forwardRef(function PlantillaImpresion({ datosO
     <header className="print-order-header"><div><strong>OptiFix</strong><span>{WORKSHOP_NAME}</span></div><div><h1>Orden de Servicio N° {orden?.numero || "Nueva"}</h1><span>Ext. # {orden?.referencia_externa || "Sin asignar"} · Fecha: {orden?.fecha_ingreso || "—"}</span></div></header>
     <section className="print-order-grid"><div><h2>Datos del cliente</h2><p><b>Nombre:</b> {cliente?.nombre || "—"}</p><p><b>Contacto:</b> {cliente?.telefono || "—"}</p><p><b>Email:</b> {cliente?.email || "—"}</p></div><div><h2>Datos del equipo</h2><p><b>Equipo:</b> {equipo?.tipo || "—"}</p><p><b>Modelo:</b> {[equipo?.marca, equipo?.modelo].filter(Boolean).join(" ") || "—"}</p><p><b>Serie:</b> {equipo?.serie || "—"}</p></div></section>
     <section className="print-order-work"><h2>Trabajo solicitado</h2><p>{orden?.trabajo_solicitado || "Sin detalle"}</p><p><b>Estado actual:</b> {orden?.estado_actual || "—"}</p><p><b>Responsable:</b> {orden?.responsable && orden.responsable !== "OptiFix" ? orden.responsable : "Sin asignar"}</p><p><b>Garantía:</b> {orden?.garantia ? "Con garantía" : "Sin garantía"}</p></section>
-    <section className="print-order-work"><h2>Trabajo realizado</h2>{orden?.notas?.length ? <ul>{orden.notas.map((nota) => <li key={nota.id}>{nota.texto}</li>)}</ul> : <p>Sin trabajo técnico registrado.</p>}</section>
+    <section className="print-order-work"><h2>Trabajo realizado</h2>{orden?.notas?.length ? <ul>{orden.notas.map((nota) => <li key={nota.id}><b>{nota.texto === "Ingreso de la orden de trabajo al sistema OptiFix." ? "Orden de trabajo registrada." : nota.texto}</b><br /><small>Realizado por: {["OptiFix", "Administrador OptiFix", "OptiFix Administrador"].includes(nota.autor) ? WORKSHOP_NAME : (nota.autor || WORKSHOP_NAME)} · {["OptiFix", "Administrador OptiFix", "OptiFix Administrador"].includes(nota.autor) ? "Sistema" : (nota.rol || "Administrador")} · {nota.fecha || "—"}</small></li>)}</ul> : <p>Sin trabajo técnico registrado.</p>}</section>
     <table className="print-order-table"><thead><tr><th>Descripción</th><th>Cant.</th><th>Importe</th></tr></thead><tbody>{items?.length ? items.map((item) => <tr key={item.id}><td>{item.descripcion}</td><td>{item.cantidad}</td><td>₡ {Number(item.importe || 0).toFixed(2)}</td></tr>) : <tr><td colSpan="3">Sin productos o servicios registrados.</td></tr>}</tbody></table>
     <section className="print-order-attachments">
       <h2>Fotografías adjuntas del equipo</h2>

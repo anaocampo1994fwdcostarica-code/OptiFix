@@ -26,9 +26,16 @@ function colorAvatar(nombre = "") {
   return AVATAR_PALETTE[Math.abs(hash) % AVATAR_PALETTE.length];
 }
 
+function normalizeCostaRicaPhone(phone = "") {
+  const digits = String(phone).replace(/\D/g, "");
+  if (!digits) return "";
+  if (digits.startsWith("506") && digits.length >= 11) return digits;
+  return digits.length === 8 ? `506${digits}` : digits;
+}
+
 export default function ClientesView() {
   const { t } = useTranslation();
-  const { clientes, ordenes, equipos, addCliente, updateCliente, deleteCliente } = useWorkshop();
+  const { clientes, ordenes, equipos, addCliente, updateCliente, deleteCliente, updateOrden } = useWorkshop();
   const [searchTerm, setSearchTerm] = useState("");
   const [tab, setTab] = useState("TODOS");
   const [page, setPage] = useState(1);
@@ -37,6 +44,7 @@ export default function ClientesView() {
   const [deleteDialog, setDeleteDialog] = useState(null);
   const [toast, setToast] = useState("");
   const [deletedDemoIds, setDeletedDemoIds] = useState([]);
+  const [whatsappClient, setWhatsappClient] = useState(null);
   useEffect(() => {
     if (!toast) return undefined;
     const timer = window.setTimeout(() => setToast(""), 3000);
@@ -107,6 +115,19 @@ export default function ClientesView() {
       setDeleteDialog(null);
       setToast(error.message || t("clients.deleteError"));
     }
+  };
+
+  const prepareWhatsapp = async ({ order, text, mode }) => {
+    if (!whatsappClient) return;
+    const phone = normalizeCostaRicaPhone(whatsappClient.telefono);
+    if (!phone) return;
+    const message = text.trim();
+    if (order) {
+      const timeline = [...(order.linea_tiempo || []), { fecha: new Date().toLocaleString("es-CR"), estado: order.estado_actual, realizado_por: "Taller Servicios Electrónicos CR", detalle: mode === "pdf" ? "Documento preparado para compartir por WhatsApp." : "Información preparada para compartir por WhatsApp." }];
+      try { await updateOrden(order.id, { linea_tiempo: timeline }); } catch { /* El enlace funciona incluso sin conexión local. */ }
+    }
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, "_blank", "noopener,noreferrer");
+    setWhatsappClient(null);
   };
 
   return (
@@ -256,17 +277,15 @@ export default function ClientesView() {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <a
-                            href={c.telefono ? `https://wa.me/${c.telefono.replace(/\D/g, "")}` : "#"}
-                            target={c.telefono ? "_blank" : "_self"}
-                            rel="noreferrer"
+                          <button
+                            type="button"
                             className={`p-2 rounded-lg transition-colors ${c.telefono ? 'text-emerald-600 hover:bg-emerald-50' : 'text-slate-300 cursor-not-allowed'}`}
-                            title="WhatsApp"
+                            title={c.telefono ? "Enviar por WhatsApp" : "Este cliente no tiene un número de WhatsApp registrado."}
                             aria-label={`WhatsApp: ${c.nombre}`}
-                            onClick={(e) => { if (!c.telefono) e.preventDefault(); }}
+                            onClick={() => c.telefono && setWhatsappClient(c)}
                           >
                             <Icono nombre="whatsapp" size={18} />
-                          </a>
+                          </button>
                           <button
                             className="p-2 text-slate-400 hover:text-optifix-600 hover:bg-optifix-50 rounded-lg transition-colors"
                             onClick={() => handleOpenEdit(c)}
@@ -321,9 +340,23 @@ export default function ClientesView() {
         clienteToEdit={clienteToEdit}
       />
       {deleteDialog && <DeleteClienteDialog dialog={deleteDialog} onClose={() => setDeleteDialog(null)} onConfirm={confirmDeleteCliente} />}
+      {whatsappClient && <WhatsappDialog client={whatsappClient} orders={ordenes.filter((order) => order.cliente_id === whatsappClient.id)} equipos={equipos} onClose={() => setWhatsappClient(null)} onPrepare={prepareWhatsapp} />}
       {toast && <div role="status" aria-live="polite" aria-atomic="true" className={`fixed z-[100] right-5 bottom-5 rounded-xl border-2 px-4 py-3 text-sm font-semibold text-white shadow-lg ${toast === t("clients.deleted") ? "border-emerald-900 bg-emerald-700" : "border-red-950 bg-red-700"}`}><span aria-hidden="true" className="mr-2">{toast === t("clients.deleted") ? "✓" : "!"}</span>{toast}</div>}
     </div>
   );
+}
+
+function WhatsappDialog({ client, orders, equipos, onClose, onPrepare }) {
+  const dialogRef = useFocusTrap(true, onClose);
+  const [mode, setMode] = useState("order");
+  const [orderId, setOrderId] = useState(orders[0]?.id || "");
+  const [custom, setCustom] = useState("");
+  const selected = orders.find((order) => order.id === orderId);
+  const equipment = equipos.find((item) => item.id === selected?.equipo_id);
+  const phone = normalizeCostaRicaPhone(client.telefono);
+  const info = selected ? `Hola ${client.nombre} 👋\n\nLe compartimos información de su orden de servicio técnico.\n\nOrden: #${selected.numero}\nEquipo: ${equipment?.marca || equipment?.tipo || "Sin registrar"}\nModelo: ${equipment?.modelo || "Sin modelo"}\nSerie: ${equipment?.serie || "Sin serie"}\nEstado actual: ${selected.estado_actual}\n\nTaller Servicios Electrónicos CR\n\nEste mensaje fue generado desde OptiFix.` : "";
+  const message = mode === "custom" ? custom : mode === "pdf" ? `${info}\n\nSe preparó el PDF de la orden. Adjuntalo manualmente desde WhatsApp.` : info;
+  return <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/50 p-4" onMouseDown={onClose}><section ref={dialogRef} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="whatsapp-title" onMouseDown={(event) => event.stopPropagation()} className="whatsapp-dialog w-full max-w-lg rounded-2xl p-6 shadow-2xl"><header className="flex items-start justify-between gap-4"><div><h2 id="whatsapp-title" className="text-lg font-bold">Enviar por WhatsApp</h2><p className="mt-1 text-sm">{client.nombre} · +{phone}</p></div><button type="button" onClick={onClose} aria-label="Cerrar">×</button></header><fieldset className="mt-5 grid gap-2"><legend className="text-sm font-semibold">¿Qué deseas enviar?</legend>{[["order","Información de una orden"],["pdf","Documento/PDF de una orden"],["custom","Mensaje personalizado"]].map(([value,label]) => <label key={value} className="flex items-center gap-2 text-sm"><input type="radio" checked={mode === value} onChange={() => setMode(value)} />{label}</label>)}</fieldset>{mode !== "custom" && <label className="mt-4 grid gap-1 text-sm font-semibold">Orden asociada<select value={orderId} onChange={(event) => setOrderId(event.target.value)} disabled={!orders.length}>{orders.length ? orders.map((order) => <option key={order.id} value={order.id}>Orden #{order.numero} · {order.estado_actual}</option>) : <option value="">No hay órdenes asociadas</option>}</select></label>}{mode === "custom" && <label className="mt-4 grid gap-1 text-sm font-semibold">Mensaje<textarea rows="4" value={custom} onChange={(event) => setCustom(event.target.value)} placeholder="Escriba el mensaje..." /></label>}{mode === "pdf" && <p className="mt-3 text-xs">WhatsApp Web no adjunta archivos locales automáticamente. Se abrirá el mensaje y podrás adjuntar el PDF descargado.</p>}<footer className="mt-6 flex justify-end gap-3"><button type="button" onClick={onClose}>Cancelar</button><button type="button" disabled={!phone || (mode !== "custom" && !selected) || (mode === "custom" && !custom.trim())} onClick={() => onPrepare({ order: selected, text: message, mode })}>Abrir WhatsApp</button></footer></section></div>;
 }
 
 function DeleteClienteDialog({ dialog, onClose, onConfirm }) {

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useRef } from "react";
 import initialData from "../../db.json";
 import {
   listarOrdenes,
@@ -41,12 +41,25 @@ const LEGACY_WORKSHOP_NAME = /T2K\s+SERVICIOS\s+ELECTR(?:ÓNICOS|ONICOS|Ã“NIC
  * notas, comprobantes o líneas de tiempo creadas antes del cambio de marca.
  */
 function migrateWorkshopName(value) {
-  if (typeof value === "string") return value.replace(LEGACY_WORKSHOP_NAME, WORKSHOP_NAME);
+  if (typeof value === "string") {
+    if (/^Ingreso de la orden de trabajo al sistema OptiFix\.?$/i.test(value.trim())) return "Orden de trabajo registrada.";
+    return value.replace(LEGACY_WORKSHOP_NAME, WORKSHOP_NAME);
+  }
   if (Array.isArray(value)) return value.map(migrateWorkshopName);
   if (value && typeof value === "object") {
-    return Object.fromEntries(
+    const migrated = Object.fromEntries(
       Object.entries(value).map(([key, nestedValue]) => [key, migrateWorkshopName(nestedValue)])
     );
+    // Solo normaliza autorías históricas; OptiFix continúa siendo la marca de la plataforma.
+    if (migrated.autor === "OptiFix" || migrated.autor === "Administrador OptiFix" || migrated.autor === "OptiFix Administrador") {
+      migrated.autor = WORKSHOP_NAME;
+      migrated.rol = "Sistema";
+    }
+    if (migrated.realizado_por === "OptiFix" || migrated.realizado_por === "Administrador OptiFix" || migrated.realizado_por === "OptiFix Administrador") {
+      migrated.realizado_por = WORKSHOP_NAME;
+      migrated.rol = "Sistema";
+    }
+    return migrated;
   }
   return value;
 }
@@ -114,6 +127,11 @@ export function WorkshopProvider({ children }) {
     localStorage.setItem(DEMO_CLIENTS_SEEDED_KEY, "true");
     return migrateWorkshopName({ ...initialData, marcas: MARCAS_SEED, modelos: [], accesorios: [], usuarios: USUARIOS_SEED });
   });
+  // Evita que una carga inicial lenta reemplace un POST que ya fue confirmado.
+  const catalogVersionsRef = useRef({ clientes: 0, equipos: 0, marcas: 0, modelos: 0, accesorios: 0 });
+  const markCatalogMutation = (resource) => {
+    catalogVersionsRef.current[resource] = (catalogVersionsRef.current[resource] || 0) + 1;
+  };
 
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem("optifix_theme") || "dark";
@@ -202,6 +220,7 @@ export function WorkshopProvider({ children }) {
         ["servicios", listarServicios], ["cotizaciones", listarCotizaciones], ["marcas", listarMarcas],
         ["modelos", listarModelos], ["accesorios", listarAccesorios],
       ];
+      const versionsAtRequest = Object.fromEntries(recursos.map(([resource]) => [resource, catalogVersionsRef.current[resource] || 0]));
       const resultados = await Promise.allSettled(recursos.map(([, listar]) => listar()));
       if (cancelled) return;
       // El servidor puede haberse iniciado antes de actualizar db.json. Sincronizamos
@@ -220,8 +239,9 @@ export function WorkshopProvider({ children }) {
       setData((prev) => {
         const siguiente = { ...prev };
         resultados.forEach((resultado, indice) => {
-          if (resultado.status === "fulfilled" && Array.isArray(resultado.value)) {
-            siguiente[recursos[indice][0]] = migrateWorkshopName(resultado.value);
+          const resource = recursos[indice][0];
+          if (resultado.status === "fulfilled" && Array.isArray(resultado.value) && (catalogVersionsRef.current[resource] || 0) === versionsAtRequest[resource]) {
+            siguiente[resource] = migrateWorkshopName(resultado.value);
           }
         });
         return siguiente;
@@ -263,14 +283,16 @@ export function WorkshopProvider({ children }) {
       return existente;
     }
 
-    const nuevaMarca = { id: `marca-${Date.now()}`, nombre: normalizado };
+    // JSON Server asigna el identificador real al confirmar el POST.
+    const nuevaMarca = { nombre: normalizado };
     try {
       const remota = await crearMarcaEnServidor(nuevaMarca);
+      markCatalogMutation("marcas");
       setData((prev) => ({ ...prev, marcas: [remota, ...(prev.marcas || []).filter((m) => catalogNameFromEntry(m) !== normalizeCatalogValue(remota.nombre))] }));
       return remota;
     } catch (error) {
-      setData((prev) => ({ ...prev, marcas: [nuevaMarca, ...(prev.marcas || []).filter((m) => catalogNameFromEntry(m) !== normalizado)] }));
-      return nuevaMarca;
+      console.error("Error creando marca en la API", error);
+      throw error;
     }
   };
 
@@ -285,20 +307,23 @@ export function WorkshopProvider({ children }) {
     });
     if (compact) return compact;
 
+    const marca = (data.marcas || []).find((item) => catalogMatch(item, marcaNombre));
+    // El catálogo original usa marcas como texto; solo se envía marcaId si la API
+    // realmente devolvió una marca con identificador.
     const nueva = {
-      id: `modelo-${Date.now()}`,
       nombre,
       marcaNombre,
-      marcaId: (data.marcas || []).find((marca) => catalogMatch(marca, marcaNombre))?.id || `marca-${Date.now()}`
+      ...(marca && typeof marca === "object" && marca.id ? { marcaId: marca.id } : {})
     };
 
     try {
       const remoto = await crearModeloEnServidor(nueva);
+      markCatalogMutation("modelos");
       setData((prev) => ({ ...prev, modelos: [remoto, ...(prev.modelos || []).filter((modelo) => !(modelo?.nombre === remoto.nombre && normalizeCatalogKey(modelo?.marcaNombre || "") === normalizeCatalogKey(remoto.marcaNombre || "")))] }));
       return remoto;
     } catch (error) {
-      setData((prev) => ({ ...prev, modelos: [nueva, ...(prev.modelos || []).filter((modelo) => !(modelo?.nombre === nombre && normalizeCatalogKey(modelo?.marcaNombre || "") === normalizeCatalogKey(marcaNombre)))] }));
-      return nueva;
+      console.error("Error creando modelo en la API", error);
+      throw error;
     }
   };
 
@@ -392,9 +417,7 @@ export function WorkshopProvider({ children }) {
 
   // ── CLIENTES CRUD ─────────────────────────────────────────────────────────────
   const addCliente = (clienteData) => {
-    const newId = `cli-${Date.now()}`;
     const nuevo = {
-      id: newId,
       tipo_cliente: clienteData.tipo_cliente || "Persona",
       identificacion: clienteData.identificacion || "",
       nombre: clienteData.nombre || "",
@@ -410,9 +433,14 @@ export function WorkshopProvider({ children }) {
       setData((prev) => ({ ...prev, clientes: [nuevo, ...prev.clientes] }));
       return nuevo;
     }
+    console.log("Payload cliente:", nuevo);
     return crearClienteEnServidor(nuevo).then((creado) => {
+      markCatalogMutation("clientes");
       setData((prev) => ({ ...prev, clientes: [creado, ...prev.clientes.filter((cliente) => cliente.id !== creado.id)] }));
       return creado;
+    }).catch((error) => {
+      console.error("Error creando cliente en la API", error);
+      throw error;
     });
   };
 
@@ -434,9 +462,7 @@ export function WorkshopProvider({ children }) {
 
   // ── EQUIPOS CRUD ──────────────────────────────────────────────────────────────
   const addEquipo = (equipoData) => {
-    const newId = `eq-${Date.now()}`;
     const nuevo = {
-      id: newId,
       cliente_id: equipoData.cliente_id || "",
       tipo: equipoData.tipo || "Artículo",
       marca: equipoData.marca || "",
@@ -451,9 +477,14 @@ export function WorkshopProvider({ children }) {
       setData((prev) => ({ ...prev, equipos: [nuevo, ...prev.equipos] }));
       return nuevo;
     }
+    console.log("Payload equipo:", nuevo);
     return crearEquipoEnServidor(nuevo).then((creado) => {
+      markCatalogMutation("equipos");
       setData((prev) => ({ ...prev, equipos: [creado, ...prev.equipos.filter((equipo) => equipo.id !== creado.id)] }));
       return creado;
+    }).catch((error) => {
+      console.error("Error creando equipo en la API", error);
+      throw error;
     });
   };
 

@@ -62,6 +62,123 @@
       "telefono": "89907890",
       "direccion": "Belén, Heredia",
       "notas": "Cliente de prueba sin órdenes activas."
+    },
+    {
+      "id": "cli-1791178013658",
+      "tipo_cliente": "Persona",
+      "identificacion": "201670721",
+      "nombre": "Ana Ocampo",
+      "apellido": "",
+      "email": "anaocampo1994fwdcostarica@gmail.com",
+      "telefono": "84229991",
+      "correos": [],
+      "telefonos": [],
+      "direccion": "",
+      "notas": ""
+    },
+    {
+      "id": "cli-1791178056254",
+      "tipo_cliente": "Persona",
+      "identificacion": "201670721",
+      "nombre": "Ana Ocampo",
+      "apellido": "",
+      "email": "anaocampo1994fwdcostarica@gmail.com",
+      "telefono": "8422991",
+      "correos": [],
+      "telefonos": [],
+      "direccion": "",
+      "notas": ""
+    },
+    {
+      "id": "cli-1791179686801",
+      "tipo_cliente": "Persona",
+      "identificacion": "201670721",
+      "nombre": "Ana Ocampo",
+      "apellido": "",
+      "email": "anaocampo1994fwdcostarica@gmail.com",
+      "telefono": "84229991",
+      "correos": [],
+      "telefonos": [],
+      "direccion": "",
+      "notas": ""
+    },
+    {
+      "id": "cli-1791179730716",
+      "tipo_cliente": "Persona",
+      "identificacion": "207210167",
+      "nombre": "Ana Ocampo",
+      "apellido": "",
+      "email": "anaocampo1994fwdcostarica@gmail.com",
+      "telefono": "8422991",
+      "correos": [],
+      "telefonos": [],
+      "direccion": "",
+      "notas": ""
+    },
+    {
+      "id": "cli-1791180968036",
+      "tipo_cliente": "Persona",
+      "identificacion": "201670721",
+      "nombre": "Ana Ocampo",
+      "apellido": "",
+      "email": "",
+      "telefono": "84229991",
+      "correos": [],
+      "telefonos": [],
+      "direccion": "",
+      "notas": ""
+    },
+    {
+      "tipo_cliente": "Persona",
+      "identificacion": "201670721",
+      "nombre": "Ana Ocampo",
+      "apellido": "",
+      "email": "",
+      "telefono": "84229991",
+      "correos": [],
+      "telefonos": [],
+      "direccion": "",
+      "notas": "",
+      "id": "Gkhcgen"
+    },
+    {
+      "tipo_cliente": "Persona",
+      "identificacion": "201670721",
+      "nombre": "Ana Ocampo",
+      "apellido": "",
+      "email": "",
+      "telefono": "84229991",
+      "correos": [],
+      "telefonos": [],
+      "direccion": "",
+      "notas": "",
+      "id": "PYOUIhb"
+    },
+    {
+      "tipo_cliente": "Persona",
+      "identificacion": "201670721",
+      "nombre": "Ana Ocampo",
+      "apellido": "",
+      "email": "",
+      "telefono": "84229991",
+      "correos": [],
+      "telefonos": [],
+      "direccion": "",
+      "notas": "",
+      "id": "6UtZR_m"
+    },
+    {
+      "tipo_cliente": "Persona",
+      "identificacion": "201670721",
+      "nombre": "Ana Ocampo",
+      "apellido": "",
+      "email": "",
+      "telefono": "84229991",
+      "correos": [],
+      "telefonos": [],
+      "direccion": "",
+      "notas": "",
+      "id": "vVEBCez"
     }
   ],
   "equipos": [
@@ -186,22 +303,44 @@
   ],
   "modelos": [
     {
-      "id": "modelo-sony-kd50x77l",
-      "nombre": "KD-50X77L",
-      "marcaNombre": "Sony",
-      "marcaId": "marca-sony"
+      "id": "modelo-seed-1",
+      "nombre": "XBR-55X930D",
+      "marcaNombre": "Sony"
     },
     {
-      "id": "modelo-sony-kd55x75k",
-      "nombre": "KD-55X75K",
-      "marcaNombre": "Sony",
-      "marcaId": "marca-sony"
+      "id": "modelo-seed-2",
+      "nombre": "OGJ41101",
+      "marcaNombre": "Oster"
     },
     {
-      "id": "modelo-sony-kd65x80l",
-      "nombre": "KD-65X80L",
-      "marcaNombre": "Sony",
-      "marcaId": "marca-sony"
+      "id": "modelo-seed-3",
+      "nombre": "NO TRAE MODELO",
+      "marcaNombre": "YORKVILLE"
+    },
+    {
+      "id": "modelo-seed-4",
+      "nombre": "MHC-V44C",
+      "marcaNombre": "Sony"
+    },
+    {
+      "id": "modelo-seed-5",
+      "nombre": "DRC-HC36",
+      "marcaNombre": "Sony"
+    },
+    {
+      "id": "modelo-seed-6",
+      "nombre": "LBT-N250",
+      "marcaNombre": "Sony"
+    },
+    {
+      "id": "modelo-seed-7",
+      "nombre": "NN-SB428SRUH",
+      "marcaNombre": "Panasonic"
+    },
+    {
+      "id": "modelo-seed-8",
+      "nombre": "KDL-40EX720",
+      "marcaNombre": "Sony"
     }
   ],
   "accesorios": [
